@@ -10,9 +10,9 @@
 此區塊記錄專案結構、環境變數、Lint、TypeScript 等基礎設置任務。
 -->
 - [x] 建立專案結構
-- [ ] 設定版本控制（Git）
-- [ ] 設定開發環境變數
-- [ ] 設定 ESLint 和 Prettier
+- [x] 設定版本控制（Git，已初始化、設置 .gitignore、首次 commit 並推送到 GitHub）
+- [x] 設定開發環境變數
+- [x] 設定 ESLint 和 Prettier
 - [x] 設定 TypeScript 配置
 
 ## 2. 前端開發

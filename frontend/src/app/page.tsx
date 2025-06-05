@@ -2,7 +2,6 @@
 import Link from "next/link";
 import Image from "next/image";
 
-
 // 商品列表資料來源由 API 取得
 interface Product {
   id: string;
@@ -14,20 +13,18 @@ interface Product {
   style: string;
 }
 
-import React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function Home() {
   // Banner 圖片路徑
-  const [bannerUrl, setBannerUrl] = useState("/forest-banner.jpg");
+  const [bannerUrl] = useState("/forest-banner.jpg");
   // 篩選狀態
-  const [category, setCategory] = React.useState("");
-  const [price, setPrice] = React.useState("");
-  const [style, setStyle] = React.useState("");
-  const [products, setProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [style, setStyle] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // 取得商品資料
   React.useEffect(() => {
@@ -62,8 +59,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Banner 區塊全寬 */}
-      <section className="w-full min-h-[18vh] sm:min-h-[32vh] shadow-md border-0 mb-12">
-        <img src={bannerUrl} alt="banner" className="w-full h-full min-h-[18vh] sm:min-h-[32vh] object-cover rounded-none" />
+      <section className="w-full relative h-[32vh] shadow-md border-0 mb-12">
+        <Image
+          src={bannerUrl}
+          alt="banner"
+          fill
+          priority
+          className="object-cover rounded-none"
+          sizes="100vw"
+        />
       </section>
       <div className="max-w-7xl mx-auto px-4 pt-0 pb-14">
 
@@ -106,36 +110,44 @@ export default function Home() {
             </select>
           </div>
         </section>
-        {/* 商品列表 */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-          {filteredProducts.length === 0 && (
-            <div className="col-span-full text-center text-gray-400 py-12 text-lg">查無符合條件的商品</div>
-          )}
-          {filteredProducts.map((p) => (
-            <Link
-              key={p.id}
-              href={`/product/${p.id}`}
-              className="block group rounded-lg shadow-md bg-white border border-gray-100 hover:shadow-xl transition overflow-hidden"
-              style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
-            >
-              <div className="relative w-full aspect-square bg-gray-50">
-                <Image
-                  src={p.cover}
-                  alt={p.name}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="transition group-hover:scale-105 duration-300"
-                />
-              </div>
-              <div className="p-5 flex flex-col gap-2">
-                <div className="font-semibold text-lg text-gray-900 line-clamp-1">{p.name}</div>
-                <div className="font-bold text-xl" style={{ color: '#222' }}>${p.price}</div>
-                <div className="text-gray-500 text-base line-clamp-2 min-h-[2.5em]">{p.description}</div>
-              </div>
-            </Link>
-          ))}
-        </section>
+        {/* 商品列表前顯示 loading/error 狀態 */}
+        {loading && (
+          <div className="text-center text-gray-400 py-16 text-lg">載入中...</div>
+        )}
+        {error && !loading && (
+          <div className="text-center text-red-500 py-16 text-lg">{error}</div>
+        )}
+        {!loading && !error && (
+          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+            {filteredProducts.length === 0 && (
+              <div className="col-span-full text-center text-gray-400 py-12 text-lg">查無符合條件的商品</div>
+            )}
+            {filteredProducts.map((p) => (
+              <Link
+                key={p.id}
+                href={`/product/${p.id}`}
+                className="block group rounded-lg shadow-md bg-white border border-gray-100 hover:shadow-xl transition overflow-hidden"
+                style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
+              >
+                <div className="relative w-full aspect-square bg-gray-50">
+                  <Image
+                    src={p.cover}
+                    alt={p.name}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="transition group-hover:scale-105 duration-300"
+                  />
+                </div>
+                <div className="p-5 flex flex-col gap-2">
+                  <div className="font-semibold text-lg text-gray-900 line-clamp-1">{p.name}</div>
+                  <div className="font-bold text-xl" style={{ color: '#222' }}>${p.price}</div>
+                  <div className="text-gray-500 text-base line-clamp-2 min-h-[2.5em]">{p.description}</div>
+                </div>
+              </Link>
+            ))}
+          </section>
+        )}
       </div>
     </div>
   );

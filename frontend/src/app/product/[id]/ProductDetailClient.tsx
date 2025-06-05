@@ -2,12 +2,22 @@
 import React from "react";
 import Carousel from "./Carousel";
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  cover: string;
+  category: string;
+  style: string;
+}
+
 interface ProductDetailClientProps {
   id: string;
 }
 
 const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
-  const [product, setProduct] = React.useState<any>(null);
+  const [product, setProduct] = React.useState<Product | null>(null);
   const [inCart, setInCart] = React.useState(false);
   const [collected, setCollected] = React.useState(false);
   const [liked, setLiked] = React.useState(false);
@@ -17,7 +27,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     // 讀取商品資料
     fetch(`/api/mock-product/${id}`)
       .then((res) => res.json())
-      .then(setProduct);
+      .then((data: Product) => setProduct(data));
     // 讀取本地狀態
     setInCart(localStorage.getItem(`cart_${id}`) === '1');
     setCollected(localStorage.getItem(`collected_${id}`) === '1');
@@ -60,7 +70,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   return (
     <main className="min-h-screen bg-white flex items-center justify-center py-12">
-      <div className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-100 bg-white p-8">
+      <div className="w-full max-w-3xl p-8">
         {/* 圖片/影片輪播區 */}
         <section className="mb-8">
           <Carousel media={product.media} />
