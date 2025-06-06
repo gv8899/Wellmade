@@ -9,9 +9,8 @@ interface CheckoutFormData {
   email: string;
   phone: string;
   address: string;
-  paymentMethod: 'credit_card' | 'bank_transfer' | 'cash_on_delivery';
-  deliveryMethod: 'standard' | 'express';
-}
+  paymentMethod: 'credit_card' | 'line_pay' | 'cvs_pay';
+} 
 
 const CheckoutForm: React.FC = () => {
   const router = useRouter();
@@ -22,8 +21,7 @@ const CheckoutForm: React.FC = () => {
     phone: '',
     address: '',
     paymentMethod: 'credit_card',
-    deliveryMethod: 'standard',
-  });
+});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,7 +85,7 @@ const CheckoutForm: React.FC = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12"
                 />
               </div>
 
@@ -102,7 +100,7 @@ const CheckoutForm: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12"
                 />
               </div>
 
@@ -117,7 +115,7 @@ const CheckoutForm: React.FC = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12"
                 />
               </div>
 
@@ -131,8 +129,8 @@ const CheckoutForm: React.FC = () => {
                   value={formData.address}
                   onChange={handleInputChange}
                   required
-                  rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm"
+                  rows={5}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-24"
                 />
               </div>
             </div>
@@ -162,84 +160,43 @@ const CheckoutForm: React.FC = () => {
                 <div className="relative flex items-start">
                   <div className="flex items-center h-5">
                     <input
-                      id="bank_transfer"
+                      id="line_pay"
                       name="paymentMethod"
                       type="radio"
-                      value="bank_transfer"
-                      checked={formData.paymentMethod === 'bank_transfer'}
+                      value="line_pay"
+                      checked={formData.paymentMethod === 'line_pay'}
                       onChange={handleInputChange}
                       className="focus:ring-gray-500 h-4 w-4 text-gray-600 border-gray-300"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="bank_transfer" className="font-medium text-gray-700">
-                      銀行轉帳
+                    <label htmlFor="line_pay" className="font-medium text-gray-700">
+                      Line Pay
                     </label>
                   </div>
                 </div>
                 <div className="relative flex items-start">
                   <div className="flex items-center h-5">
                     <input
-                      id="cash_on_delivery"
+                      id="cvs_pay"
                       name="paymentMethod"
                       type="radio"
-                      value="cash_on_delivery"
-                      checked={formData.paymentMethod === 'cash_on_delivery'}
+                      value="cvs_pay"
+                      checked={formData.paymentMethod === 'cvs_pay'}
                       onChange={handleInputChange}
                       className="focus:ring-gray-500 h-4 w-4 text-gray-600 border-gray-300"
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="cash_on_delivery" className="font-medium text-gray-700">
-                      貨到付款
+                    <label htmlFor="cvs_pay" className="font-medium text-gray-700">
+                      超商取貨付款
                     </label>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 運送方式 */}
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">運送方式</h2>
-              <div className="space-y-4">
-                <div className="relative flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="standard"
-                      name="deliveryMethod"
-                      type="radio"
-                      value="standard"
-                      checked={formData.deliveryMethod === 'standard'}
-                      onChange={handleInputChange}
-                      className="focus:ring-gray-500 h-4 w-4 text-gray-600 border-gray-300"
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label htmlFor="standard" className="font-medium text-gray-700">
-                      標準運送
-                    </label>
-                  </div>
-                </div>
-                <div className="relative flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="express"
-                      name="deliveryMethod"
-                      type="radio"
-                      value="express"
-                      checked={formData.deliveryMethod === 'express'}
-                      onChange={handleInputChange}
-                      className="focus:ring-gray-500 h-4 w-4 text-gray-600 border-gray-300"
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label htmlFor="express" className="font-medium text-gray-700">
-                      火速運送
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
 
             {/* 購物車摘要 */}
             <div>
