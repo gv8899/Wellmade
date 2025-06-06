@@ -38,7 +38,7 @@ export default function LoginPage() {
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">會員登入</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="space-y-6">
             <div className="mb-6">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 電子郵件
@@ -51,8 +51,8 @@ export default function LoginPage() {
                 required
                 value={form.email}
                 onChange={handleChange}
-                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12"
-                placeholder="you@example.com"
+                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2"
+                placeholder="請輸入信箱"
               />
             </div>
             <div>
@@ -67,9 +67,12 @@ export default function LoginPage() {
                 required
                 value={form.password}
                 onChange={handleChange}
-                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12"
+                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2"
                 placeholder="請輸入密碼"
               />
+              <div className="text-right mt-2">
+                <a href="/forgot-password" className="text-sm text-gray-500 hover:text-gray-800 underline transition">忘記密碼？</a>
+              </div>
             </div>
           </div>
           {error && <div className="text-red-500 text-sm text-center">{error}</div>}
