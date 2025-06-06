@@ -129,7 +129,7 @@ export default function Home() {
           <div className="text-center text-red-500 py-16 text-lg">{error}</div>
         )}
         {!loading && !error && (
-          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 mt-6">
             {filteredProducts.length === 0 && (
               <div className="col-span-full text-center text-gray-400 py-12 text-lg">查無符合條件的商品</div>
             )}
@@ -137,7 +137,7 @@ export default function Home() {
               <Link
                 key={p.id}
                 href={`/product/${p.id}`}
-                className="block group rounded-2xl shadow-sm bg-white border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+                className="block group rounded-[24px] shadow-sm bg-white border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all overflow-hidden"
                 style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
               >
                 <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
@@ -150,10 +150,10 @@ export default function Home() {
                     className="transition group-hover:scale-105 duration-300"
                   />
                 </div>
-                <div className="p-6 flex flex-col gap-2 items-center">
-                  <div className="font-bold text-lg text-gray-900 line-clamp-1 text-center">{p.name}</div>
-                  <div className="font-bold text-xl text-gray-900 text-center">${p.price}</div>
-                  <div className="text-gray-400 text-base line-clamp-2 min-h-[2.5em]} text-center">{p.description}</div>
+                <div className="p-8 flex flex-col gap-2 items-center">
+                  <div className="font-bold text-2xl text-gray-900 line-clamp-1 text-center tracking-tight mb-1">{p.name}</div>
+                  <div className="font-extrabold text-xl text-gray-900 text-center mb-2">${p.price}</div>
+                  <div className="text-gray-400 text-base line-clamp-2 min-h-[2.5em] text-center">{p.description}</div>
                 </div>
               </Link>
             ))}

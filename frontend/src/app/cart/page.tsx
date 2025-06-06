@@ -52,24 +52,25 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 bg-white rounded-2xl shadow-sm font-sans">
-      <h1 className="text-3xl font-extrabold mb-10 text-center">購物車</h1>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto px-4 py-14 bg-white rounded-[24px] shadow-sm font-sans">
+      <h1 className="text-3xl font-extrabold mb-12 text-center tracking-tight">購物車</h1>
 
       {cartItems.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg">購物車目前是空的</p>
-          <Link href="/" className="mt-6 inline-block bg-gray-900 text-white px-6 py-2 rounded-lg font-semibold shadow-sm hover:bg-gray-700 transition">
+          <p className="text-gray-400 text-lg mb-4">購物車目前是空的</p>
+          <Link href="/" className="mt-4 inline-block bg-gray-900 text-white px-7 py-2.5 rounded-[18px] font-bold shadow-sm hover:bg-gray-700 transition">
             繼續購物
           </Link>
         </div>
       ) : (
         <div>
           {/* 購物車項目列表 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mb-14">
             {cartItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center">
+              <div key={item.id} className="bg-white rounded-[24px] shadow-sm p-8 flex flex-col items-center">
                 <div className="flex items-center gap-4">
-                  <div className="w-28 h-28 relative mb-3">
+                  <div className="w-32 h-32 relative mb-4">
                     {item.cover ? (
                       <Image
                         src={item.cover}
@@ -82,16 +83,16 @@ export default function CartPage() {
                     )}
                   </div>
                   <div className="flex-1 flex flex-col items-center">
-                    <h3 className="font-bold text-lg text-gray-900 text-center">{item.name}</h3>
-                    <p className="text-gray-400 mt-1 text-center">${item.price}</p>
-                    <div className="flex items-center gap-2 mt-4 justify-center">
+                    <h3 className="font-bold text-xl text-gray-900 text-center mb-1 tracking-tight">{item.name}</h3>
+                    <p className="text-gray-400 text-base text-center mb-2">${item.price}</p>
+                    <div className="flex items-center gap-3 mt-3 justify-center">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="px-2 py-1 bg-gray-100 rounded text-gray-600"
                       >
                         -
                       </button>
-                      <span className="px-3 py-1 bg-gray-100 rounded font-bold text-gray-900">{item.quantity}</span>
+                      <span className="px-4 py-1.5 bg-gray-100 rounded-[12px] font-bold text-gray-900">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="px-2 py-1 bg-gray-100 rounded text-gray-600"
@@ -100,7 +101,7 @@ export default function CartPage() {
                       </button>
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="ml-4 text-red-500 hover:text-red-700 font-semibold transition"
+                        className="ml-4 text-red-500 hover:text-red-700 font-bold transition rounded-[12px] px-3 py-1.5"
                       >
                         刪除
                       </button>
@@ -112,7 +113,7 @@ export default function CartPage() {
           </div>
 
           {/* 結帳資訊 */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 mt-10">
+          <div className="bg-white rounded-[24px] shadow-sm p-8 mt-12">
             {/* 總金額 */}
             <div className="flex justify-between items-center mt-6">
               <div className="text-gray-400 text-lg">總計：</div>
@@ -120,10 +121,10 @@ export default function CartPage() {
             </div>
 
             {/* 結帳按鈕 */}
-            <div className="mt-8">
+            <div className="mt-10">
               <Link
                 href="/checkout"
-                className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-base font-semibold text-white bg-gray-900 hover:bg-gray-700 transition"
+                className="w-full flex justify-center py-3 px-4 rounded-[18px] shadow-sm text-base font-bold text-white bg-gray-900 hover:bg-gray-700 transition"
               >
                 前往結帳
               </Link>
@@ -131,6 +132,7 @@ export default function CartPage() {
           </div>
         </div>
       )}
+          </div>
     </div>
   );
 }

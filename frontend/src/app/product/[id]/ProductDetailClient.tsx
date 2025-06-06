@@ -83,36 +83,37 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10 mt-12 relative font-sans">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto bg-white rounded-[24px] shadow-sm p-12 mt-14 relative font-sans">
       <CartIconButton />
-      <main className="min-h-[60vh] bg-white flex items-center justify-center py-8">
-        <div className="w-full max-w-2xl mx-auto p-0">
+      <main className="min-h-[60vh] bg-white flex items-center justify-center py-4">
+        <div className="w-full max-w-xl mx-auto p-0">
           {/* 圖片/影片輪播區 */}
           <section className="mb-8">
             <Carousel media={product.media ?? []} />
           </section>
           {/* 商品資訊區 */}
           <section className="mb-8">
-            <h1 className="text-3xl font-extrabold mb-3 text-gray-900 text-center">{product.name}</h1>
-            <div className="text-2xl font-bold mb-6 text-gray-900 text-center">${product.price}</div>
-            <p className="text-gray-400 text-base mb-4 whitespace-pre-line min-h-[2.5em] text-center">{product.description}</p>
+            <h1 className="text-3xl font-extrabold mb-4 text-gray-900 text-center tracking-tight">{product.name}</h1>
+            <div className="text-2xl font-extrabold mb-6 text-gray-900 text-center">${product.price}</div>
+            <p className="text-gray-400 text-base mb-6 whitespace-pre-line min-h-[2.5em] text-center">{product.description}</p>
           </section>
           {/* 互動按鈕區（愛心、收藏、加入購物車） */}
-          <section className="flex gap-4 justify-center mt-6">
+          <section className="flex gap-6 justify-center mt-8">
             <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${isInCart ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
+              className={`px-8 py-2.5 rounded-[18px] transition font-bold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${isInCart ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
               onClick={handleCart}
             >
               {isInCart ? '已加入購物車' : '加入購物車'}
             </button>
             <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${collected ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
+              className={`px-8 py-2.5 rounded-[18px] transition font-bold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${collected ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
               onClick={handleCollected}
             >
               {collected ? '已收藏' : '收藏'}
             </button>
             <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base flex items-center gap-1 ${liked ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
+              className={`px-8 py-2.5 rounded-[18px] transition font-bold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base flex items-center gap-1 ${liked ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
               onClick={handleLiked}
             >
               <span>{liked ? '❤️' : '🤍'}</span> 愛心
@@ -120,6 +121,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           </section>
         </div>
       </main>
+      </div>
     </div>
   );
 };
