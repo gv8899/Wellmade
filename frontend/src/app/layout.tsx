@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 import { CartProvider } from '@/CartContext';
 
+import Header from "@/app/components/Header";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,7 +32,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CartProvider>
-          {children}
+          <Header />
+          <div className="pt-16">{children}</div>
         </CartProvider>
       </body>
     </html>

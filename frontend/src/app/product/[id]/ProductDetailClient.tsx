@@ -22,7 +22,7 @@ interface ProductDetailClientProps {
   id: string;
 }
 
-import CartIconButton from "../../../components/CartIconButton";
+
 
 const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   const [product, setProduct] = React.useState<Product | null>(null);
@@ -84,7 +84,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10 mt-12 relative font-sans">
-      <CartIconButton />
+
       <main className="min-h-[60vh] bg-white flex items-center justify-center py-8">
         <div className="w-full max-w-2xl mx-auto p-0">
           {/* 圖片/影片輪播區 */}

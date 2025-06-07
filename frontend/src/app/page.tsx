@@ -15,7 +15,7 @@ interface Product {
 }
 
 import React, { useState } from "react";
-import CartIconButton from "../components/CartIconButton";
+
 
 export default function Home() {
   // Banner 圖片路徑
@@ -63,7 +63,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative font-sans">
-      <CartIconButton />
       <div className="max-w-6xl mx-auto py-12 px-4">
         <section className="w-full relative h-[32vh] rounded-xl overflow-hidden mb-16 shadow-none">
           <Image
