@@ -5,7 +5,7 @@ import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
 
 export default function Header() {
   return (
-    <header className="fixed top-0 left-0 w-full z-30 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm h-16 flex items-center">
+    <header className="fixed top-0 left-0 w-full z-30 bg-white border-b border-gray-100 shadow-sm h-16 flex items-center">
       <div className="container mx-auto px-4 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center gap-2">

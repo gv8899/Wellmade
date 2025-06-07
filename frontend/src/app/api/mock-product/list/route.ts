@@ -27,7 +27,7 @@ const products = [
     name: "38explore-38-kt 燈裝飾貼紙",
     price: 160,
     description: "專屬裝飾貼紙，為你的kT燈增添個性。",
-    cover: "/sample1.jpg",
+    cover: "/milk.png",
     category: "配件",
     style: "個性",
   },
