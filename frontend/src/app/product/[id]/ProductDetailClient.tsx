@@ -27,7 +27,6 @@ interface ProductDetailClientProps {
 const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   const [product, setProduct] = React.useState<Product | null>(null);
   const [collected, setCollected] = React.useState(false);
-  const [liked, setLiked] = React.useState(false);
   const { cartItems, addToCart, removeFromCart } = useCart();
 
   // 狀態持久化（localStorage）
@@ -38,7 +37,6 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       .then((data: Product) => setProduct(data));
     // 讀取本地狀態
     setCollected(localStorage.getItem(`collected_${id}`) === '1');
-    setLiked(localStorage.getItem(`liked_${id}`) === '1');
   }, [id]);
 
   const isInCart = product ? cartItems.some(item => item.id === id) : false;
@@ -71,19 +69,14 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     localStorage.setItem(`collected_${id}`, next ? '1' : '0');
     // 不顯示提示
   };
-  const handleLiked = () => {
-    const next = !liked;
-    setLiked(next);
-    localStorage.setItem(`liked_${id}`, next ? '1' : '0');
-    // 不顯示提示
-  };
+
 
   if (!product) {
     return <div className="text-center py-16 text-gray-400 bg-white">載入中...</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10 mt-12 relative font-sans">
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10 relative font-sans">
 
       <main className="min-h-[60vh] bg-white flex items-center justify-center py-8">
         <div className="w-full max-w-2xl mx-auto p-0">
@@ -111,12 +104,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             >
               {collected ? '已收藏' : '收藏'}
             </button>
-            <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base flex items-center gap-1 ${liked ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
-              onClick={handleLiked}
-            >
-              <span>{liked ? '❤️' : '🤍'}</span> 愛心
-            </button>
+
           </section>
         </div>
       </main>

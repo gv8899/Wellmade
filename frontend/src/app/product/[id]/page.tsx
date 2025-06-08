@@ -5,5 +5,9 @@ interface ProductDetailPageProps {
 }
 
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  return <ProductDetailClient id={params.id} />;
+  return (
+    <div className="min-h-screen bg-white">
+      <ProductDetailClient id={params.id} />
+    </div>
+  );
 }

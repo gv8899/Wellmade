@@ -152,7 +152,7 @@ export default function Home() {
                 <div className="p-6 flex flex-col gap-2 items-center">
                   <div className="font-bold text-lg text-gray-900 line-clamp-1 text-center">{p.name}</div>
                   <div className="font-bold text-xl text-gray-900 text-center">${p.price}</div>
-                  <div className="text-gray-400 text-base line-clamp-2 min-h-[2.5em]} text-center">{p.description}</div>
+
                 </div>
               </Link>
             ))}
