@@ -99,21 +99,30 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
                 <div className="p-4 flex flex-col gap-4 w-fit bg-transparent">
                   <div className="flex flex-wrap items-center gap-6 mb-2">
                     {specOptions.map(spec => (
-                      <div key={spec.name} className="flex items-center gap-2">
-                        <span className="text-black text-sm font-medium">{spec.name}</span>
-                        <select
-                          className="border border-gray-400 rounded px-3 py-1 focus:ring-1 focus:ring-gray-400 text-sm text-black bg-white"
-                          value={variant.specs[spec.name]}
-                          onChange={e => {
-                            setSelectedSpecs({ ...selectedSpecs, [spec.name]: e.target.value });
-                          }}
-                        >
-                          {spec.options.map(opt => (
-                            <option key={opt} value={opt} className="text-black">{opt}</option>
-                          ))}
-                        </select>
-                      </div>
-                    ))}
+  <div key={spec.name} className="flex items-center gap-2">
+    <span className="text-black text-sm font-medium min-w-[2.5em]">{spec.name}</span>
+    <div className="flex gap-2">
+      {spec.options.map(opt => {
+        const isSelected = selectedSpecs[spec.name] === opt;
+        return (
+          <button
+            key={opt}
+            type="button"
+            className={
+              `px-4 py-1 rounded border text-sm font-semibold transition ` +
+              (isSelected
+                ? 'bg-black text-white border-black'
+                : 'bg-white text-black border-gray-400 hover:border-black hover:bg-gray-100')
+            }
+            onClick={() => setSelectedSpecs({ ...selectedSpecs, [spec.name]: opt })}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+))}
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-black text-sm font-medium">數量</span>
