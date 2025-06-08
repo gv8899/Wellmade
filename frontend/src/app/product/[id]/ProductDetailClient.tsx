@@ -36,7 +36,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   const [product, setProduct] = React.useState<Product | null>(null);
   const [collected, setCollected] = React.useState(false);
-  const { cartItems, addToCart, removeFromCart } = useCart();
+  const { cartItems, addToCart, removeFromCart, addCartClick } = useCart();
 
   // 狀態持久化（localStorage）
   React.useEffect(() => {
@@ -50,15 +50,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   const isInCart = product ? cartItems.some(item => item.id === id) : false;
 
-  // 按鈕互動提示
-  function showTip(msg: string) {
-    if (window && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(msg);
-    } else {
-      // Fallback: alert
-      alert(msg);
-    }
-  }
+
 
   // 加入購物車
   const handleCart = () => {
@@ -69,9 +61,12 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         price: product.price,
         cover: product.cover,
       });
-      showTip('已加入購物車');
+      addCartClick();
+
     }
   };
+
+  // 移除 showTip
   const handleCollected = () => {
     const next = !collected;
     setCollected(next);

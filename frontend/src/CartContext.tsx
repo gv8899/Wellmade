@@ -16,6 +16,8 @@ interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   totalAmount: number;
+  cartClickCount: number;
+  addCartClick: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const [cartClickCount, setCartClickCount] = useState(0);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // 初始化時讀取 localStorage
@@ -56,6 +59,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
+
+  const addCartClick = () => {
+    setCartClickCount(prev => {
+      const next = prev + 1;
+      localStorage.setItem("cartClickCount", String(next));
+      return next;
+    });
+  };
+
+
+  // 初始化 cartClickCount
+  useEffect(() => {
+    const savedCount = localStorage.getItem("cartClickCount");
+    setCartClickCount(savedCount ? parseInt(savedCount, 10) : 0);
+  }, []);
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
     setCartItems(prev => {
@@ -94,7 +112,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, totalAmount }}
+      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, totalAmount, cartClickCount, addCartClick }}
     >
       {children}
     </CartContext.Provider>

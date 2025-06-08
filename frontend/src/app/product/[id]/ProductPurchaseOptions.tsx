@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
 
 
@@ -33,7 +33,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   specOptions,
   defaultQuantity = 1,
 }) => {
-  const { addToCart } = useCart();
+  const { addToCart, addCartClick } = useCart();
   // 預設選第一個規格
   const initialSpecs = specOptions.reduce((acc, cur) => {
     acc[cur.name] = cur.options[0];
@@ -71,7 +71,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
                 cover: currentVariant.image,
               });
             }
-            alert('已加入購物車');
+            addCartClick();
           }}
         >
           加入購物車
@@ -83,7 +83,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
       <button
         className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={currentVariant?.stockStatus !== "preorder"}
-        onClick={() => alert('預購功能尚未開放')}
+        onClick={() => { /* 預購功能尚未開放 */ }}
       >
         立即預購
       </button>
