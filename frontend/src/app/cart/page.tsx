@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { useCart } from '@/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,6 +22,21 @@ export default function CartPage() {
   // 商品總數量
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  // 勾選狀態：預設全部勾選
+  const [selectedIds, setSelectedIds] = React.useState<string[]>(cartItems.map(i => i.id));
+  React.useEffect(() => {
+    // 當 cartItems 變動時自動同步勾選（如刪除商品）
+    setSelectedIds(ids => ids.filter(id => cartItems.some(item => item.id === id)));
+  }, [cartItems]);
+  // 切換勾選
+  const toggleSelect = (id: string) => {
+    setSelectedIds(ids => ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]);
+  };
+
+  // 只統計勾選的商品
+  const checkedItems = cartItems.filter(item => selectedIds.includes(item.id));
+  const subtotal = checkedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   return (
     <div className="min-h-screen w-full bg-white font-sans flex items-start justify-center">
       <div className="max-w-lg w-full px-4 py-12">
@@ -33,16 +49,27 @@ export default function CartPage() {
       {cartItems.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-400 text-lg">購物車目前是空的</p>
-          <Link href="/" className="mt-6 inline-block bg-gray-900 text-white px-6 py-2 font-semibold hover:bg-gray-700 transition">
-            繼續購物
+          <Link
+            href="/checkout"
+            className="w-full flex justify-center py-3 px-4 text-base font-semibold text-white bg-gray-900 hover:bg-gray-700 transition"
+          >
+            前往結帳
           </Link>
         </div>
       ) : (
         <>
-          {/* 商品列表 */}
+          {/* 商品列表（可勾選） */}
           <div className="divide-y divide-gray-100 mb-8">
             {cartItems.map((item) => (
               <div key={item.id} className="flex items-center py-6">
+                {/* 勾選區域 */}
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-black mr-4"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => toggleSelect(item.id)}
+                  aria-label="選擇本商品結帳"
+                />
                 {/* 商品圖片 */}
                 <div className="w-20 h-20 relative flex-shrink-0 bg-gray-100">
                   {item.cover ? (
@@ -68,70 +95,56 @@ export default function CartPage() {
                           : '—'}
                       </div>
                     </div>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-gray-400 hover:text-red-600 transition p-2"
-                      title="移除"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6h16zm-9 4v6m4-6v6" /></svg>
-                    </button>
+
                   </div>
-                  {/* 數量選單與單價 */}
+                  {/* 數量選單與單價 + 垃圾桶 icon */}
                   <div className="flex items-center gap-4 mt-2">
                     <button
-                      className="w-8 h-8 flex items-center justify-center border text-lg text-gray-700 disabled:text-gray-300"
+                      className="w-8 h-8 flex items-center justify-center text-lg text-gray-700 disabled:text-gray-300"
                       onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                       disabled={item.quantity <= 1}
                       aria-label="減少數量"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center font-semibold text-base text-gray-900 select-none">{item.quantity}</span>
+                    <span className="w-8 text-center font-semibold text-base text-gray-900 select-none mx-2" style={{lineHeight:'2rem'}}>{item.quantity}</span>
                     <button
-                      className="w-8 h-8 flex items-center justify-center border text-lg text-gray-700"
+                      className="w-8 h-8 flex items-center justify-center text-lg text-gray-700"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       aria-label="增加數量"
                     >
                       +
                     </button>
-                    <span className="text-gray-700 font-semibold text-base ml-2">NT$ {item.price.toFixed(0)}</span>
+                    <span className="ml-4 text-lg font-bold text-gray-800 whitespace-nowrap">NT$ {item.price}</span>
+                    {/* 垃圾桶 icon 置於最右側 */}
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="text-gray-400 hover:text-red-600 transition p-2 flex items-center justify-center ml-8"
+                      title="移除"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6h16zm-9 4v6m4-6v6" /></svg>
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* 小計/運費/稅金/總計 */}
-          <div className="pt-6 pb-2 mb-2">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-500">小計：</span>
-              <span className="text-gray-900 font-semibold">NT$ {totalAmount.toFixed(0)}</span>
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-500">運費：</span>
-              <span className="text-gray-900 font-semibold">NT$ 0</span>
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-500">稅金：</span>
-              <span className="text-gray-900 font-semibold">NT$ 0</span>
-            </div>
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-lg font-bold">總計：</span>
-              <span className="text-2xl font-extrabold text-gray-900">NT$ {totalAmount.toFixed(0)}</span>
-            </div>
-          </div>
 
-          {/* 優惠碼提示 */}
-          <div className="text-blue-500 text-sm mt-4 mb-2 cursor-pointer hover:underline">有優惠碼嗎？</div>
+          {/* 勾選商品總計區塊 */}
+          <div className="w-full px-2 py-4 mb-2 flex justify-between items-center">
+            <span className="text-lg font-bold text-black">總計</span>
+            <span className="text-2xl font-extrabold text-black">NT$ {subtotal.toFixed(0)}</span>
+          </div>
 
           {/* 結帳按鈕 */}
           <div className="mt-8">
-            <Link
-              href="/checkout"
-              className="w-full flex justify-center py-3 px-4 text-base font-semibold text-white bg-gray-900 hover:bg-gray-700 transition"
+            <button
+              className="w-full bg-gray-900 text-white text-lg font-bold py-4 mt-6 mb-2 transition hover:bg-gray-700 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+              disabled={checkedItems.length === 0}
             >
-              前往結帳
-            </Link>
+              {checkedItems.length === 0 ? '還沒選擇要結帳的產品' : '前往結帳'}
+            </button>
           </div>
         </>
       )}
