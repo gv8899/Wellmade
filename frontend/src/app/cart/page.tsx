@@ -62,7 +62,7 @@ export default function CartPage() {
           <div className="divide-y divide-gray-100 mb-8">
             {cartItems.map((item) => (
               <div key={item.id} className="flex items-center py-6">
-                {/* 勾選區域 */}
+                {/* checkbox */}
                 <input
                   type="checkbox"
                   className="w-5 h-5 accent-black mr-4"
@@ -97,7 +97,7 @@ export default function CartPage() {
                     </div>
 
                   </div>
-                  {/* 數量選單與單價 + 垃圾桶 icon */}
+                  {/* 數量選單與單價 */}
                   <div className="flex items-center gap-4 mt-2">
                     <button
                       className="w-8 h-8 flex items-center justify-center text-lg text-gray-700 disabled:text-gray-300"
@@ -115,20 +115,21 @@ export default function CartPage() {
                     >
                       +
                     </button>
-                    <span className="ml-4 text-lg font-bold text-gray-800 whitespace-nowrap">NT$ {item.price}</span>
-                    {/* 垃圾桶 icon 置於最右側 */}
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-gray-400 hover:text-red-600 transition p-2 flex items-center justify-center ml-8"
-                      title="移除"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6h16zm-9 4v6m4-6v6" /></svg>
-                    </button>
+                    <span className="text-gray-700 font-semibold text-base ml-2">NT$ {item.price.toFixed(0)}</span>
                   </div>
                 </div>
+                {/* 垃圾桶 icon（最右側，垂直置中） */}
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  className="text-gray-400 hover:text-red-600 transition p-2 flex items-center justify-center self-center ml-4"
+                  title="移除"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6h16zm-9 4v6m4-6v6" /></svg>
+                </button>
               </div>
             ))}
           </div>
+
 
 
           {/* 勾選商品總計區塊 */}
