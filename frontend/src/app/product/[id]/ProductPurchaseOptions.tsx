@@ -76,9 +76,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
       <div className="flex flex-col items-center w-full">
         {/* 商品圖＋名稱＋價格 */}
         <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
-          <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center">
-            {/* 圖片預設灰底，若有圖片則顯示 */}
-            <img src={variants[0].image} alt="商品圖" className="w-20 h-20 object-cover rounded-md" />
+          <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+            {/* 圖片填滿容器 */}
+            <img src={variants[0].image} alt="商品圖" className="w-full h-full object-cover rounded-md" />
           </div>
           <div className="flex flex-col items-start justify-center ml-2">
             <div className="text-base font-semibold text-gray-800 mb-1">{variants[0].variantTitle || title}</div>

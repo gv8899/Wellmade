@@ -32,13 +32,13 @@ const KeyFeatures: React.FC<KeyFeaturesProps> = ({ features, scrollRef }) => {
               className="min-w-[280px] max-w-xs flex-shrink-0 bg-white rounded-3xl shadow-md hover:shadow-xl transition p-0 snap-center flex flex-col overflow-hidden"
               style={{ height: 420 }}
             >
-              <div className="h-2/3 w-full relative flex items-center justify-center bg-gray-100">
-                {/* 圖片，建議使用 next/image 實際專案可替換 */}
+              <div className="h-2/3 w-full relative overflow-hidden">
+                {/* 圖片完全填滿卡片頂部 */}
                 <img
                   src={f.image}
                   alt={f.title}
                   className="object-cover w-full h-full rounded-t-3xl"
-                  style={{ maxHeight: 240 }}
+                  style={{ maxHeight: 280 }}
                   draggable={false}
                 />
               </div>
