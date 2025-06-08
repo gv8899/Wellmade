@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCart } from "@/hooks/useCart";
+import RestockNotifyModal from "./RestockNotifyModal";
 
 
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
@@ -41,6 +42,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
 
   const [selectedSpecs, setSelectedSpecs] = useState<{ [specName: string]: string }>(initialSpecs);
   const [quantity, setQuantity] = useState(defaultQuantity);
+  const [notifyOpen, setNotifyOpen] = useState(false);
 
   // 根據選擇的規格找到對應 variant
   const currentVariant = variants.find(v =>
@@ -90,8 +92,8 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     statusLabel = "缺貨";
     actionButtons = (
       <button
-        className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-orange-500 bg-white cursor-not-allowed"
-        disabled
+        className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-orange-500 bg-white hover:bg-orange-50 transition"
+        onClick={() => setNotifyOpen(true)}
       >
         貨到通知
       </button>
@@ -165,9 +167,16 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
         </div>
         {/* 動態行動按鈕（購物車/預購/貨到通知） */}
         <div className="w-full max-w-xs mx-auto min-h-[64px] flex items-center">
-  <div className="w-full">
-    {actionButtons}
-  </div>
+      <div className="w-full">
+        {actionButtons}
+        <RestockNotifyModal
+          open={notifyOpen}
+          onClose={() => setNotifyOpen(false)}
+          onSubmit={() => {
+            setNotifyOpen(false);
+          }}
+        />
+      </div>
 </div>
       </div>
     </div>
