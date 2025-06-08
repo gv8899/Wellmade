@@ -73,92 +73,72 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto my-10">
       <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買方案</h2>
-      <div className="flex flex-col divide-y divide-gray-200">
-        {variants.map((variant, idx) => {
-          // 取得目前這個 variant 的規格預設值
-          const isSelected = Object.entries(selectedSpecs).every(
-            ([k, vOpt]) => variant.specs[k] === vOpt
-          );
-          return (
-            <div key={variant.id} className="flex flex-col md:flex-row items-center py-6 md:py-8 px-0 md:px-2 gap-6 md:gap-8 bg-transparent">
-              {/* 手機版：圖左文右，桌機維持原本 */}
-              <div className="w-full flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-0">
-                {/* 商品圖 */}
-                <div className="w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                  <img src={variant.image} alt="商品圖" className="w-24 h-24 object-cover rounded-lg" />
-                </div>
-                {/* 名稱與價格，手機版顯示在圖片右側 */}
-                <div className="flex flex-col justify-center md:justify-start md:ml-0 ml-4">
-                  <div className="text-base md:text-lg font-semibold text-black mb-1">{variant.variantTitle || title}</div>
-                  <div className="text-lg font-bold text-black mb-1">${variant.price}</div>
-                </div>
-              </div>
-              {/* 內容區 */}
-              <div className="flex-1 w-full flex flex-col gap-2 mt-4 md:mt-0">
-                {/* 規格選單與數量選擇器區塊（無外框） */}
-                <div className="p-4 flex flex-col gap-4 w-fit bg-transparent">
-                  <div className="flex flex-wrap items-center gap-6 mb-2">
-                    {specOptions.map(spec => (
-  <div key={spec.name} className="flex items-center gap-2">
-    <span className="text-black text-sm font-medium min-w-[2.5em]">{spec.name}</span>
-    <div className="flex gap-2">
-      {spec.options.map(opt => {
-        const isSelected = selectedSpecs[spec.name] === opt;
-        return (
-          <button
-            key={opt}
-            type="button"
-            className={
-              `px-4 py-1 rounded border text-sm font-semibold transition ` +
-              (isSelected
-                ? 'bg-black text-white border-black'
-                : 'bg-white text-black border-gray-400 hover:border-black hover:bg-gray-100')
-            }
-            onClick={() => setSelectedSpecs({ ...selectedSpecs, [spec.name]: opt })}
-          >
-            {opt}
-          </button>
-        );
-      })}
-    </div>
-  </div>
-))}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-black text-sm font-medium">數量</span>
+      <div className="flex flex-col items-center w-full">
+        {/* 商品圖＋名稱＋價格 */}
+        <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
+          <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center">
+            {/* 圖片預設灰底，若有圖片則顯示 */}
+            <img src={variants[0].image} alt="商品圖" className="w-20 h-20 object-cover rounded-md" />
+          </div>
+          <div className="flex flex-col items-start justify-center ml-2">
+            <div className="text-base font-semibold text-gray-800 mb-1">{variants[0].variantTitle || title}</div>
+            <div className="text-lg font-bold text-gray-800 mb-1">${variants[0].price}</div>
+          </div>
+        </div>
+        {/* 規格選單區塊 */}
+        <div className="flex flex-col gap-6 w-full max-w-xs items-center">
+          {specOptions.map(spec => (
+            <div key={spec.name} className="w-full">
+              <div className="text-center text-gray-700 text-base font-medium mb-2">{spec.name}</div>
+              <div className="flex flex-row gap-4 w-full justify-center">
+                {spec.options.map(opt => {
+                  const isSelected = selectedSpecs[spec.name] === opt;
+                  return (
                     <button
-                      className="w-8 h-8 rounded-full border border-gray-400 text-black flex items-center justify-center disabled:opacity-30"
-                      disabled={quantity <= 1}
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      key={opt}
+                      type="button"
+                      className={
+                        `w-32 py-3 rounded border text-lg font-semibold transition ` +
+                        (isSelected
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-800 border-gray-400 hover:border-black hover:bg-gray-100')
+                      }
+                      onClick={() => setSelectedSpecs({ ...selectedSpecs, [spec.name]: opt })}
                     >
-                      -
+                      {opt}
                     </button>
-                    <span className="w-8 text-center text-black font-semibold">{quantity}</span>
-                    <button
-                      className="w-8 h-8 rounded-full border border-gray-400 text-black flex items-center justify-center"
-                      onClick={() => setQuantity(q => q + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
-              {/* 右側按鈕區：手機置中，桌機靠右 */}
-              <div className="flex flex-col w-full md:w-48 mt-4 md:mt-0 items-center md:items-end justify-center md:justify-end">
-                {/* 行動按鈕 */}
-                {variant.stockStatus === "in_stock" && (
-                  <button className="w-32 py-2 rounded-full border border-black text-black font-semibold hover:bg-gray-100 transition">加入購物車</button>
-                )}
-                {variant.stockStatus === "preorder" && (
-                  <button className="w-32 py-2 rounded-full border border-blue-500 text-blue-700 font-semibold hover:bg-blue-50 transition">立即預購</button>
-                )}
-                {variant.stockStatus === "out_of_stock" && (
-                  <button className="w-32 py-2 rounded-full border border-gray-300 text-gray-400 font-semibold cursor-not-allowed" disabled>貨到通知</button>
-                )}
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
+          ))}
+        </div>
+        {/* 數量選擇器 */}
+        <div className="flex flex-col items-center mt-8 mb-6">
+          <div className="text-center text-gray-700 text-base font-medium mb-2">數量</div>
+          <div className="flex flex-row gap-6 items-center">
+            <button
+              className="w-10 h-10 rounded-full border border-gray-400 text-2xl text-gray-700 flex items-center justify-center disabled:opacity-30"
+              disabled={quantity <= 1}
+              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+            >
+              -
+            </button>
+            <span className="w-8 text-center text-gray-900 font-bold text-xl">{quantity}</span>
+            <button
+              className="w-10 h-10 rounded-full border border-gray-400 text-2xl text-gray-700 flex items-center justify-center"
+              onClick={() => setQuantity(q => q + 1)}
+            >
+              +
+            </button>
+          </div>
+        </div>
+        {/* 加入購物車按鈕 */}
+        <div className="w-full flex justify-center">
+          <button className="w-56 py-3 rounded-full border border-black text-black font-semibold text-lg bg-white hover:bg-gray-100 transition">
+            加入購物車
+          </button>
+        </div>
       </div>
     </div>
   );
