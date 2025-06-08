@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useCart } from "@/hooks/useCart";
+
 
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
 
@@ -30,6 +32,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   specOptions,
   defaultQuantity = 1,
 }) => {
+  const { addToCart } = useCart();
   // 預設選第一個規格
   const initialSpecs = specOptions.reduce((acc, cur) => {
     acc[cur.name] = cur.options[0];
@@ -53,9 +56,29 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   } else if (currentVariant.stockStatus === "in_stock") {
     statusLabel = "現貨";
     actionButtons = (
-      <div className="flex gap-3 mt-4">
-        <button className="flex-1 py-3 rounded-lg bg-black text-white font-bold hover:bg-gray-800 transition">加入購物車</button>
-        <button className="flex-1 py-3 rounded-lg border border-black text-black font-bold hover:bg-gray-100 transition">立即購買</button>
+      <div className="flex flex-col items-center mt-6 gap-3">
+        <button
+          className="w-full md:w-80 py-3 px-4 border-2 border-black rounded-xl text-lg font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={currentVariant?.stockStatus !== "in_stock"}
+          onClick={() => {
+            if (!currentVariant) return;
+            for (let i = 0; i < quantity; i++) {
+              addToCart({
+                id: currentVariant.id,
+                name: currentVariant.variantTitle || title,
+                price: currentVariant.price,
+                cover: currentVariant.image,
+              });
+            }
+            alert('已加入購物車');
+          }}
+        >
+          {currentVariant.stockStatus === "preorder"
+            ? "立即預購"
+            : currentVariant.stockStatus === "out_of_stock"
+            ? "貨到通知"
+            : "加入購物車"}
+        </button>
       </div>
     );
   } else if (currentVariant.stockStatus === "preorder") {
@@ -133,11 +156,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             </button>
           </div>
         </div>
-        {/* 加入購物車按鈕 */}
+        {/* 動態行動按鈕（購物車/預購/貨到通知） */}
         <div className="w-full flex justify-center">
-          <button className="w-56 py-3 rounded-full border border-black text-black font-semibold text-lg bg-white hover:bg-gray-100 transition">
-            加入購物車
-          </button>
+          {actionButtons}
         </div>
       </div>
     </div>
