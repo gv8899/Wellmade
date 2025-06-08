@@ -7,15 +7,15 @@ const products = [
     name: "38explore 38-kT燈",
     price: 1680,
     description:
-      "【商品特色】本商品只有燈，不包含電池、腳架等配件。建議使用18650鋰電池。最高200流明，最低亮度可用48小時。",
-    cover: "/sample1.jpg",
+      "全新透明設計，更亮，更好看。",
+    cover: "/38light_table.jpg",
     category: "燈具",
     style: "戶外",
   },
   {
     id: "skeleton",
-    name: "38explore kT THE SKELETON 透明燈",
-    price: 1880,
+    name: "Tokyo craft 不鏽鋼單元桌",
+    price: 2180,
     description:
       "透明外殼設計，含電池。適合戶外露營氣氛營造。",
     cover: "/sample2.jpg",
@@ -24,8 +24,8 @@ const products = [
   },
   {
     id: "decal",
-    name: "38explore-38-kt 燈裝飾貼紙",
-    price: 160,
+    name: "咖啡牛奶杯",
+    price: 790,
     description: "專屬裝飾貼紙，為你的kT燈增添個性。",
     cover: "/milk.png",
     category: "配件",

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Carousel from "./Carousel";
+import ProductHero from "./ProductHero";
 import { useCart } from '@/CartContext';
 
 interface Product {
@@ -70,45 +70,38 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     // 不顯示提示
   };
 
-
   if (!product) {
     return <div className="text-center py-16 text-gray-400 bg-white">載入中...</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10 relative font-sans">
-
-      <main className="min-h-[60vh] bg-white flex items-center justify-center py-8">
-        <div className="w-full max-w-2xl mx-auto p-0">
-          {/* 圖片/影片輪播區 */}
-          <section className="mb-8">
-            <Carousel media={product.media ?? []} />
-          </section>
-          {/* 商品資訊區 */}
-          <section className="mb-8">
-            <h1 className="text-3xl font-extrabold mb-3 text-gray-900 text-center">{product.name}</h1>
-            <div className="text-2xl font-bold mb-6 text-gray-900 text-center">${product.price}</div>
-            <p className="text-gray-400 text-base mb-4 whitespace-pre-line min-h-[2.5em] text-center">{product.description}</p>
-          </section>
-          {/* 互動按鈕區（愛心、收藏、加入購物車） */}
-          <section className="flex gap-4 justify-center mt-6">
-            <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${isInCart ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
-              onClick={handleCart}
-            >
-              {isInCart ? '已加入購物車' : '加入購物車'}
-            </button>
-            <button
-              className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${collected ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
-              onClick={handleCollected}
-            >
-              {collected ? '已收藏' : '收藏'}
-            </button>
-
-          </section>
-        </div>
+    <React.Fragment>
+      {/* 主視覺區：文案左、圖右 */}
+      <ProductHero
+        subtitle={product.category || ''}
+        title={product.name}
+        description={product.description}
+        imageUrl={product.cover}
+      />
+      {/* 其餘內容區塊 */}
+      <main className="max-w-4xl mx-auto px-4 pb-16">
+        {/* 互動按鈕區（收藏、加入購物車） */}
+        <section className="flex gap-4 justify-center mt-6">
+          <button
+            className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${isInCart ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
+            onClick={handleCart}
+          >
+            {isInCart ? '已加入購物車' : '加入購物車'}
+          </button>
+          <button
+            className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${collected ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
+            onClick={handleCollected}
+          >
+            {collected ? '已收藏' : '收藏'}
+          </button>
+        </section>
       </main>
-    </div>
+    </React.Fragment>
   );
 };
 
