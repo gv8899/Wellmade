@@ -4,6 +4,7 @@ import ProductHero from "./ProductHero";
 import KeyFeatures from "./KeyFeatures";
 import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
 import FAQSection, { FAQItem } from "./FAQSection";
+import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 
@@ -186,6 +187,44 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
               question: "可以邊充電邊使用嗎？",
               answer: "可以，支援邊充電邊照明，適合長時間使用。"
             }
+          ]}
+        />
+        {/* 購買方案區（多規格、多狀態、Unipapa 風格） */}
+        <ProductPurchaseOptions
+          title="購買方案"
+          specOptions={[
+            { name: "顏色", options: ["白", "黑"] },
+            { name: "長度", options: ["1.8m", "3m"] },
+          ]}
+          variants={[
+            {
+              id: "white-18",
+              specs: { "顏色": "白", "長度": "1.8m" },
+              price: 899,
+              image: "/sample1.jpg",
+              stockStatus: "in_stock"
+            },
+            {
+              id: "white-3",
+              specs: { "顏色": "白", "長度": "3m" },
+              price: 999,
+              image: "/sample1.jpg",
+              stockStatus: "preorder"
+            },
+            {
+              id: "black-18",
+              specs: { "顏色": "黑", "長度": "1.8m" },
+              price: 899,
+              image: "/sample2.jpg",
+              stockStatus: "out_of_stock"
+            },
+            {
+              id: "black-3",
+              specs: { "顏色": "黑", "長度": "3m" },
+              price: 999,
+              image: "/sample2.jpg",
+              stockStatus: "in_stock"
+            },
           ]}
         />
       </div>
