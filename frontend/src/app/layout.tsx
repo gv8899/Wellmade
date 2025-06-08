@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from '@/CartContext';
-
+import { UserProvider } from "@/app/components/UserContext";
 import Header from "@/app/components/Header";
 
 export default function RootLayout({
@@ -27,14 +27,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-Hant">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`min-h-screen bg-background text-foreground font-sans antialiased ${geistSans.variable} ${geistMono.variable}`}
+        suppressHydrationWarning={true}
       >
-        <CartProvider>
-          <Header />
-          <div className="pt-16">{children}</div>
-        </CartProvider>
+        <UserProvider>
+          <CartProvider>
+            <Header />
+            <main className="pt-16 min-h-[calc(100vh-4rem)]">
+              {children}
+            </main>
+          </CartProvider>
+        </UserProvider>
       </body>
     </html>
   );

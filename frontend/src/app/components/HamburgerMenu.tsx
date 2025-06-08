@@ -1,9 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-
-import { FaUserCircle, FaIdBadge, FaClipboardList } from "react-icons/fa";
-
+import { useUser } from "./UserContext";
 import "./hamburger-anim.css";
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
@@ -16,6 +14,8 @@ export default function HamburgerMenu() {
     if (open) window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
+
+  const { user, logout } = useUser();
 
   return (
     <>
@@ -42,15 +42,37 @@ export default function HamburgerMenu() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <Link href="/login" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
-              登入
-            </Link>
-            <Link href="/orders" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
-              訂單查詢
-            </Link>
-            <Link href="/profile" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded transition text-left" onClick={() => setOpen(false)}>
-              個人資料
-            </Link>
+            {user ? (
+              <>
+                <div className="block w-full px-6 py-4 text-lg text-gray-800 font-semibold mb-3 transition text-left cursor-default select-none">
+                  {user.name}
+                </div>
+                <Link href="/orders" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+                  訂單查詢
+                </Link>
+                <Link href="/profile" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded transition text-left" onClick={() => setOpen(false)}>
+                  個人資料
+                </Link>
+                <button
+                  className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mt-6 transition text-left "
+                  onClick={() => { logout(); setOpen(false); }}
+                >
+                  登出
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+                  登入
+                </Link>
+                <Link href="/orders" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+                  訂單查詢
+                </Link>
+                <Link href="/profile" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded transition text-left" onClick={() => setOpen(false)}>
+                  個人資料
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

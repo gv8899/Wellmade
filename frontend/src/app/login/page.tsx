@@ -1,9 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/app/components/UserContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useUser();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +21,7 @@ export default function LoginPage() {
     // TODO: Replace with real API call
     await new Promise((res) => setTimeout(res, 800));
     if (form.email === "demo@example.com" && form.password === "demo123") {
+      login({ name: "王小明", email: form.email });
       router.push("/");
     } else {
       setError("帳號或密碼錯誤");
