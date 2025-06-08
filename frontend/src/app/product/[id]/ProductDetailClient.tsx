@@ -234,21 +234,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       </div>
       {/* 其餘內容區塊 */}
       <main className="max-w-4xl mx-auto px-4 pb-16">
-        {/* 互動按鈕區（收藏、加入購物車） */}
-        <section className="flex gap-4 justify-center mt-6">
-          <button
-            className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${isInCart ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
-            onClick={handleCart}
-          >
-            {isInCart ? '已加入購物車' : '加入購物車'}
-          </button>
-          <button
-            className={`px-7 py-2 rounded-lg transition font-semibold shadow-sm border border-gray-200 focus:ring-2 focus:ring-black/10 text-base ${collected ? 'bg-gray-200 text-gray-900' : 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95'}`}
-            onClick={handleCollected}
-          >
-            {collected ? '已收藏' : '收藏'}
-          </button>
-        </section>
+
       </main>
     </>
   );

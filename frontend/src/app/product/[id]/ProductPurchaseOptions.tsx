@@ -56,9 +56,8 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   } else if (currentVariant.stockStatus === "in_stock") {
     statusLabel = "現貨";
     actionButtons = (
-      <div className="flex flex-col items-center mt-6 gap-3">
         <button
-          className="w-full md:w-80 py-3 px-4 border-2 border-black rounded-xl text-lg font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full md:w-80 h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-2xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={currentVariant?.stockStatus !== "in_stock"}
           onClick={() => {
             if (!currentVariant) return;
@@ -73,23 +72,29 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             alert('已加入購物車');
           }}
         >
-          {currentVariant.stockStatus === "preorder"
-            ? "立即預購"
-            : currentVariant.stockStatus === "out_of_stock"
-            ? "貨到通知"
-            : "加入購物車"}
+          加入購物車
         </button>
-      </div>
     );
   } else if (currentVariant.stockStatus === "preorder") {
     statusLabel = "預購";
     actionButtons = (
-      <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition mt-4">立即預購</button>
+      <button
+        className="w-full md:w-80 h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-2xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={currentVariant?.stockStatus !== "preorder"}
+        onClick={() => alert('預購功能尚未開放')}
+      >
+        立即預購
+      </button>
     );
   } else if (currentVariant.stockStatus === "out_of_stock") {
     statusLabel = "缺貨";
     actionButtons = (
-      <button className="w-full py-3 rounded-lg bg-gray-300 text-gray-500 font-bold mt-4">貨到通知</button>
+      <button
+        className="w-full md:w-80 h-16 min-h-[64px] py-0 px-4 border-2 border-gray-400 rounded-[20px] text-2xl font-bold text-gray-400 bg-white border-dashed cursor-not-allowed"
+        disabled
+      >
+        貨到通知
+      </button>
     );
   }
 
@@ -157,7 +162,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
           </div>
         </div>
         {/* 動態行動按鈕（購物車/預購/貨到通知） */}
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center items-center min-h-[64px] md:min-h-[64px]">
           {actionButtons}
         </div>
       </div>
