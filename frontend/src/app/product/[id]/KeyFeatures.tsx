@@ -32,29 +32,28 @@ const KeyFeatures: React.FC<KeyFeaturesProps> = ({ features, scrollRef }) => {
               className="min-w-[280px] max-w-xs flex-shrink-0 bg-white rounded-3xl shadow-md hover:shadow-xl transition p-0 snap-center flex flex-col overflow-hidden"
               style={{ height: 420 }}
             >
-              <div className="h-2/3 w-full relative overflow-hidden">
-                {/* 圖片完全填滿卡片頂部 */}
-                <img
-                  src={f.image}
-                  alt={f.title}
-                  className="object-cover w-full h-full rounded-t-3xl"
-                  style={{ maxHeight: 280 }}
-                  draggable={false}
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-between p-5">
-                {f.subtitle && (
-                  <div className="text-xs md:text-sm text-gray-500 font-semibold mb-1 tracking-wide">
-                    {f.subtitle}
-                  </div>
-                )}
-                <div className="text-xl md:text-2xl font-bold text-gray-900 mb-2 leading-tight">
-                  {f.title}
-                </div>
-                <div className="text-gray-600 text-base md:text-lg leading-snug mb-1">
-                  {f.description}
-                </div>
-              </div>
+              <div className="w-full h-[300px] relative overflow-hidden">
+  {/* 圖片完全填滿卡片頂部 */}
+  <img
+    src={f.image}
+    alt={f.title}
+    className="object-cover w-full h-full rounded-t-3xl"
+    draggable={false}
+  />
+</div>
+<div className="flex-1 flex flex-col justify-end p-5">
+  {f.subtitle && (
+    <div className="text-xs md:text-sm text-gray-500 font-semibold mb-1 tracking-wide">
+      {f.subtitle}
+    </div>
+  )}
+  <div className="text-xl md:text-2xl font-bold text-gray-900 mb-2 leading-tight">
+    {f.title}
+  </div>
+  <div className="text-gray-600 text-base md:text-lg leading-snug mb-1 min-h-[48px]">
+    {f.description}
+  </div>
+</div>
             </div>
           ))}
         </div>
