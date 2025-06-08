@@ -31,7 +31,7 @@ export default function HamburgerMenu() {
       {open && (
         <div className="fixed z-[100] left-0 right-0 top-16 h-[calc(100vh-4rem)] bg-black/20 flex items-start justify-center animate-fadein">
           {/* Modal 內容區塊 */}
-          <div className="relative bg-white/20 bg-blur w-full max-w-md md:max-w-lg h-[calc(100vh-6rem)] mt-10 mx-auto rounded-3xl shadow-lg p-10 flex flex-col items-center justify-center transition-all duration-300 ease-out transform animate-slideup">
+          <div className="relative bg-white/20 bg-blur w-full max-w-md md:max-w-lg h-[calc(100vh-6rem)] mt-10 mx-auto rounded-3xl shadow-lg p-10 flex flex-col items-center justify-start transition-all duration-300 ease-out transform animate-slideup" style={{paddingTop: '5rem'}}>
             {/* 關閉按鈕 */}
             <button
               className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black focus:outline-none"
@@ -42,18 +42,14 @@ export default function HamburgerMenu() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <h2 className="text-2xl font-bold mb-8 mt-2">會員選單</h2>
-            <Link href="/login" className="flex items-center w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition" onClick={() => setOpen(false)}>
-              <FaUserCircle className="w-6 h-6 mr-3 text-gray-500" />
-              會員登入
+            <Link href="/login" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+              登入
             </Link>
-            <Link href="/profile" className="flex items-center w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition" onClick={() => setOpen(false)}>
-              <FaIdBadge className="w-6 h-6 mr-3 text-gray-500" />
-              個人資料
-            </Link>
-            <Link href="/orders" className="flex items-center w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded transition" onClick={() => setOpen(false)}>
-              <FaClipboardList className="w-6 h-6 mr-3 text-gray-500" />
+            <Link href="/orders" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
               訂單查詢
+            </Link>
+            <Link href="/profile" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded transition text-left" onClick={() => setOpen(false)}>
+              個人資料
             </Link>
           </div>
         </div>
