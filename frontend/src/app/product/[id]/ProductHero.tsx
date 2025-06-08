@@ -38,7 +38,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
       )}
 
       {/* 置中文字區塊 */}
-      <div className="relative z-20 w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center px-4 py-12">
+      <div className="relative z-20 w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center px-4 py-12 h-full pt-2">
         {subtitle && (
           <div className="text-base md:text-lg text-blue-200 mb-2 tracking-wide font-medium ">
             {subtitle}
