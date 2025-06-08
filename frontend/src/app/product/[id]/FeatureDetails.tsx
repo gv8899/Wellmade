@@ -23,12 +23,15 @@ const FeatureDetails: React.FC<FeatureDetailsProps> = ({ details }) => {
             key={idx}
             className={`flex flex-col md:flex-row ${isReverse ? 'md:flex-row-reverse' : ''} items-center gap-8 md:gap-16`}
           >
-            <div className="w-full md:w-1/2 flex justify-center">
+            <div className="w-full md:w-1/2 flex justify-center items-center">
+  <div className="w-full h-[260px] flex items-center justify-center">
+
               {item.type === "image" ? (
-                <img src={item.src} alt={item.title} className="rounded-xl shadow-md max-h-80 object-cover w-full" />
-              ) : (
-                <video src={item.src} controls className="rounded-xl shadow-md max-h-80 object-cover w-full" />
-              )}
+      <img src={item.src} alt={item.title} className="rounded-xl shadow-md object-cover w-full h-full" />
+    ) : (
+      <video src={item.src} controls className="rounded-xl shadow-md object-cover w-full h-full" />
+    )}
+  </div>
             </div>
             <div className="w-full md:w-1/2 flex flex-col items-start">
               <h3 className="text-2xl font-bold mb-4 text-gray-900">{item.title}</h3>
