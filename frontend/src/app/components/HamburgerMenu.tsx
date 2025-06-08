@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { FaUserCircle, FaIdBadge, FaClipboardList } from "react-icons/fa";
 
+import "./hamburger-anim.css";
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
 
@@ -28,9 +29,9 @@ export default function HamburgerMenu() {
         </svg>
       </button>
       {open && (
-        <div className="fixed z-[100] left-0 right-0 top-16 h-[calc(100vh-4rem)] bg-black/50 flex items-start justify-center animate-fadein">
+        <div className="fixed z-[100] left-0 right-0 top-16 h-[calc(100vh-4rem)] bg-black/20 flex items-start justify-center animate-fadein">
           {/* Modal 內容區塊 */}
-          <div className="relative bg-white w-full max-w-md md:max-w-lg h-[calc(100vh-6rem)] mt-10 mx-auto rounded-3xl shadow-lg p-10 flex flex-col items-center justify-center">
+          <div className="relative bg-white/20 bg-blur w-full max-w-md md:max-w-lg h-[calc(100vh-6rem)] mt-10 mx-auto rounded-3xl shadow-lg p-10 flex flex-col items-center justify-center transition-all duration-300 ease-out transform animate-slideup">
             {/* 關閉按鈕 */}
             <button
               className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black focus:outline-none"
