@@ -2,6 +2,8 @@
 import React, { useRef } from "react";
 import ProductHero from "./ProductHero";
 import KeyFeatures from "./KeyFeatures";
+import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
+import FAQSection, { FAQItem } from "./FAQSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 
@@ -143,6 +145,49 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             </svg>
           </button>
         </div>
+        {/* FeatureDetails 區塊：圖文交錯介紹 */}
+        <FeatureDetails
+          details={[
+            {
+              type: "image",
+              src: "/sample1.jpg",
+              title: "戶外照明新體驗",
+              description: "高亮度設計，無論露營或夜間行走都能提供安全照明。防潑水機身，應對各種天氣。",
+              direction: "left",
+            },
+            {
+              type: "image",
+              src: "/sample2.jpg",
+              title: "輕巧易攜，續航力滿分",
+              description: "僅60g，隨身攜帶無負擔。內建大容量電池，最長可連續使用48小時。",
+              direction: "right",
+            },
+            {
+              type: "image",
+              src: "/sample1v3.jpg",
+              title: "多元用途，智慧切換",
+              description: "可作為桌燈、手電筒、營燈，滿足戶外與居家多種需求。多段亮度自由調整。",
+              direction: "left",
+            },
+          ]}
+        />
+        {/* FAQSection 區塊：常見問題 */}
+        <FAQSection
+          faqs={[
+            {
+              question: "這款燈具可以防水嗎？",
+              answer: "可以，產品具備IPX4等級防潑水設計，適合戶外露營及雨天使用。"
+            },
+            {
+              question: "充飽電後最長可使用多久？",
+              answer: "最長可連續使用48小時，實際續航依照亮度檔位略有不同。"
+            },
+            {
+              question: "可以邊充電邊使用嗎？",
+              answer: "可以，支援邊充電邊照明，適合長時間使用。"
+            }
+          ]}
+        />
       </div>
       {/* 其餘內容區塊 */}
       <main className="max-w-4xl mx-auto px-4 pb-16">
