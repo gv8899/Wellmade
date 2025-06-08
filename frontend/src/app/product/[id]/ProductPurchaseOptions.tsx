@@ -69,6 +69,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
                 name: currentVariant.variantTitle || title,
                 price: currentVariant.price,
                 cover: currentVariant.image,
+                spec: selectedSpecs, // 帶入目前選定的規格
               });
             }
             addCartClick();

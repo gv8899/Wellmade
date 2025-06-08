@@ -7,6 +7,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   cover: string;
+  spec: { [key: string]: string }; // 新增：商品規格（如顏色、長度等）
 }
 
 interface CartContextType {
