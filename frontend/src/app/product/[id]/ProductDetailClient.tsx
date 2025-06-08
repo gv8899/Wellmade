@@ -194,33 +194,37 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           title="購買方案"
           specOptions={[
             { name: "顏色", options: ["白", "黑"] },
-            { name: "長度", options: ["1.8m", "3m"] },
+            { name: "規格", options: ["1.8m", "3m"] },
           ]}
           variants={[
             {
               id: "white-18",
-              specs: { "顏色": "白", "長度": "1.8m" },
+              variantTitle: "白色有序延長線+壁貼扣套組",
+              specs: { "顏色": "白", "規格": "1.8m" },
               price: 899,
               image: "/sample1.jpg",
               stockStatus: "in_stock"
             },
             {
               id: "white-3",
-              specs: { "顏色": "白", "長度": "3m" },
+              variantTitle: "白色有序延長線+壁貼扣套組（3米）",
+              specs: { "顏色": "白", "規格": "3m" },
               price: 999,
               image: "/sample1.jpg",
               stockStatus: "preorder"
             },
             {
               id: "black-18",
-              specs: { "顏色": "黑", "長度": "1.8m" },
+              variantTitle: "黑色有序延長線+壁貼扣套組",
+              specs: { "顏色": "黑", "規格": "1.8m" },
               price: 899,
               image: "/sample2.jpg",
               stockStatus: "out_of_stock"
             },
             {
               id: "black-3",
-              specs: { "顏色": "黑", "長度": "3m" },
+              variantTitle: "黑色有序延長線+壁貼扣套組（3米）",
+              specs: { "顏色": "黑", "規格": "3m" },
               price: 999,
               image: "/sample2.jpg",
               stockStatus: "in_stock"

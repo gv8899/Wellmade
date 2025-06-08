@@ -9,6 +9,7 @@ export interface ProductSpecOption {
 
 export interface ProductVariant {
   id: string;
+  variantTitle?: string; // 新增：每個品項的專屬名稱
   specs: { [specName: string]: string }; // e.g. {顏色: "白", 長度: "1.8m"}
   price: number;
   originalPrice?: number;
@@ -70,53 +71,87 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   }
 
   return (
-    <section className="w-full max-w-2xl mx-auto my-10 p-6 bg-white rounded-2xl shadow-lg">
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
-      {currentVariant && (
-        <img src={currentVariant.image} alt="商品圖" className="w-28 h-28 object-cover rounded-xl mb-4" />
-      )}
-      <div className="mb-2 text-lg font-semibold text-gray-900">${currentVariant?.price ?? "-"}</div>
-      <div className="mb-2">
-        <span className={`inline-block px-3 py-1 text-xs rounded-full font-semibold ${statusLabel === "現貨" ? "bg-green-100 text-green-700" : statusLabel === "預購" ? "bg-yellow-100 text-yellow-700" : statusLabel === "缺貨" ? "bg-gray-200 text-gray-500" : "bg-gray-100 text-gray-400"}`}>{statusLabel}</span>
+    <div className="w-full max-w-5xl mx-auto my-10">
+      <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買方案</h2>
+      <div className="flex flex-col divide-y divide-gray-200">
+        {variants.map((variant, idx) => {
+          // 取得目前這個 variant 的規格預設值
+          const isSelected = Object.entries(selectedSpecs).every(
+            ([k, vOpt]) => variant.specs[k] === vOpt
+          );
+          return (
+            <div key={variant.id} className="flex flex-col md:flex-row items-center py-6 md:py-8 px-0 md:px-2 gap-6 md:gap-8 bg-transparent">
+              {/* 手機版：圖左文右，桌機維持原本 */}
+              <div className="w-full flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-0">
+                {/* 商品圖 */}
+                <div className="w-28 h-28 flex-shrink-0 flex items-center justify-center">
+                  <img src={variant.image} alt="商品圖" className="w-24 h-24 object-cover rounded-lg" />
+                </div>
+                {/* 名稱與價格，手機版顯示在圖片右側 */}
+                <div className="flex flex-col justify-center md:justify-start md:ml-0 ml-4">
+                  <div className="text-base md:text-lg font-semibold text-black mb-1">{variant.variantTitle || title}</div>
+                  <div className="text-lg font-bold text-black mb-1">${variant.price}</div>
+                </div>
+              </div>
+              {/* 內容區 */}
+              <div className="flex-1 w-full flex flex-col gap-2 mt-4 md:mt-0">
+                {/* 規格選單與數量選擇器區塊（無外框） */}
+                <div className="p-4 flex flex-col gap-4 w-fit bg-transparent">
+                  <div className="flex flex-wrap items-center gap-6 mb-2">
+                    {specOptions.map(spec => (
+                      <div key={spec.name} className="flex items-center gap-2">
+                        <span className="text-black text-sm font-medium">{spec.name}</span>
+                        <select
+                          className="border border-gray-400 rounded px-3 py-1 focus:ring-1 focus:ring-gray-400 text-sm text-black bg-white"
+                          value={variant.specs[spec.name]}
+                          onChange={e => {
+                            setSelectedSpecs({ ...selectedSpecs, [spec.name]: e.target.value });
+                          }}
+                        >
+                          {spec.options.map(opt => (
+                            <option key={opt} value={opt} className="text-black">{opt}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-black text-sm font-medium">數量</span>
+                    <button
+                      className="w-8 h-8 rounded-full border border-gray-400 text-black flex items-center justify-center disabled:opacity-30"
+                      disabled={quantity <= 1}
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center text-black font-semibold">{quantity}</span>
+                    <button
+                      className="w-8 h-8 rounded-full border border-gray-400 text-black flex items-center justify-center"
+                      onClick={() => setQuantity(q => q + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {/* 右側按鈕區：手機置中，桌機靠右 */}
+              <div className="flex flex-col w-full md:w-48 mt-4 md:mt-0 items-center md:items-end justify-center md:justify-end">
+                {/* 行動按鈕 */}
+                {variant.stockStatus === "in_stock" && (
+                  <button className="w-32 py-2 rounded-full border border-black text-black font-semibold hover:bg-gray-100 transition">加入購物車</button>
+                )}
+                {variant.stockStatus === "preorder" && (
+                  <button className="w-32 py-2 rounded-full border border-blue-500 text-blue-700 font-semibold hover:bg-blue-50 transition">立即預購</button>
+                )}
+                {variant.stockStatus === "out_of_stock" && (
+                  <button className="w-32 py-2 rounded-full border border-gray-300 text-gray-400 font-semibold cursor-not-allowed" disabled>貨到通知</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {/* 規格選單 */}
-      <div className="flex flex-col gap-3 mt-4">
-        {specOptions.map(spec => (
-          <div key={spec.name} className="flex items-center gap-3">
-            <span className="text-gray-700 w-16">{spec.name}</span>
-            <select
-              className="border rounded-lg px-3 py-1"
-              value={selectedSpecs[spec.name]}
-              onChange={e => setSelectedSpecs({ ...selectedSpecs, [spec.name]: e.target.value })}
-            >
-              {spec.options.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-        ))}
-      </div>
-      {/* 數量選擇器 */}
-      <div className="flex items-center gap-3 mt-4">
-        <span className="text-gray-700 w-16">數量</span>
-        <button
-          className="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-30"
-          disabled={quantity <= 1}
-          onClick={() => setQuantity(q => Math.max(1, q - 1))}
-        >
-          -
-        </button>
-        <span className="w-8 text-center">{quantity}</span>
-        <button
-          className="w-8 h-8 rounded-full border flex items-center justify-center"
-          onClick={() => setQuantity(q => q + 1)}
-        >
-          +
-        </button>
-      </div>
-      {/* 行動按鈕區 */}
-      {actionButtons}
-    </section>
+    </div>
   );
 };
 
