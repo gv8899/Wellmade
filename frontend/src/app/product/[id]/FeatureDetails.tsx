@@ -14,7 +14,7 @@ interface FeatureDetailsProps {
 
 const FeatureDetails: React.FC<FeatureDetailsProps> = ({ details }) => {
   return (
-    <section className="flex flex-col gap-16 w-full max-w-5xl mx-auto py-12">
+    <section className="flex flex-col gap-16 w-full max-w-5xl mx-auto py-12 px-4 md:px-0">
       {details.map((item, idx) => {
         // 桌機左右交錯，手機皆為上下
         const isReverse = (item.direction === "right") || (item.direction === undefined && idx % 2 === 1);

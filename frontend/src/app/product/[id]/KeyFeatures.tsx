@@ -18,7 +18,7 @@ interface KeyFeaturesProps {
 
 const KeyFeatures: React.FC<KeyFeaturesProps> = ({ features, scrollRef }) => {
   return (
-    <section className="w-full py-8 bg-white">
+    <section className="w-full py-8 bg-white px-4 md:px-0">
       <div className="max-w-6xl mx-auto relative">
         {/* 橫向捲動卡片列 */}
         <div

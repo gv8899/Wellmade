@@ -12,7 +12,7 @@ interface FAQSectionProps {
 const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   return (
-    <section className="w-full max-w-3xl mx-auto py-12">
+    <section className="w-full max-w-3xl mx-auto py-12 px-4 md:px-0">
       <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">常見問題</h2>
       <div className="flex flex-col divide-y divide-gray-200">
         {faqs.map((faq, idx) => {
