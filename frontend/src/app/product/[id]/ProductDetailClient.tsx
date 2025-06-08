@@ -81,7 +81,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         subtitle={product.category || ''}
         title={product.name}
         description={product.description}
-        imageUrl={product.cover}
+        imageUrl={product.media && product.media.length > 0 ? product.media[0].src : product.cover}
       />
       {/* 其餘內容區塊 */}
       <main className="max-w-4xl mx-auto px-4 pb-16">

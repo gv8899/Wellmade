@@ -6,33 +6,53 @@ interface ProductHeroProps {
   title: string;
   description: string;
   imageUrl: string;
+  // 可擴充按鈕 props
+  onPrimaryAction?: () => void;
+  onSecondaryAction?: () => void;
+  primaryText?: string;
+  secondaryText?: string;
 }
 
-const ProductHero: React.FC<ProductHeroProps> = ({ subtitle, title, description, imageUrl }) => {
+const ProductHero: React.FC<ProductHeroProps> = ({
+  subtitle,
+  title,
+  description,
+  imageUrl,
+  onPrimaryAction,
+  onSecondaryAction,
+  primaryText = "立即購買",
+  secondaryText = "了解更多"
+}) => {
   return (
-    <section className="w-full bg-white py-10 md:py-16">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16 px-4">
-        {/* 左側文案 */}
-        <div className="flex-1 w-full md:w-1/2 md:pr-6 text-left">
-          <div className="text-sm text-gray-500 mb-2 tracking-wide">{subtitle}</div>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">{title}</h1>
-          <div className="text-base md:text-lg text-gray-700 mb-2 whitespace-pre-line">{description}</div>
-        </div>
-        {/* 右側主圖 */}
-        <div className="flex-1 w-full md:w-1/2 flex justify-center items-center">
-          <div className="w-full max-w-md aspect-square relative">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={title}
-                fill
-                className="object-contain rounded-xl shadow-md bg-gray-50"
-                priority
-                sizes="(max-width: 768px) 90vw, 40vw"
-              />
-            ) : null}
+    <section className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden">
+      {/* 背景主圖 */}
+      {imageUrl && (
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          className="object-cover object-center w-full h-full z-0"
+          priority
+          sizes="100vw"
+        />
+      )}
+
+      {/* 置中文字區塊 */}
+      <div className="relative z-20 w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center px-4 py-12">
+        {subtitle && (
+          <div className="text-base md:text-lg text-blue-200 mb-2 tracking-wide font-medium ">
+            {subtitle}
           </div>
-        </div>
+        )}
+        <h1 className="text-3xl md:text-5xl font-extrabold text-black mb-4 leading-tight ">
+          {title}
+        </h1>
+        {description && (
+          <div className="text-lg md:text-xl text-black/90 mb-8 whitespace-pre-line ">
+            {description}
+          </div>
+        )}
+
       </div>
     </section>
   );
