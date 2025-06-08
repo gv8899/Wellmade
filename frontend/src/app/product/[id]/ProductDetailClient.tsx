@@ -5,6 +5,7 @@ import KeyFeatures from "./KeyFeatures";
 import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
 import FAQSection, { FAQItem } from "./FAQSection";
 import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
+import GoodProductsSection from "./GoodProductsSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 
@@ -236,6 +237,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       <main className="max-w-4xl mx-auto px-4 pb-16">
 
       </main>
+      <GoodProductsSection excludeId={product.id} />
     </>
   );
 };
