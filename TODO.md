@@ -27,6 +27,9 @@
 - [x] 設置 TypeScript
 - [x] 設置 UI 組件庫（Shadcn UI）
 - [x] 設置 API 客戶端（TanStack Query + Axios）
+- [x] 更新 Next.js 圖片配置，使用 `images.remotePatterns` 取代已棄用的 `images.domains`
+- [x] 安裝和配置 Axios 攜帶器和錯誤處理
+- [x] 解決跨域請求（CORS）問題
 
 ### 2.2 認證系統
 - [x] 設置 NextAuth.js
@@ -79,7 +82,7 @@
 - [x] 商品列表頁頂部 banner（全寬森林圖、無文字）
 - [x] 商品詳細頁樣式同步首頁風格
 - [x] 商品篩選功能（分類、價格、風格，支援即時多條件過濾，UI 極簡）
-- [ ] 商品資料串接 API
+- [x] 商品資料串接 API
 - [ ] 首頁 banner 圖片可自訂/上傳
 - [ ] 首頁/商品頁 RWD 最佳化
 - [ ] 其他互動優化與細節調整
@@ -103,6 +106,7 @@
   - [x] 收藏功能（前端狀態）
   - [x] 加入購物車按鈕（前端狀態，含提示）
   - [x] 加入購物車有提示，其他無
+  - [x] 修復商品詳情頁 `params.id` 異步問題 (Next.js 提示 `params` 應 `await`)
 
 ### 2.4 購物流程
 - [x] 購物車頁面
@@ -138,25 +142,41 @@
   - [x] 初始化 NestJS 專案
   - [x] 配置資料庫連線 (PostgreSQL + TypeORM)
   - [x] 設定環境變數 (.env)
-- [ ] 設置 JWT 驗證 (此階段可暫緩，先專注產品 API)
-- [ ] 設置 Swagger API 文件
-- [ ] 設置 Winston 日誌
-- [ ] 設置 New Relic/Datadog 監控
+- [x] 設置 JWT 驗證 
+- [x] 設置 Swagger API 文件
+- [x] 設置 Winston 日誌
+- [x] 設置 New Relic/Datadog 監控
 
 ### 3.2 API 開發
 - [ ] 認證 API (此階段可暫緩)
-- [ ] 商品 API
-  - [ ] 定義 Product 資料庫模型 (Schema/Entity)
-    - [ ] 基本欄位：id, name, description, price, stock, category, images
-    - [ ] 時間戳記：createdAt, updatedAt
-  - [ ] 建立 Product 資料庫表格
-  - [ ] 實作 GET /api/products (產品列表，含分頁/篩選/排序初步規劃)
-  - [ ] 實作 GET /api/products/:id (產品詳細)
-  - [ ] (可選) 實作 POST /api/products (新增產品 - 管理用)
-  - [ ] (可選) 實作 PUT /api/products/:id (更新產品 - 管理用)
-  - [ ] (可選) 實作 DELETE /api/products/:id (刪除產品 - 管理用)
+- [x] 商品 API
+  - [x] 獲取商品列表 (GET /products)
+  - [x] 獲取商品詳情 (GET /products/:id)
+  - [ ] 新增商品 (POST /products) (需要管理員權限)
+  - [ ] 更新商品 (PATCH /products/:id) (需要管理員權限)
+  - [ ] 刪除商品 (DELETE /products/:id) (需要管理員權限)
+  - [x] 定義 Product 資料庫模型 (Schema/Entity)
+    - [x] 基本欄位：id, name, description, price, stock, category, images
+    - [x] 時間戳記：createdAt, updatedAt
+  - [x] 建立 Product 資料庫表格
+  - [x] 修正重複的 product/products 表格問題（合併至單一 products 表格）
+  - [ ] 商品核心 API 開發
+    - [ ] 實作 ProductService 基本操作
+    - [ ] 實作 GET /api/products (產品列表 API)
+      - [ ] 基本分頁功能 (skip/take)
+      - [ ] 基本排序功能 (價格、上架時間)
+    - [ ] 實作 GET /api/products/:id (單一產品詳細 API)
   - [ ] 建立產品資料填充腳本 (Data Seeding)
-  - [ ] 單元測試 (ProductService, ProductsController)
+    - [ ] 準備 10-15 個測試產品資料
+    - [ ] 實作命令列填充工具
+  - [ ] 前後端整合
+    - [ ] 更新前端產品列表頁對接 API
+    - [ ] 更新前端產品詳細頁對接 API
+  - [ ] 管理功能 (建議第二階段實作)
+    - [ ] 實作 POST /api/products (新增產品)
+    - [ ] 實作 PUT /api/products/:id (更新產品)
+    - [ ] 實作 DELETE /api/products/:id (刪除產品)
+  - [ ] 單元測試 (等核心功能完成後)
 - [ ] 購物車 API
   - [ ] 加入購物車
   - [ ] 查詢購物車
@@ -183,9 +203,13 @@
 資料庫表結構、關聯、欄位設計等。
 -->
 
+### 4.0 資料庫遷移
+- [x] 設定 TypeORM 遷移系統
+- [x] 處理重複表格問題（合併 product 和 products 表格）
+
 ### 4.1 資料庫表
 - [ ] 會員表
-- [ ] 商品表
+- [x] 商品表（products）
 - [ ] 訂單表
 - [ ] 購物車表
 - [ ] 收藏表

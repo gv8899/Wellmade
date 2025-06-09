@@ -4,10 +4,13 @@ interface ProductDetailPageProps {
   params: { id: string };
 }
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+  // 使用 await 確保 params.id 已經解析完成
+  const id = await params.id;
+  
   return (
     <div className="min-h-screen bg-white">
-      <ProductDetailClient id={params.id} />
+      <ProductDetailClient id={id} />
     </div>
   );
 }
