@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like, Between } from 'typeorm';
 import { Product } from './product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FindProductsDto } from './dto/find-products.dto';
 
 @Injectable()
 export class ProductsService {
@@ -12,9 +13,54 @@ export class ProductsService {
     private productRepository: Repository<Product>,
   ) {}
 
-  // 查找所有產品
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
+  // 帶分頁和排序的查找產品
+  async findAll(queryParams: FindProductsDto = {}): Promise<{ items: Product[]; total: number }> {
+    const {
+      skip = 0,
+      take = 10,
+      sortBy = 'createdAt',
+      order = 'DESC',
+      category,
+      minPrice,
+      maxPrice,
+      search,
+    } = queryParams;
+
+    // 構建查詢條件
+    const whereConditions: any = {};
+    
+    // 如果有分類篩選
+    if (category) {
+      whereConditions.category = category;
+    }
+
+    // 如果有價格範圍篩選
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      whereConditions.price = {};
+      
+      if (minPrice !== undefined) {
+        whereConditions.price = { ...whereConditions.price, gte: minPrice };
+      }
+      
+      if (maxPrice !== undefined) {
+        whereConditions.price = { ...whereConditions.price, lte: maxPrice };
+      }
+    }
+
+    // 如果有搜尋關鍵詞
+    if (search) {
+      whereConditions.name = Like(`%${search}%`);
+    }
+
+    // 執行查詢
+    const [items, total] = await this.productRepository.findAndCount({
+      where: whereConditions,
+      order: { [sortBy]: order },
+      skip,
+      take,
+    });
+
+    return { items, total };
   }
 
   // 根據 ID 查找單個產品
@@ -53,8 +99,9 @@ export class ProductsService {
     }
   }
   
-  // 根據類別查找產品
+  // 根據類別查找產品 (為了相容性保留，但建議使用 findAll 並傳入 category 參數)
   async findByCategory(category: string): Promise<Product[]> {
-    return this.productRepository.find({ where: { category } });
+    const { items } = await this.findAll({ category });
+    return items;
   }
 }
