@@ -8,7 +8,9 @@ import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./Pro
 import GoodProductsSection from "./GoodProductsSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
+import { Product as ApiProduct, getProductById } from '@/services/api';
 
+// 前端顯示用的產品類型
 interface Product {
   id: string;
   name: string;
@@ -16,7 +18,7 @@ interface Product {
   description: string;
   cover: string;
   category: string;
-  style: string;
+  style?: string;
   media: {
     type: "image" | "video";
     src: string;
@@ -38,12 +40,45 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   const [collected, setCollected] = React.useState(false);
   const { cartItems, addToCart, removeFromCart, addCartClick } = useCart();
 
-  // 狀態持久化（localStorage）
+  // 狀態持久化（localStorage）與資料讀取
   React.useEffect(() => {
     // 讀取商品資料
-    fetch(`/api/mock-product/${id}`)
-      .then((res) => res.json())
-      .then((data: Product) => setProduct(data));
+    const loadProductData = async () => {
+      try {
+        // 從真實 API 獲取資料
+        const apiProduct = await getProductById(id);
+        
+        // 轉換為前端顯示格式
+        const displayProduct: Product = {
+          id: apiProduct.id,
+          name: apiProduct.name,
+          price: apiProduct.price,
+          description: apiProduct.description,
+          cover: apiProduct.imageUrl, // 使用主圖作為封面
+          category: apiProduct.category,
+          // 將所有圖片轉換為媒體陣列
+          media: [
+            {
+              type: "image",
+              src: apiProduct.imageUrl,
+              alt: apiProduct.name
+            },
+            ...(apiProduct.images || []).map(img => ({
+              type: "image" as const,
+              src: img,
+              alt: apiProduct.name
+            }))
+          ]
+        };
+        
+        setProduct(displayProduct);
+      } catch (error) {
+        console.error('無法載入產品資料:', error);
+      }
+    };
+    
+    loadProductData();
+    
     // 讀取本地狀態
     setCollected(localStorage.getItem(`collected_${id}`) === '1');
   }, [id]);
@@ -60,9 +95,9 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         name: product.name,
         price: product.price,
         cover: product.cover,
+        spec: { category: product.category || '一般' } // 添加必要的 spec 屬性
       });
       addCartClick();
-
     }
   };
 
@@ -85,7 +120,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         subtitle={product.category || ""}
         title={product.name}
         description={product.description}
-        imageUrl={product.media && product.media.length > 0 ? product.media[0].src : product.cover}
+        imageUrl={product.cover}
       />
       {/* Key Features 區塊：Apple 風格，橫向排列 */}
       <div className="relative">
