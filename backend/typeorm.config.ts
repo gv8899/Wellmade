@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
 import { Product } from './src/products/product.entity';
+import { User } from './src/users/user.entity';
 
 // 載入環境變數
 config();
@@ -16,7 +17,7 @@ export default new DataSource({
   username: configService.get('DB_USER'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_NAME'),
-  entities: [Product],
+  entities: [Product, User],
   // 指定遷移存放位置
   migrations: ['dist/migrations/*.js'],
   // 讓 TypeORM 不自動同步數據庫結構 (我們將使用遷移來管理)
