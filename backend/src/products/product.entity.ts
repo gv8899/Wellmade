@@ -20,12 +20,23 @@ export class Product {
   @Column()
   category: string;
 
-  @Column('text', { array: true, nullable: true }) // Array of image URLs, can be null
+  // 單一主要圖片 URL
+  @Column({ nullable: true })
+  imageUrl: string;
+  
+  // 多張圖片 URLs 數組
+  @Column('text', { array: true, nullable: true })
   images: string[];
+  
+  // 商品狀態（是否啟用）
+  @Column({ default: true })
+  isActive: boolean;
 
+  // 創建時間
   @CreateDateColumn()
   createdAt: Date;
 
+  // 更新時間
   @UpdateDateColumn()
   updatedAt: Date;
 }

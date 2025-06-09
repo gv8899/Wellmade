@@ -27,8 +27,8 @@ import { ProductsModule } from './products/products.module';
           username: dbUser,
           password: configService.get<string>('DB_PASSWORD'),
           database: dbName,
-          entities: [], // Entities are now registered via feature modules
-          synchronize: true, // Auto-creates DB tables based on entities (dev only!)
+          entities: [__dirname + '/**/*.entity{.ts,.js}'], // 自動載入所有實體
+          synchronize: false, // 關閉自動同步，使用遷移來管理資料庫結構變更
         };
       },
       inject: [ConfigService],
