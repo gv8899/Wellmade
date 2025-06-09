@@ -48,7 +48,7 @@ export default function CartPage() {
 
       {cartItems.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg">購物車目前是空的</p>
+          <p className="text-gray-400 text-lg mb-18">購物車目前是空的</p>
           <Link
             href="/checkout"
             className="w-full flex justify-center py-3 px-4 text-base font-semibold text-white bg-gray-900 hover:bg-gray-700 transition"

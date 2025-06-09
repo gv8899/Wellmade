@@ -54,7 +54,7 @@ export default function LoginPage() {
                 required
                 value={form.email}
                 onChange={handleChange}
-                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2"
+                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2 text-black"
                 placeholder="請輸入信箱"
               />
             </div>
@@ -70,7 +70,7 @@ export default function LoginPage() {
                 required
                 value={form.password}
                 onChange={handleChange}
-                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2"
+                className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2 text-black"
                 placeholder="請輸入密碼"
               />
               <div className="text-right mt-2">
