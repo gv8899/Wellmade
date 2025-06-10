@@ -4,9 +4,9 @@ interface ProductDetailPageProps {
   params: { id: string };
 }
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  // 使用 await 確保 params.id 已經解析完成
-  const id = await params.id;
+export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+  // params.id 是一個字符串，不需要 await
+  const id = params.id;
   
   return (
     <div className="min-h-screen bg-white">

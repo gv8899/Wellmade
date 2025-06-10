@@ -6,6 +6,7 @@ import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
 import FAQSection, { FAQItem } from "./FAQSection";
 import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
 import GoodProductsSection from "./GoodProductsSection";
+import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 import { Product as ApiProduct, getProductById } from '@/services/api';
@@ -24,6 +25,13 @@ interface Product {
     src: string;
     alt?: string;
   }[];
+  brandId?: string;
+  brand?: {
+    id: string;
+    name: string;
+    description: string;
+    logoUrl: string;
+  };
 }
 
 interface ProductDetailClientProps {
@@ -68,7 +76,15 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
               src: img,
               alt: apiProduct.name
             }))
-          ]
+          ],
+          // 添加品牌資訊
+          brandId: apiProduct.brandId,
+          brand: apiProduct.brand ? {
+            id: apiProduct.brand.id,
+            name: apiProduct.brand.name,
+            description: apiProduct.brand.description,
+            logoUrl: apiProduct.brand.logoUrl
+          } : undefined
         };
         
         setProduct(displayProduct);
@@ -122,6 +138,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         description={product.description}
         imageUrl={product.cover}
       />
+      
       {/* Key Features 區塊：Apple 風格，橫向排列 */}
       <div className="relative">
         <KeyFeatures
@@ -220,6 +237,17 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             }
           ]}
         />
+        
+        {/* 品牌介紹區塊 */}
+        {product.brand && (
+          <BrandSection
+            brandId={product.brandId}
+            name={product.brand.name}
+            description={product.brand.description}
+            logoUrl={product.brand.logoUrl}
+          />
+        )}
+        
         {/* 購買方案區（多規格、多狀態、Unipapa 風格） */}
         <ProductPurchaseOptions
           title="購買方案"

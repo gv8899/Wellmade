@@ -40,6 +40,19 @@ api.interceptors.response.use(
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
 
 /**
+ * 品牌介面，與後端 Brand 實體對應
+ */
+export interface Brand {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
  * 產品介面，與後端 Product 實體對應
  */
 export interface Product {
@@ -52,6 +65,8 @@ export interface Product {
   imageUrl: string; // 主要圖片
   images: string[]; // 多張圖片
   isActive: boolean;
+  brandId?: string; // 關聯的品牌ID
+  brand?: Brand; // 關聯的品牌資訊
   createdAt?: string;
   updatedAt?: string;
 }
