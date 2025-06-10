@@ -111,18 +111,14 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   // 處理加入購物車
   const handleCart = () => {
-    if (!product) return;
-    
-    const isInCart = cartItems.some(item => item.id === id);
-    
-    if (isInCart) {
-      removeFromCart(id);
-    } else {
+    if (!isInCart && product) {
+      // 添加到購物車
       const item = {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.cover,
+        cover: product.cover,
+        spec: { "版本": "標準版" }, // spec 應為物件
         quantity: 1
       };
       addToCart(item);
@@ -141,28 +137,32 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   // 產品特性詳細資訊
   const featureDetails: FeatureDetail[] = [
     {
-      icon: <FaBolt className="text-yellow-500 text-3xl" />,
+      type: "image",
+      src: "https://placehold.co/600x400/FFDD4A/333333?text=高效能",
       title: "高效能",
       description: "最新技術帶來無與倫比的使用體驗，能效提升40%",
-      animation: "fade-right"
+      direction: "left"
     },
     {
-      icon: <FaTint className="text-blue-500 text-3xl" />,
+      type: "image",
+      src: "https://placehold.co/600x400/4AA3F7/FFFFFF?text=防水設計",
       title: "防水設計",
       description: "IP68防水等級，水深1.5公尺可持續30分鐘不受損",
-      animation: "fade-left"
+      direction: "right"
     },
     {
-      icon: <FaBatteryFull className="text-green-500 text-3xl" />,
+      type: "image",
+      src: "https://placehold.co/600x400/4CAF50/FFFFFF?text=長效電池",
       title: "長效電池",
       description: "單次充電可持續使用長達36小時，遠超同類產品",
-      animation: "fade-right"
+      direction: "left"
     },
     {
-      icon: <FaRegLightbulb className="text-amber-500 text-3xl" />,
+      type: "image",
+      src: "https://placehold.co/600x400/FFA726/FFFFFF?text=智能感應",
       title: "智能感應",
       description: "內置先進感測器，根據環境自動調整最佳運作模式",
-      animation: "fade-left"
+      direction: "right"
     }
   ];
 
@@ -189,33 +189,51 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   // 商品變體
   const variants: ProductVariant[] = [
     { 
-      id: "color-black",
-      name: "經典黑",
-      type: "color",
-      hexCode: "#000000",
-      extra: 0
+      id: "variant-black-standard",
+      variantTitle: "經典黑 - 標準版",
+      specs: {
+        "顏色": "經典黑",
+        "版本": "標準版"
+      },
+      price: product.price,
+      image: product.cover,
+      stockStatus: "in_stock"
     },
     { 
-      id: "color-white",
-      name: "純淨白",
-      type: "color",
-      hexCode: "#FFFFFF",
-      extra: 0
+      id: "variant-white-standard",
+      variantTitle: "純淨白 - 標準版",
+      specs: {
+        "顏色": "純淨白",
+        "版本": "標準版"
+      },
+      price: product.price,
+      image: product.cover,
+      stockStatus: "in_stock"
     },
     { 
-      id: "color-green",
-      name: "自然綠",
-      type: "color",
-      hexCode: "#4CAF50",
-      extra: 0
+      id: "variant-green-premium",
+      variantTitle: "自然綠 - 高級版",
+      specs: {
+        "顏色": "自然綠",
+        "版本": "高級版"
+      },
+      price: product.price + 500,
+      originalPrice: product.price,
+      image: product.cover,
+      stockStatus: "in_stock"
     }
   ];
 
   // 規格選項
   const specOptions: ProductSpecOption[] = [
-    { id: "standard", name: "標準版", extra: 0, description: "基本功能完整，適合一般用戶" },
-    { id: "premium", name: "高級版", extra: 500, description: "附加進階功能，提供更好的使用體驗" },
-    { id: "pro", name: "專業版", extra: 1200, description: "包含所有功能和專業支援服務" }
+    { 
+      name: "顏色",
+      options: ["經典黑", "純淨白", "自然綠"]
+    },
+    { 
+      name: "版本",
+      options: ["標準版", "高級版", "專業版"]
+    }
   ];
 
   // 格式化價格
@@ -228,36 +246,50 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   return (
     <div className="min-h-screen bg-white">
       <ProductHero
-        product={product}
-        isCollected={collected}
-        onCollect={handleCollect}
-        isInCart={isInCart}
-        onCart={handleCart}
+        subtitle={product.category || "精品科技"}
+        title={product.name}
+        description={product.description}
+        imageUrl={product.cover}
+        primaryText="立即購買"
+        secondaryText={isInCart ? "已加入購物車" : "加入購物車"}
+        onPrimaryAction={() => window.scrollTo({top: document.getElementById('purchase')?.offsetTop, behavior: 'smooth'})}
+        onSecondaryAction={handleCart}
       />
       
       <KeyFeatures
         scrollRef={keyFeaturesScrollRef}
-        features={product?.keyFeatures || []}
+        features={[
+          { image: "https://placehold.co/100x100/FF9800/FFFFFF?text=💪", title: "高品質", description: "精選優質材料，嚴格品控" },
+          { image: "https://placehold.co/100x100/4CAF50/FFFFFF?text=🛡️", title: "安全可靠", description: "多重安全認證，使用無顧慮" },
+          { image: "https://placehold.co/100x100/2196F3/FFFFFF?text=🔋", title: "續航持久", description: "長效電池，持久耐用" },
+          { image: "https://placehold.co/100x100/9C27B0/FFFFFF?text=🔄", title: "售後保障", description: "兩年保固，終身技術支援" }
+        ]}
       />
       
-      <FeatureDetails features={featureDetails} />
+      <FeatureDetails details={featureDetails} />
       
       <ProductPurchaseOptions
-        price={product.price}
-        formatPrice={formatPrice}
+        title={product.name}
         variants={variants}
-        specOptions={specOptions}
-        isInCart={isInCart}
-        onAddToCart={handleCart}
+        specOptions={specOptions.map(option => ({
+          name: option.name,
+          options: option.options.length > 0 ? option.options : ['預設值'] // 確保 options 至少有一個預設值
+        }))}
+        defaultQuantity={1}
       />
 
       {product.brand && 
-        <BrandSection brand={product.brand} />
+        <BrandSection 
+          brandId={product.brand.id}
+          name={product.brand.name}
+          description={product.brand.description}
+          logoUrl={product.brand.logoUrl || ''}
+        />
       }
       
       <FAQSection faqs={faqs} />
       
-      <GoodProductsSection currentProductId={id} />
+      <GoodProductsSection excludeId={id} />
     </div>
   );
 };
