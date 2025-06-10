@@ -1,6 +1,14 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Brand } from '../brands/brand.entity';
 
+// ç¢åçééµç¹æ§ä»é¢
+export interface KeyFeature {
+  image: string;
+  title: string;
+  subtitle?: string;
+  description: string;
+}
+
 @Entity('products') // Specifies the table name in the database
 export class Product {
   @PrimaryGeneratedColumn('uuid')
@@ -21,7 +29,7 @@ export class Product {
   @Column()
   category: string;
   
-  // 品牌關聯
+  // åçéè¯
   @ManyToOne(() => Brand, { nullable: true })
   @JoinColumn({ name: "brandId" })
   brand: Brand;
@@ -29,23 +37,27 @@ export class Product {
   @Column({ nullable: true })
   brandId: string;
 
-  // 單一主要圖片 URL
+  // å®ä¸ä¸»è¦åç URL
   @Column({ nullable: true })
   imageUrl: string;
   
-  // 多張圖片 URLs 數組
+  // å¤å¼µåç URLs æ¸çµ
   @Column('text', { array: true, nullable: true })
   images: string[];
   
-  // 商品狀態（是否啟用）
+  // ééµç¹æ§ (JSON æ ¼å¼å²å­)
+  @Column('jsonb', { nullable: true })
+  keyFeatures: KeyFeature[];
+  
+  // ååçæï¼æ¯å¦åç¨ï¼
   @Column({ default: true })
   isActive: boolean;
 
-  // 創建時間
+  // åµå»ºæé
   @CreateDateColumn()
   createdAt: Date;
 
-  // 更新時間
+  // æ´æ°æé
   @UpdateDateColumn()
   updatedAt: Date;
 }

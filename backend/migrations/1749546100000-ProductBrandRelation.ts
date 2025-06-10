@@ -2,18 +2,18 @@ import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey } from "t
 
 export class ProductBrandRelation1749546100000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. 先從產品表中獲取所有現有的品牌名稱
+    // 1. åå¾ç¢åè¡¨ä¸­ç²åææç¾æçåçåç¨±
     const brands = await queryRunner.query(`
       SELECT DISTINCT brand 
       FROM products 
       WHERE brand IS NOT NULL AND brand != ''
     `);
 
-    // 2. 將這些品牌名稱插入到品牌表中
+    // 2. å°éäºåçåç¨±æå¥å°åçè¡¨ä¸­
     if (brands && brands.length > 0) {
       for (const brandObj of brands) {
         const brandName = brandObj.brand;
-        // 檢查品牌是否已存在
+        // æª¢æ¥åçæ¯å¦å·²å­å¨
         const existingBrand = await queryRunner.query(`
           SELECT id FROM brands WHERE name = $1
         `, [brandName]);
@@ -26,7 +26,7 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
       }
     }
 
-    // 3. 在產品表中添加 brandId 欄位
+    // 3. å¨ç¢åè¡¨ä¸­æ·»å  brandId æ¬ä½
     await queryRunner.addColumn(
       "products",
       new TableColumn({
@@ -36,27 +36,27 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
       })
     );
 
-    // 4. 為每個產品設置正確的 brandId
+    // 4. çºæ¯åç¢åè¨­ç½®æ­£ç¢ºç brandId
     await queryRunner.query(`
       UPDATE products p
       SET "brandId" = (SELECT b.id FROM brands b WHERE b.name = p.brand)
       WHERE p.brand IS NOT NULL AND p.brand != ''
     `);
 
-    // 5. 添加外鍵約束
+    // 5. æ·»å å¤éµç´æ
     await queryRunner.createForeignKey(
       "products",
       new TableForeignKey({
         columnNames: ["brandId"],
         referencedColumnNames: ["id"],
         referencedTableName: "brands",
-        onDelete: "SET NULL", // 如果刪除品牌，產品的 brandId 設為 null
+        onDelete: "SET NULL", // å¦æåªé¤åçï¼ç¢åç brandId è¨­çº null
       })
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // 1. 刪除外鍵約束
+    // 1. åªé¤å¤éµç´æ
     const table = await queryRunner.getTable("products");
     const foreignKey = table.foreignKeys.find(
       (fk) => fk.columnNames.indexOf("brandId") !== -1
@@ -65,7 +65,7 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
       await queryRunner.dropForeignKey("products", foreignKey);
     }
 
-    // 2. 刪除 brandId 欄位
+    // 2. åªé¤ brandId æ¬ä½
     await queryRunner.dropColumn("products", "brandId");
   }
 }
