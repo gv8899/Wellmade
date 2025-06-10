@@ -1,22 +1,34 @@
 import { DataSource } from 'typeorm';
 import { Product } from '../products/product.entity';
+import { Brand } from '../brands/brand.entity';
 import { v4 as uuidv4 } from 'uuid';
 
-export const seedProducts = async (dataSource: DataSource) => {
+export const seedProducts = async (dataSource: DataSource, brands: any[] = []) => {
   const productRepository = dataSource.getRepository(Product);
+  const brandRepository = dataSource.getRepository(Brand);
   
   // 先檢查資料庫是否已有資料
-  const count = await productRepository.count();
-  if (count > 0) {
+  const productCount = await productRepository.count();
+  
+  if (productCount > 0) {
     console.log('產品資料已存在，跳過填充');
     return;
+  }
+  
+  // 確保有品牌資料
+  let brandEntities = brands;
+  if (!brandEntities || brandEntities.length === 0) {
+    brandEntities = await brandRepository.find();
+    if (brandEntities.length === 0) {
+      console.log('無品牌資料，無法建立產品關聯');
+      return;
+    }
   }
   
   // 預設的產品分類
   const categories = ['廚房用品', '浴室用品', '臥室用品', '客廳用品', '辦公用品'];
   
-  // 預設的產品品牌
-  const brands = ['IKEA', 'MUJI', 'Herman Miller', 'Dyson', 'Apple', 'Samsung', 'LG', 'KitchenAid', 'Bosch', 'Philips'];
+  // 預設的產品分類
   
   // 建立測試資料
   const products: Partial<Product>[] = [];
@@ -24,7 +36,7 @@ export const seedProducts = async (dataSource: DataSource) => {
   // 生成15個測試產品
   for (let i = 1; i <= 15; i++) {
     const category = categories[Math.floor(Math.random() * categories.length)];
-    const brand = brands[Math.floor(Math.random() * brands.length)];
+    const randomBrand = brandEntities[Math.floor(Math.random() * brandEntities.length)];
     const price = Math.floor(Math.random() * 1000) + 100; // 100-1100 之間的價格
     const stock = Math.floor(Math.random() * 100) + 10; // 10-110 之間的庫存
 
@@ -34,7 +46,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: price,
       stock: stock,
       category: category,
-      brand: brand,
+      brandId: randomBrand.id,
       imageUrl: `https://picsum.photos/seed/${i}/500/500`, // 使用隨機圖片
       images: [
         `https://picsum.photos/seed/${i}a/500/500`,
@@ -55,7 +67,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: 1299,
       stock: 50,
       category: '廚房用品',
-      brand: 'KitchenAid',
+      brandId: brandEntities.find(b => b.name === 'KitchenAid')?.id,
       imageUrl: 'https://picsum.photos/seed/knife/500/500',
       images: [
         'https://picsum.photos/seed/knife1/500/500',
@@ -70,7 +82,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: 3499,
       stock: 30,
       category: '客廳用品',
-      brand: 'IKEA',
+      brandId: brandEntities.find(b => b.name === 'IKEA')?.id,
       imageUrl: 'https://picsum.photos/seed/shelf/500/500',
       images: [
         'https://picsum.photos/seed/shelf1/500/500',
@@ -85,7 +97,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: 890,
       stock: 100,
       category: '廚房用品',
-      brand: 'Philips',
+      brandId: brandEntities.find(b => b.name === 'Philips')?.id,
       imageUrl: 'https://picsum.photos/seed/mug/500/500',
       images: [
         'https://picsum.photos/seed/mug1/500/500',

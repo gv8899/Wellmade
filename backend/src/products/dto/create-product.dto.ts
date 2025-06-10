@@ -23,7 +23,7 @@ export class CreateProductDto {
   
   @IsString()
   @IsOptional()
-  brand?: string;
+  brandId?: string;
 
   @IsString()
   @IsOptional()

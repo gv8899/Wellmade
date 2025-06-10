@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between } from 'typeorm';
 import { Product } from './product.entity';
+import { Brand } from '../brands/brand.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
@@ -11,6 +12,9 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    
+    @InjectRepository(Brand)
+    private brandRepository: Repository<Brand>,
   ) {}
 
   // 帶分頁和排序的查找產品
@@ -21,7 +25,7 @@ export class ProductsService {
       sortBy = 'createdAt',
       order = 'DESC',
       category,
-      brand,
+      brandId,
       minPrice,
       maxPrice,
       search,
@@ -36,8 +40,8 @@ export class ProductsService {
     }
     
     // 如果有品牌篩選
-    if (brand) {
-      whereConditions.brand = brand;
+    if (brandId) {
+      whereConditions.brandId = brandId;
     }
 
     // 如果有價格範圍篩選
@@ -64,6 +68,7 @@ export class ProductsService {
       order: { [sortBy]: order },
       skip,
       take,
+      relations: ['brand'], // 載入品牌關聯資訊
     });
 
     return { items, total };
@@ -77,7 +82,11 @@ export class ProductsService {
         throw new BadRequestException('Invalid product ID format. Expected UUID format.');
       }
       
-      const product = await this.productRepository.findOne({ where: { id } });
+      // 使用關聯查詢載入品牌資訊
+      const product = await this.productRepository.findOne({ 
+        where: { id },
+        relations: ['brand']
+      });
       
       if (!product) {
         throw new NotFoundException(`Product with ID ${id} not found`);
@@ -99,8 +108,20 @@ export class ProductsService {
 
   // 創建新產品
   async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create(createProductDto);
-    return this.productRepository.save(product);
+    // 處理 Brand 關聯
+    const productData = { ...createProductDto };
+    
+    if (createProductDto.brandId) {
+      // 確認 Brand 存在
+      const brand = await this.brandRepository.findOne({ where: { id: createProductDto.brandId } });
+      if (!brand) {
+        throw new NotFoundException(`Brand with ID ${createProductDto.brandId} not found`);
+      }
+    }
+    
+    const product = this.productRepository.create(productData);
+    const savedProduct = await this.productRepository.save(product);
+    return savedProduct;
   }
 
   // 更新產品

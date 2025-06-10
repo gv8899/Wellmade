@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Brand } from '../brands/brand.entity';
 
 @Entity('products') // Specifies the table name in the database
 export class Product {
@@ -20,9 +21,13 @@ export class Product {
   @Column()
   category: string;
   
-  // 品牌
+  // 品牌關聯
+  @ManyToOne(() => Brand, { nullable: true })
+  @JoinColumn({ name: "brandId" })
+  brand: Brand;
+
   @Column({ nullable: true })
-  brand: string;
+  brandId: string;
 
   // 單一主要圖片 URL
   @Column({ nullable: true })

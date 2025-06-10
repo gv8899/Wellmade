@@ -38,6 +38,7 @@ export class ProductsController {
   }
 
   // POST /products - 新增產品
+  @Public()
   @Post()
   async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return this.productsService.create(createProductDto);

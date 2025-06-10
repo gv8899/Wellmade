@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { BrandsModule } from './brands/brands.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -19,6 +20,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     UsersModule,
     AuthModule,
     ProductsModule,
+    BrandsModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -35,7 +37,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
           password: configService.get<string>('DB_PASSWORD'),
           database: dbName,
           entities: [__dirname + '/**/*.entity{.ts,.js}'], // 自動載入所有實體
-          synchronize: false, // 關閉自動同步，使用遷移來管理資料庫結構變更
+          synchronize: true, // 暫時啟用自動同步，以便建立資料表結構
         };
       },
       inject: [ConfigService],

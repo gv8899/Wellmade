@@ -34,7 +34,7 @@ export class FindProductsDto {
   
   @IsOptional()
   @IsString()
-  brand?: string;
+  brandId?: string;
 
   @IsOptional()
   @Min(0)
