@@ -20,6 +20,10 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   category: string;
+  
+  @IsString()
+  @IsOptional()
+  brand?: string;
 
   @IsString()
   @IsOptional()

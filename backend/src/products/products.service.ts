@@ -21,6 +21,7 @@ export class ProductsService {
       sortBy = 'createdAt',
       order = 'DESC',
       category,
+      brand,
       minPrice,
       maxPrice,
       search,
@@ -32,6 +33,11 @@ export class ProductsService {
     // 如果有分類篩選
     if (category) {
       whereConditions.category = category;
+    }
+    
+    // 如果有品牌篩選
+    if (brand) {
+      whereConditions.brand = brand;
     }
 
     // 如果有價格範圍篩選
@@ -65,13 +71,30 @@ export class ProductsService {
 
   // 根據 ID 查找單個產品
   async findOne(id: string): Promise<Product> {
-    const product = await this.productRepository.findOne({ where: { id } });
-    
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+    try {
+      // 檢查是否為有效的 UUID 格式
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        throw new BadRequestException('Invalid product ID format. Expected UUID format.');
+      }
+      
+      const product = await this.productRepository.findOne({ where: { id } });
+      
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${id} not found`);
+      }
+      
+      // 確保產品是啟用狀態的
+      if (!product.isActive) {
+        throw new NotFoundException(`Product with ID ${id} is not available`);
+      }
+      
+      return product;
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error retrieving product: ${error.message}`);
     }
-    
-    return product;
   }
 
   // 創建新產品

@@ -15,12 +15,16 @@ export const seedProducts = async (dataSource: DataSource) => {
   // 預設的產品分類
   const categories = ['廚房用品', '浴室用品', '臥室用品', '客廳用品', '辦公用品'];
   
+  // 預設的產品品牌
+  const brands = ['IKEA', 'MUJI', 'Herman Miller', 'Dyson', 'Apple', 'Samsung', 'LG', 'KitchenAid', 'Bosch', 'Philips'];
+  
   // 建立測試資料
   const products: Partial<Product>[] = [];
   
   // 生成15個測試產品
   for (let i = 1; i <= 15; i++) {
     const category = categories[Math.floor(Math.random() * categories.length)];
+    const brand = brands[Math.floor(Math.random() * brands.length)];
     const price = Math.floor(Math.random() * 1000) + 100; // 100-1100 之間的價格
     const stock = Math.floor(Math.random() * 100) + 10; // 10-110 之間的庫存
 
@@ -30,6 +34,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: price,
       stock: stock,
       category: category,
+      brand: brand,
       imageUrl: `https://picsum.photos/seed/${i}/500/500`, // 使用隨機圖片
       images: [
         `https://picsum.photos/seed/${i}a/500/500`,
@@ -45,11 +50,12 @@ export const seedProducts = async (dataSource: DataSource) => {
   // 特定產品範例 (可以添加更多特色產品)
   const specialProducts: Partial<Product>[] = [
     {
-      name: '多功能不鏽鋼料理刀',
-      description: '高級不鏽鋼材質，鋒利耐用，適合各種食材切割，符合人體工學設計的手柄，使用舒適。',
+      name: '多功能不銹鋼料理刀',
+      description: '高級不銹鋼材質，鋒利耐用，適合各種食材切割，符合人體工學設計的手柄，使用舒適。',
       price: 1299,
       stock: 50,
       category: '廚房用品',
+      brand: 'KitchenAid',
       imageUrl: 'https://picsum.photos/seed/knife/500/500',
       images: [
         'https://picsum.photos/seed/knife1/500/500',
@@ -64,6 +70,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: 3499,
       stock: 30,
       category: '客廳用品',
+      brand: 'IKEA',
       imageUrl: 'https://picsum.photos/seed/shelf/500/500',
       images: [
         'https://picsum.photos/seed/shelf1/500/500',
@@ -78,6 +85,7 @@ export const seedProducts = async (dataSource: DataSource) => {
       price: 890,
       stock: 100,
       category: '廚房用品',
+      brand: 'Philips',
       imageUrl: 'https://picsum.photos/seed/mug/500/500',
       images: [
         'https://picsum.photos/seed/mug1/500/500',

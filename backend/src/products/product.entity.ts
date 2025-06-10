@@ -19,6 +19,10 @@ export class Product {
 
   @Column()
   category: string;
+  
+  // 品牌
+  @Column({ nullable: true })
+  brand: string;
 
   // 單一主要圖片 URL
   @Column({ nullable: true })

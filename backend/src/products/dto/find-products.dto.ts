@@ -31,6 +31,10 @@ export class FindProductsDto {
   @IsOptional()
   @IsString()
   category?: string;
+  
+  @IsOptional()
+  @IsString()
+  brand?: string;
 
   @IsOptional()
   @Min(0)

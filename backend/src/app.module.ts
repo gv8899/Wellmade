@@ -14,7 +14,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Makes ConfigService available throughout the application
-      envFilePath: '/Users/mike/CascadeProjects/Wellmade-old-version/backend/.env', // Use absolute path
+      envFilePath: '.env', // Use relative path for better portability
     }),
     UsersModule,
     AuthModule,
