@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { toast } from "react-hot-toast";
 
 export interface CartItem {
   id: string;
@@ -19,6 +20,7 @@ interface CartContextType {
   totalAmount: number;
   cartClickCount: number;
   addCartClick: () => void;
+  isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -32,6 +34,7 @@ export function useCart() {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartClickCount, setCartClickCount] = useState(0);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 初始化時讀取 localStorage
   useEffect(() => {
@@ -77,6 +80,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
+    // 本地購物車更新（API 調用已在 ProductPurchaseOptions 中處理）
     setCartItems(prev => {
       const idx = prev.findIndex(i => i.id === item.id);
       if (idx >= 0) {
@@ -89,10 +93,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = (itemId: string) => {
+    // 直接更新本地購物車狀態
     setCartItems(prev => prev.filter(item => item.id !== itemId));
+    toast.success('已從購物車移除');
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
+    // 直接更新本地購物車狀態
     setCartItems(prev => {
       const idx = prev.findIndex(i => i.id === itemId);
       if (idx >= 0) {
@@ -102,18 +109,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return prev;
     });
+    toast.success('已更新購物車數量');
   };
 
   const clearCart = () => {
+    // 目前僅更新本地狀態
+    // 後續可以添加調用清空購物車的 API
     setCartItems([]);
     localStorage.removeItem("cart");
+    toast.success('購物車已清空');
   };
 
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, totalAmount, cartClickCount, addCartClick }}
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalAmount,
+        cartClickCount,
+        addCartClick,
+        isLoading,
+      }}
     >
       {children}
     </CartContext.Provider>

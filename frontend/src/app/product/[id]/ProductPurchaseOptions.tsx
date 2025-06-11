@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
+import { toast } from "react-hot-toast";
 
 
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
@@ -29,25 +30,47 @@ export interface ProductPurchaseOptionsProps {
 
 const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   title,
-  variants,
-  specOptions,
+  variants: initialVariants,
+  specOptions: initialSpecOptions,
   defaultQuantity = 1,
 }) => {
   const { addToCart, addCartClick } = useCart();
-  // 預設選第一個規格
-  const initialSpecs = specOptions.reduce((acc, cur) => {
-    acc[cur.name] = cur.options[0];
-    return acc;
-  }, {} as { [specName: string]: string });
+  
+  // 狀態管理
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // 產品變體和規格選項
+  const [variants, setVariants] = useState(initialVariants);
+  const [specOptions, setSpecOptions] = useState(initialSpecOptions);
+  
+  // 只使用第一個規格選項
+  const primarySpecOption = specOptions.length > 0 ? specOptions[0] : null;
+  const initialSpecs = primarySpecOption 
+    ? { [primarySpecOption.name]: primarySpecOption.options[0] } 
+    : {};
 
   const [selectedSpecs, setSelectedSpecs] = useState<{ [specName: string]: string }>(initialSpecs);
   const [quantity, setQuantity] = useState(defaultQuantity);
   const [notifyOpen, setNotifyOpen] = useState(false);
+  
+  // 使用初始數據，不再嘗試加載 API 數據
+  useEffect(() => {
+    // 直接使用傳入的初始數據
+    setIsLoading(false);
+    setError(null);
+    
+    // 確保有選擇規格
+    if (specOptions.length > 0) {
+      setSelectedSpecs({ [specOptions[0].name]: specOptions[0].options[0] });
+    }
+  }, []);  // 只在組件渲染時執行一次
 
   // 根據選擇的規格找到對應 variant
-  const currentVariant = variants.find(v =>
-    Object.entries(selectedSpecs).every(([k, vOpt]) => v.specs[k] === vOpt)
-  );
+  const currentVariant = primarySpecOption 
+    ? variants.find(v => v.specs[primarySpecOption.name] === selectedSpecs[primarySpecOption.name])
+    : variants[0]; // 如果沒有規格選項，則預設使用第一個變體
 
   // 狀態與按鈕文案
   let statusLabel = "現貨";
@@ -60,9 +83,13 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     actionButtons = (
         <button
           className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={currentVariant?.stockStatus !== "in_stock"}
+          disabled={currentVariant?.stockStatus !== "in_stock" || isAddingToCart}
           onClick={() => {
             if (!currentVariant) return;
+            
+            setIsAddingToCart(true);
+            
+            // 直接更新前端購物車狀態，不調用 API
             for (let i = 0; i < quantity; i++) {
               addToCart({
                 id: currentVariant.id,
@@ -73,9 +100,11 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
               });
             }
             addCartClick();
+            toast.success('已成功加入購物車');
+            setIsAddingToCart(false);
           }}
         >
-          加入購物車
+          {isAddingToCart ? '處理中...' : '加入購物車'}
         </button>
     );
   } else if (currentVariant.stockStatus === "preorder") {
@@ -101,6 +130,36 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     );
   }
 
+  // 顯示加載狀態
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-5xl mx-auto my-10">
+        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+        </div>
+      </div>
+    );
+  }
+  
+  // 顯示錯誤狀態
+  if (error) {
+    return (
+      <div className="w-full max-w-5xl mx-auto my-10">
+        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <div className="flex justify-center items-center h-40 flex-col">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            className="px-4 py-2 bg-black text-white rounded-lg"
+            onClick={() => window.location.reload()}
+          >
+            重新整理
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="w-full max-w-5xl mx-auto my-10">
       <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
@@ -116,35 +175,31 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             <div className="text-lg font-bold text-gray-800 mb-1">${variants[0].price}</div>
           </div>
         </div>
-        {/* 規格選單區塊 */}
+        {/* 規格選單區塊 - 只顯示第一個規格 */}
         <div className="flex flex-col gap-6 w-full max-w-xs items-center mx-auto">
-          {specOptions.map(spec => (
-            <div key={spec.name} className="w-full">
-              <div className="text-center text-gray-700 text-base font-medium mb-2">{spec.name}</div>
-              <div className="flex flex-row w-full justify-center">
-                {spec.options.map((opt, idx) => {
-  const isFirst = idx === 0;
-  const isLast = idx === spec.options.length - 1;
-  const isSelected = selectedSpecs[spec.name] === opt;
-  return (
-    <button
-      key={opt}
-      type="button"
-      className={`flex-1 min-w-0 py-3 border text-lg font-semibold transition
-        ${isFirst ? 'rounded-l-[12px]' : ''}
-        ${isLast ? 'rounded-r-[12px]' : ''}
-        ${!isFirst && !isLast ? 'rounded-none' : ''}
-        ${!isLast ? 'border-r-0' : ''}
-        ${isSelected ? 'bg-black text-white border-black' : 'bg-white text-gray-800 border-gray-400 hover:border-black hover:bg-gray-100'}`}
-      onClick={() => setSelectedSpecs({ ...selectedSpecs, [spec.name]: opt })}
-    >
-      {opt}
-    </button>
-  );
-})}
+          {primarySpecOption && (
+            <div className="w-full">
+              <div className="text-center text-gray-700 text-base font-medium mb-2">{primarySpecOption.name}</div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {primarySpecOption.options.map((opt) => {
+                  const isSelected = selectedSpecs[primarySpecOption.name] === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      className={`px-4 py-3 rounded-lg border text-lg font-semibold transition
+                        ${isSelected 
+                          ? 'bg-black text-white border-black' 
+                          : 'bg-white text-gray-800 border-gray-300 hover:border-black hover:bg-gray-100'}`}
+                      onClick={() => setSelectedSpecs({ [primarySpecOption.name]: opt })}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          ))}
+          )}
         </div>
         {/* 數量選擇器 */}
         <div className="flex flex-col items-center mt-8 mb-6">
