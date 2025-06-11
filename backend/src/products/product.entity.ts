@@ -9,6 +9,15 @@ export interface KeyFeature {
   description: string;
 }
 
+// 產品的特性詳情介面
+export interface FeatureDetail {
+  type: "image" | "video";
+  src: string;
+  title: string;
+  description: string;
+  direction?: "left" | "right";
+}
+
 @Entity('products') // Specifies the table name in the database
 export class Product {
   @PrimaryGeneratedColumn('uuid')
@@ -48,6 +57,10 @@ export class Product {
   // 關鍵特性 (JSON 格式儲存)
   @Column('jsonb', { nullable: true })
   keyFeatures: KeyFeature[];
+  
+  // 特性詳情 (JSON 格式儲存)
+  @Column('jsonb', { nullable: true })
+  featureDetails: FeatureDetail[];
   
   // 商品狀態（是否啟用）
   @Column({ default: true })

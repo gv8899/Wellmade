@@ -1,6 +1,6 @@
-import { IsString, IsNumber, IsArray, IsBoolean, IsOptional, IsNotEmpty, Min, ValidateNested, IsObject } from 'class-validator';
+import { IsString, IsNumber, IsArray, IsBoolean, IsOptional, IsNotEmpty, Min, ValidateNested, IsObject, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { KeyFeature } from '../product.entity';
+import { KeyFeature, FeatureDetail } from '../product.entity';
 
 export class CreateProductDto {
   @IsString()
@@ -44,6 +44,12 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => KeyFeatureDto)
   keyFeatures?: KeyFeature[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => FeatureDetailDto)
+  featureDetails?: FeatureDetail[];
 }
 
 // 關鍵特性 DTO
@@ -63,4 +69,28 @@ export class KeyFeatureDto implements KeyFeature {
   @IsString()
   @IsNotEmpty()
   description: string;
+}
+
+// 特性詳情 DTO
+export class FeatureDetailDto implements FeatureDetail {
+  @IsString()
+  @IsEnum(['image', 'video'])
+  type: 'image' | 'video';
+
+  @IsString()
+  @IsNotEmpty()
+  src: string;
+
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(['left', 'right'])
+  direction?: 'left' | 'right';
 }

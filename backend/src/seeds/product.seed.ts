@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { Product } from '../products/product.entity';
+import { Product, FeatureDetail } from '../products/product.entity';
 import { Brand } from '../brands/brand.entity';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -58,6 +58,31 @@ export const seedProducts = async (dataSource: DataSource, brands: any[] = []) =
         description: `這是產品 ${i} 的第三個關鍵特性描述，強調了使用此產品的用戶體驗。`
       }
     ];
+    
+    // 生成隨機特性詳情
+    const featureDetails: FeatureDetail[] = [
+      {
+        type: "image",
+        src: `https://picsum.photos/seed/detail${i}1/600/400`,
+        title: `產品特性 ${i}-1`,
+        description: `這是產品 ${i} 的第一個詳細特性描述，詳細說明了產品的設計理念和使用方式。`,
+        direction: "left"
+      },
+      {
+        type: "image",
+        src: `https://picsum.photos/seed/detail${i}2/600/400`,
+        title: `產品特性 ${i}-2`,
+        description: `這是產品 ${i} 的第二個詳細特性描述，展示了產品的獨特優勢和創新之處。`,
+        direction: "right"
+      },
+      {
+        type: "image",
+        src: `https://picsum.photos/seed/detail${i}3/600/400`,
+        title: `產品特性 ${i}-3`,
+        description: `這是產品 ${i} 的第三個詳細特性描述，強調了產品的實用性和耐用性。`,
+        direction: "left"
+      }
+    ];
 
     const product: Partial<Product> = {
       name: `測試產品 ${i}`,
@@ -73,6 +98,7 @@ export const seedProducts = async (dataSource: DataSource, brands: any[] = []) =
         `https://picsum.photos/seed/${i}c/500/500`
       ],
       keyFeatures: keyFeatures,
+      featureDetails: featureDetails,
       isActive: true,
     };
     
@@ -113,6 +139,29 @@ export const seedProducts = async (dataSource: DataSource, brands: any[] = []) =
           description: '特別設計的手柄適合各種手型，完美重量平衡、握感舒適，長時間使用也不疲勞。'
         }
       ],
+      featureDetails: [
+        {
+          type: "image",
+          src: 'https://picsum.photos/seed/knife-detail1/600/400',
+          title: '精準切割體驗',
+          description: '刀刃採用特殊角度設計，切割時更加順暢，無論是切肉、切菜還是切水果，都能保持精準的切割線條，讓烹飪更加專業。',
+          direction: "left"
+        },
+        {
+          type: "image",
+          src: 'https://picsum.photos/seed/knife-detail2/600/400',
+          title: '特殊鋼材工藝',
+          description: '採用德國進口特殊鋼材，經過多道熱處理工序，刀刃硬度達到HRC58度，保持鋒利的同時兼具韌性，不易崩刃。',
+          direction: "right"
+        },
+        {
+          type: "image",
+          src: 'https://picsum.photos/seed/knife-detail3/600/400',
+          title: '人體工學手柄',
+          description: '手柄採用高級樹脂材料，經過人體工學設計，握感舒適，長時間使用不疲勞，同時防滑設計確保使用安全。',
+          direction: "left"
+        }
+      ],
       isActive: true,
     },
     {
@@ -143,8 +192,31 @@ export const seedProducts = async (dataSource: DataSource, brands: any[] = []) =
         },
         {
           image: 'https://picsum.photos/seed/shelf-adjust/500/300',
-          title: '靈活可調節',
-          description: '書架層板高度可自由調節，5cm間距。不同高度書籍都可完美收納。'
+          title: '可調節層板',
+          description: '書架層板高度可自由調節，適應不同高度的書籍和裝飾品，靈活運用空間。'
+        }
+      ],
+      featureDetails: [
+        {
+          type: "image",
+          src: 'https://picsum.photos/seed/shelf-detail1/600/400',
+          title: '北歐設計美學',
+          description: '採用北歐簡約設計風格，線條簡潔流暢，色彩柔和自然，為居家環境增添現代感與溫馨氛圍，適合各種裝修風格。',
+          direction: "left"
+        },
+        {
+          type: "image",
+          src: 'https://picsum.photos/seed/shelf-detail2/600/400',
+          title: '環保材質選擇',
+          description: '全部採用FSC認證的可持續林場木材，不含有害物質，環保健康，同時具有優良的耐用性和穩定性，使用壽命長。',
+          direction: "right"
+        },
+        {
+          type: "video",
+          src: 'https://example.com/videos/shelf-assembly.mp4',
+          title: '簡易安裝示範',
+          description: '創新的卡扣式設計，無需複雜工具即可輕鬆完成安裝，附帶詳細安裝說明書和視頻教學，讓您輕鬆搞定。',
+          direction: "left"
         }
       ],
       isActive: true,

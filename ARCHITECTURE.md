@@ -47,9 +47,10 @@ export class Product {
   imageUrl: string;          // 主圖片URL
   images: string[];          // 附加圖片URL列表
   isActive: boolean;         // 是否上架
-  keyFeatures: KeyFeature[]; // 關鍵特性列表
-  brandId?: string;          // 品牌ID
-  brand?: Brand;             // 關聯品牌
+  keyFeatures: KeyFeature[];    // 關鍵特性列表
+  featureDetails: FeatureDetail[]; // 特性詳情列表
+  brandId?: string;             // 品牌ID
+  brand?: Brand;                // 關聯品牌
   createdAt: Date;           // 創建時間
   updatedAt: Date;           // 更新時間
 }
@@ -62,6 +63,16 @@ export interface KeyFeature {
   title: string;      // 特性標題
   subtitle?: string;  // 特性副標題
   description: string; // 特性描述
+}
+
+#### 特性詳情模型 (FeatureDetail)
+```typescript
+export interface FeatureDetail {
+  type: 'image' | 'video';  // 媒體類型
+  src: string;              // 媒體資源URL
+  title: string;            // 標題
+  description: string;      // 詳細描述
+  direction: 'left' | 'right'; // 圖片/影片顯示方向
 }
 ```
 
@@ -136,6 +147,7 @@ export interface Product {
   brandId?: string;        // 品牌ID
   brand?: Brand;           // 關聯品牌
   keyFeatures?: KeyFeature[]; // 關鍵特性列表
+  featureDetails?: FeatureDetail[]; // 特性詳情列表
   createdAt?: string;      // 創建時間
   updatedAt?: string;      // 更新時間
 }
@@ -165,6 +177,7 @@ interface Product {
     logoUrl: string;
   };
   keyFeatures?: KeyFeatureCard[]; // 關鍵特性卡片
+  featureDetails?: FeatureDetail[]; // 特性詳情列表
 }
 ```
 
@@ -196,10 +209,43 @@ export interface KeyFeatureCard {
 
 ## 資料庫關係
 
-主要實體間的關係：
+### 實體關係
 - `Product` ↔ `Brand`: 多對一（多個產品可以屬於一個品牌）
+
+### 資料結構
+#### Product 實體
+- `featureDetails`: JSONB 類型，存儲產品的特性詳情
+  - 結構：`FeatureDetail[]`
+  - 預設值：`[]`
+  - 索引：無（因為是 JSONB 類型）
+
+#### 資料遷移
+當新增 `featureDetails` 欄位時，會自動為現有記錄設置預設值 `[]`
+
+#### 種子資料
+- 使用 `update-feature-details.ts` 腳本可以為現有產品生成或更新特性詳情
+- 種子資料中已包含範例特性詳情，包含圖片、標題、描述和顯示方向
 - `User` → `Order`: 一對多（一個用戶可以有多個訂單）
 - `Order` → `OrderItem` → `Product`: 一對多對一（一個訂單有多個訂單項，每個訂單項對應一個產品）
+
+## 特性詳情 (FeatureDetails) 組件
+
+### 功能說明
+- 用於展示產品的詳細特性，支援圖片和影片類型
+- 可以設置不同的顯示方向（左/右）
+- 響應式設計，適應不同螢幕尺寸
+
+### 使用方式
+```tsx
+<FeatureDetails 
+  details={product.featureDetails || []} 
+  className="custom-class"
+/>
+```
+
+### Props
+- `details`: `FeatureDetail[]` - 特性詳情列表
+- `className`?: `string` - 自定義樣式類名
 
 ## 開發注意事項
 

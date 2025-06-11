@@ -63,6 +63,17 @@ export interface KeyFeature {
 }
 
 /**
+ * 特性詳情介面，與後端 FeatureDetail 對應
+ */
+export interface FeatureDetail {
+  type: "image" | "video";
+  src: string;
+  title: string;
+  description: string;
+  direction?: "left" | "right";
+}
+
+/**
  * 產品介面，與後端 Product 實體對應
  */
 export interface Product {
@@ -78,6 +89,7 @@ export interface Product {
   brandId?: string;
   brand?: Brand;
   keyFeatures?: KeyFeature[];
+  featureDetails?: FeatureDetail[];
   createdAt?: string;
   updatedAt?: string;
 }

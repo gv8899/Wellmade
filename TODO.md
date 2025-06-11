@@ -72,6 +72,12 @@
 - [x] 商品加入購物車功能
 - [x] 商品收藏功能
 - [x] FeatureDetails、KeyFeatures、FAQSection 圖文區塊樣式優化
+- [x] FeatureDetails API 串接
+  - [x] 後端新增 FeatureDetail 模型與 DTO
+  - [x] 更新產品種子資料，加入 featureDetails 範例
+  - [x] 前端 API 服務整合
+  - [x] 產品詳情頁面動態載入 featureDetails
+  - [x] 更新文件（ARCHITECTURE.md）
 - [x] 詳細頁新增「貨到通知」modal（含表單驗證、送出成功畫面、UI/UX優化）
 - [x] 詳細頁底部新增「好物推薦」區塊，沿用首頁商品卡片元件
 - [x] 其他細節修正（如 placeholder、分隔線、modal 關閉體驗等）

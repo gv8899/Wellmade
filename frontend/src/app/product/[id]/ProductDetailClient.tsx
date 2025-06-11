@@ -1,8 +1,10 @@
 "use client";
 import React, { useRef } from "react";
 import ProductHero from "./ProductHero";
-import KeyFeatures, { KeyFeatureCard } from "./KeyFeatures";
-import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
+import KeyFeatures from "./KeyFeatures";
+import { KeyFeatureCard } from "./KeyFeatures";
+import FeatureDetails from "./FeatureDetails";
+import { FeatureDetail } from "../../../services/api";
 import FAQSection, { FAQItem } from "./FAQSection";
 import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
 import GoodProductsSection from "./GoodProductsSection";
@@ -33,6 +35,7 @@ interface Product {
     logoUrl: string;
   };
   keyFeatures?: KeyFeatureCard[];
+  featureDetails?: FeatureDetail[];
 }
 
 interface ProductDetailClientProps {
@@ -85,7 +88,9 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             logoUrl: apiProduct.brand.logoUrl
           } : undefined,
           // 添加關鍵特性
-          keyFeatures: apiProduct.keyFeatures || []
+          keyFeatures: apiProduct.keyFeatures || [],
+          // 添加特性詳情
+          featureDetails: apiProduct.featureDetails || []
         };
         
         setProduct(displayProduct);
@@ -137,8 +142,8 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     );
   }
 
-  // 產品特性詳細資訊
-  const featureDetails: FeatureDetail[] = [
+  // 產品特性詳細資訊 - 如果 API 返回的資料中有 featureDetails，則使用 API 資料，否則使用預設資料
+  const defaultFeatureDetails: FeatureDetail[] = [
     {
       type: "image",
       src: "https://placehold.co/600x400/FFDD4A/333333?text=高效能",
@@ -271,7 +276,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           ]}
       />
       
-      <FeatureDetails details={featureDetails} />
+      <FeatureDetails details={product?.featureDetails?.length ? product.featureDetails : defaultFeatureDetails} />
       
       <ProductPurchaseOptions
         title={product.name}
