@@ -90,8 +90,8 @@ export default function CartPage() {
                       <div className="font-semibold text-base text-gray-900 leading-tight mb-1">{item.name}</div>
                       {/* 商品規格顯示 */}
                       <div className="text-xs text-gray-500 mb-2">
-                        {item.spec && Object.keys(item.spec).length > 0
-                          ? Object.values(item.spec).join('・')
+                        {item.specs && Object.keys(item.specs).length > 0
+                          ? Object.values(item.specs).join('・')
                           : '—'}
                       </div>
                     </div>
@@ -115,7 +115,7 @@ export default function CartPage() {
                     >
                       +
                     </button>
-                    <span className="text-gray-700 font-semibold text-base ml-2">NT$ {item.price.toFixed(0)}</span>
+                    <span className="text-gray-700 font-semibold text-base ml-2">NT$ {(typeof item.price === 'number' ? item.price : 0).toFixed(0)}</span>
                   </div>
                 </div>
                 {/* 垃圾桶 icon（最右側，垂直置中） */}

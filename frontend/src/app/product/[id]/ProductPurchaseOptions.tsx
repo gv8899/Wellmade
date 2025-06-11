@@ -68,9 +68,16 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   }, []);  // 只在組件渲染時執行一次
 
   // 根據選擇的規格找到對應 variant
-  const currentVariant = primarySpecOption 
-    ? variants.find(v => v.specs[primarySpecOption.name] === selectedSpecs[primarySpecOption.name])
-    : variants[0]; // 如果沒有規格選項，則預設使用第一個變體
+  const currentVariant = React.useMemo(() => {
+    if (!primarySpecOption) return variants[0];
+    
+    // 確保選擇的規格在變體中存在
+    const selectedSpecValue = selectedSpecs[primarySpecOption.name];
+    const variant = variants.find(v => v.specs[primarySpecOption.name] === selectedSpecValue);
+    
+    // 如果找不到對應的變體，返回第一個可用的變體
+    return variant || variants[0];
+  }, [variants, primarySpecOption, selectedSpecs]);
 
   // 狀態與按鈕文案
   let statusLabel = "現貨";
@@ -96,7 +103,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
                 name: currentVariant.variantTitle || title,
                 price: currentVariant.price,
                 cover: currentVariant.image,
-                spec: selectedSpecs, // 帶入目前選擇的規格
+                specs: selectedSpecs, // 帶入目前選擇的規格
               });
             }
             addCartClick();

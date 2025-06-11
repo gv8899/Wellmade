@@ -184,10 +184,32 @@
     - [ ] 實作 DELETE /api/products/:id (刪除產品)
   - [ ] 單元測試 (等核心功能完成後)
 - [ ] 購物車 API
-  - [ ] 加入購物車
-  - [ ] 查詢購物車
-  - [ ] 更新購物車
-  - [ ] 清空購物車
+  - [ ] 購物車基礎架構
+    - [ ] 建立 Cart 資料庫模型 (Schema/Entity)
+    - [ ] 建立 CartItem 資料庫模型 (Schema/Entity)
+    - [ ] 建立 CartService 服務層
+    - [ ] 建立 CartController 控制器
+  - [ ] 購物車 API 端點
+    - [ ] GET /api/cart - 獲取當前用戶購物車
+    - [ ] POST /api/cart/items - 添加商品到購物車
+    - [ ] PATCH /api/cart/items/:itemId - 更新購物車商品數量
+    - [ ] DELETE /api/cart/items/:itemId - 從購物車移除商品
+    - [ ] DELETE /api/cart - 清空購物車
+  - [ ] 前端購物車服務
+    - [ ] 建立 cart.ts API 服務
+    - [ ] 實現購物車相關的 React Query hooks
+  - [ ] 購物車狀態管理
+    - [ ] 更新 CartContext 以支持 API 集成
+    - [ ] 實現樂觀更新
+    - [ ] 處理離線狀態
+  - [ ] 購物車頁面優化
+    - [ ] 加載狀態處理
+    - [ ] 錯誤處理與用戶反饋
+    - [ ] 空狀態處理
+  - [ ] 測試
+    - [ ] 單元測試 API 服務
+    - [ ] 整合測試購物車流程
+    - [ ] E2E 測試購物車功能
 - [ ] 訂單 API
   - [ ] 建立訂單
   - [ ] 查詢訂單

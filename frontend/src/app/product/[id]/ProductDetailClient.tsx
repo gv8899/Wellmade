@@ -129,7 +129,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         name: product.name,
         price: product.price,
         cover: product.cover,
-        spec: { "版本": "標準版" }, // spec 應為物件
+        specs: { "版本": "標準版" }, // 使用正確的屬性名稱 specs
         quantity: 1
       };
       addToCart(item);
@@ -200,7 +200,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   // 商品變體
   const variants: ProductVariant[] = [
     { 
-      id: "variant-black-standard",
+      id: `${product.id}_black_standard`,
       variantTitle: "經典黑 - 標準版",
       specs: {
         "顏色": "經典黑",
@@ -211,7 +211,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       stockStatus: "in_stock"
     },
     { 
-      id: "variant-white-standard",
+      id: `${product.id}_white_standard`,
       variantTitle: "純淨白 - 標準版",
       specs: {
         "顏色": "純淨白",
@@ -222,7 +222,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       stockStatus: "in_stock"
     },
     { 
-      id: "variant-green-premium",
+      id: `${product.id}_green_premium`,
       variantTitle: "自然綠 - 高級版",
       specs: {
         "顏色": "自然綠",
