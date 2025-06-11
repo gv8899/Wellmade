@@ -18,6 +18,12 @@ export interface FeatureDetail {
   direction?: "left" | "right";
 }
 
+// 產品的常見問答介面
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 @Entity('products') // Specifies the table name in the database
 export class Product {
   @PrimaryGeneratedColumn('uuid')
@@ -61,6 +67,10 @@ export class Product {
   // 特性詳情 (JSON 格式儲存)
   @Column('jsonb', { nullable: true })
   featureDetails: FeatureDetail[];
+  
+  // 常見問答 (JSON 格式儲存)
+  @Column('jsonb', { nullable: true })
+  faqs: FAQItem[];
   
   // 商品狀態（是否啟用）
   @Column({ default: true })

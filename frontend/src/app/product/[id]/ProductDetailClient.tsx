@@ -11,7 +11,7 @@ import GoodProductsSection from "./GoodProductsSection";
 import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
-import { Product as ApiProduct, getProductById } from '@/services/api';
+import { Product as ApiProduct, getProductById, FAQItem as ApiFAQItem } from '@/services/api';
 
 // 前端顯示用的產品類型
 interface Product {
@@ -36,6 +36,7 @@ interface Product {
   };
   keyFeatures?: KeyFeatureCard[];
   featureDetails?: FeatureDetail[];
+  faqs?: FAQItem[];
 }
 
 interface ProductDetailClientProps {
@@ -90,7 +91,9 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           // 添加關鍵特性
           keyFeatures: apiProduct.keyFeatures || [],
           // 添加特性詳情
-          featureDetails: apiProduct.featureDetails || []
+          featureDetails: apiProduct.featureDetails || [],
+          // 添加常見問答
+          faqs: apiProduct.faqs || []
         };
         
         setProduct(displayProduct);
@@ -174,8 +177,8 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     }
   ];
 
-  // 常見問題
-  const faqs: FAQItem[] = [
+  // 常見問題 - 如果 API 返回的資料中有 faqs，則使用 API 資料，否則使用預設資料
+  const defaultFaqs: FAQItem[] = [
     {
       question: "產品保固期是多久？",
       answer: "我們提供兩年的全球保固服務，若產品出現功能性問題可免費維修或更換。"
@@ -297,7 +300,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         />
       }
       
-      <FAQSection faqs={faqs} />
+      <FAQSection faqs={product?.faqs?.length ? product.faqs : defaultFaqs} />
       
       <GoodProductsSection excludeId={id} />
     </div>

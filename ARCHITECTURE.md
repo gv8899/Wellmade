@@ -48,6 +48,7 @@ export class Product {
   images: string[];          // 附加圖片URL列表
   isActive: boolean;         // 是否上架
   keyFeatures: KeyFeature[];    // 關鍵特性列表
+  faqs: FAQItem[];              // 常見問答列表
   featureDetails: FeatureDetail[]; // 特性詳情列表
   brandId?: string;             // 品牌ID
   brand?: Brand;                // 關聯品牌
@@ -127,6 +128,63 @@ frontend/
 │   ├── hooks/                # 自定義 React Hooks
 │   └── services/             # API 服務
 │       └── api.ts            # API 請求封裝
+```
+
+### FAQ 資料結構
+
+#### FAQ 項目 (FAQItem)
+```typescript
+interface FAQItem {
+  question: string;  // 問題
+  answer: string;    // 回答
+}
+```
+
+### API 端點
+
+#### 獲取產品詳情 (包含 FAQ)
+```
+GET /products/:id
+```
+
+**響應範例**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "description": "string",
+  "price": 0,
+  "stock": 0,
+  "category": "string",
+  "imageUrl": "string",
+  "images": ["string"],
+  "isActive": true,
+  "keyFeatures": [
+    {
+      "image": "string",
+      "title": "string",
+      "subtitle": "string",
+      "description": "string"
+    }
+  ],
+  "featureDetails": [
+    {
+      "type": "image | video",
+      "src": "string",
+      "title": "string",
+      "description": "string",
+      "direction": "left | right"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "string",
+      "answer": "string"
+    }
+  ],
+  "createdAt": "2025-06-11T14:57:43.000Z",
+  "updatedAt": "2025-06-11T14:57:43.000Z"
+}
 ```
 
 ### 核心前端模型

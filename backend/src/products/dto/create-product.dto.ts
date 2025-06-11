@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsArray, IsBoolean, IsOptional, IsNotEmpty, Min, ValidateNested, IsObject, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { KeyFeature, FeatureDetail } from '../product.entity';
+import { KeyFeature, FeatureDetail, FAQItem } from '../product.entity';
 
 export class CreateProductDto {
   @IsString()
@@ -50,6 +50,12 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => FeatureDetailDto)
   featureDetails?: FeatureDetail[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => FAQItemDto)
+  faqs?: FAQItem[];
 }
 
 // 關鍵特性 DTO
@@ -93,4 +99,15 @@ export class FeatureDetailDto implements FeatureDetail {
   @IsOptional()
   @IsEnum(['left', 'right'])
   direction?: 'left' | 'right';
+}
+
+// 常見問答 DTO
+export class FAQItemDto implements FAQItem {
+  @IsString()
+  @IsNotEmpty()
+  question: string;
+
+  @IsString()
+  @IsNotEmpty()
+  answer: string;
 }

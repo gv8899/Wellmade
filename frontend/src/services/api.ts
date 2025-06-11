@@ -74,6 +74,14 @@ export interface FeatureDetail {
 }
 
 /**
+ * 常見問答介面，與後端 FAQItem 對應
+ */
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+/**
  * 產品介面，與後端 Product 實體對應
  */
 export interface Product {
@@ -90,6 +98,7 @@ export interface Product {
   brand?: Brand;
   keyFeatures?: KeyFeature[];
   featureDetails?: FeatureDetail[];
+  faqs?: FAQItem[];
   createdAt?: string;
   updatedAt?: string;
 }
