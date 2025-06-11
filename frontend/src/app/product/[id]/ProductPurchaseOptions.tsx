@@ -6,14 +6,14 @@ import RestockNotifyModal from "./RestockNotifyModal";
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
 
 export interface ProductSpecOption {
-  name: string;            // è¦æ ¼åç¨±ï¼å¦ãé¡è²ã
-  options: string[];       // å¯é¸é ç®ï¼å¦["ç½","é»"]
+  name: string;            // 規格名稱，例如「顏色」
+  options: string[];       // 可選項目，例如["白","黑"]
 }
 
 export interface ProductVariant {
   id: string;
-  variantTitle?: string; // æ°å¢ï¼æ¯ååé çå°å±¬åç¨±
-  specs: { [specName: string]: string }; // e.g. {é¡è²: "ç½", é·åº¦: "1.8m"}
+  variantTitle?: string; // 新增：每個品項的專屬名稱
+  specs: { [specName: string]: string }; // e.g. {顏色: "白", 長度: "1.8m"}
   price: number;
   originalPrice?: number;
   image: string;
@@ -34,7 +34,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   defaultQuantity = 1,
 }) => {
   const { addToCart, addCartClick } = useCart();
-  // é è¨­é¸ç¬¬ä¸åè¦æ ¼
+  // 預設選第一個規格
   const initialSpecs = specOptions.reduce((acc, cur) => {
     acc[cur.name] = cur.options[0];
     return acc;
@@ -44,19 +44,19 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   const [quantity, setQuantity] = useState(defaultQuantity);
   const [notifyOpen, setNotifyOpen] = useState(false);
 
-  // æ ¹æé¸æçè¦æ ¼æ¾å°å°æ variant
+  // 根據選擇的規格找到對應 variant
   const currentVariant = variants.find(v =>
     Object.entries(selectedSpecs).every(([k, vOpt]) => v.specs[k] === vOpt)
   );
 
-  // çæèæéææ¡
-  let statusLabel = "ç¾è²¨";
+  // 狀態與按鈕文案
+  let statusLabel = "現貨";
   let actionButtons: React.ReactNode = null;
   if (!currentVariant) {
-    statusLabel = "ç¡æ­¤è¦æ ¼";
-    actionButtons = <button disabled className="w-full py-3 rounded-lg bg-gray-200 text-gray-400 font-bold mt-4">ç¡æ³è³¼è²·</button>;
+    statusLabel = "無此規格";
+    actionButtons = <button disabled className="w-full py-3 rounded-lg bg-gray-200 text-gray-400 font-bold mt-4">無法購買</button>;
   } else if (currentVariant.stockStatus === "in_stock") {
-    statusLabel = "ç¾è²¨";
+    statusLabel = "現貨";
     actionButtons = (
         <button
           className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -69,54 +69,54 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
                 name: currentVariant.variantTitle || title,
                 price: currentVariant.price,
                 cover: currentVariant.image,
-                spec: selectedSpecs, // å¸¶å¥ç®åé¸å®çè¦æ ¼
+                spec: selectedSpecs, // 帶入目前選擇的規格
               });
             }
             addCartClick();
           }}
         >
-          å å¥è³¼ç©è»
+          加入購物車
         </button>
     );
   } else if (currentVariant.stockStatus === "preorder") {
-    statusLabel = "é è³¼";
+    statusLabel = "預購";
     actionButtons = (
       <button
         className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={currentVariant?.stockStatus !== "preorder"}
-        onClick={() => { /* é è³¼åè½å°æªéæ¾ */ }}
+        onClick={() => { /* 預購功能尚未開放 */ }}
       >
-        ç«å³é è³¼
+        立即預購
       </button>
     );
   } else if (currentVariant.stockStatus === "out_of_stock") {
-    statusLabel = "ç¼ºè²¨";
+    statusLabel = "缺貨";
     actionButtons = (
       <button
         className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-orange-500 bg-white hover:bg-orange-50 transition"
         onClick={() => setNotifyOpen(true)}
       >
-        è²¨å°éç¥
+        貨到通知
       </button>
     );
   }
 
   return (
     <div className="w-full max-w-5xl mx-auto my-10">
-      <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">è³¼è²·ç¢å</h2>
+      <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
       <div className="flex flex-col items-center w-full">
-        {/* åååï¼åç¨±ï¼å¹æ ¼ */}
+        {/* 商品圖+名稱+價格 */}
         <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
           <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-            {/* åçå¡«æ»¿å®¹å¨ */}
-            <img src={variants[0].image} alt="ååå" className="w-full h-full object-cover rounded-md" />
+            {/* 圖片容器 */}
+            <img src={variants[0].image} alt="商品圖" className="w-full h-full object-cover rounded-md" />
           </div>
           <div className="flex flex-col items-start justify-center ml-2">
             <div className="text-base font-semibold text-gray-800 mb-1">{variants[0].variantTitle || title}</div>
             <div className="text-lg font-bold text-gray-800 mb-1">${variants[0].price}</div>
           </div>
         </div>
-        {/* è¦æ ¼é¸å®åå¡ */}
+        {/* 規格選單區塊 */}
         <div className="flex flex-col gap-6 w-full max-w-xs items-center mx-auto">
           {specOptions.map(spec => (
             <div key={spec.name} className="w-full">
@@ -146,9 +146,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             </div>
           ))}
         </div>
-        {/* æ¸éé¸æå¨ */}
+        {/* 數量選擇器 */}
         <div className="flex flex-col items-center mt-8 mb-6">
-          <div className="text-center text-gray-700 text-base font-medium mb-2">æ¸é</div>
+          <div className="text-center text-gray-700 text-base font-medium mb-2">數量</div>
           <div className="flex flex-row gap-6 items-center">
             <button
               className="w-10 h-10 rounded-full border border-gray-400 text-2xl text-gray-700 flex items-center justify-center disabled:opacity-30"
@@ -166,7 +166,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             </button>
           </div>
         </div>
-        {/* åæè¡åæéï¼è³¼ç©è»/é è³¼/è²¨å°éç¥ï¼ */}
+        {/* 行動按鈕（加入購物車/預購/貨到通知） */}
         <div className="w-full max-w-xs mx-auto min-h-[64px] flex items-center">
       <div className="w-full">
         {actionButtons}

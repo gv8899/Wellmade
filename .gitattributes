@@ -1,0 +1,79 @@
+# 自動處理行尾符號，並將所有檔案視為文字檔案
+* text=auto eol=lf
+
+# 明確指定文字檔案類型
+*.md text
+*.txt text
+*.js text
+*.ts text
+*.jsx text
+*.tsx text
+*.json text
+*.html text
+*.css text
+*.scss text
+*.sass text
+*.less text
+*.xml text
+*.svg text
+*.yml text
+*.yaml text
+*.sh text
+*.bat text
+*.cmd text
+*.ps1 text
+
+# 二進制檔案類型
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.a binary
+*.o binary
+*.class binary
+
+# 強制使用 LF 換行符號（適用於所有作業系統）
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 設定 Git 合併策略
+*.css merge=union
+*.html merge=union
+*.js merge=union
+*.json merge=union
+*.jsx merge=union
+*.less merge=union
+*.md merge=union
+*.scss merge=union
+*.ts merge=union
+*.tsx merge=union
+*.vue merge=union
+*.xml merge=union
+*.yml merge=union
+*.yaml merge=union
+
+# 設定 Git 差異比較方式
+*.css diff=css
+*.html diff=html
+*.js diff=javascript
+*.json diff=json
+*.jsx diff=jsx
+*.less diff=css
+*.md diff=markdown
+*.scss diff=css
+*.ts diff=typescript
+*.tsx diff=tsx
+*.vue diff=vue
+*.xml diff=xml
+*.yml diff=yaml
+*.yaml diff=yaml
