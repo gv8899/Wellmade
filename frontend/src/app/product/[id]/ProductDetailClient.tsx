@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import ProductHero from "./ProductHero";
-import KeyFeatures from "./KeyFeatures";
+import KeyFeatures, { KeyFeatureCard } from "./KeyFeatures";
 import FeatureDetails, { FeatureDetail } from "./FeatureDetails";
 import FAQSection, { FAQItem } from "./FAQSection";
 import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
@@ -32,6 +32,7 @@ interface Product {
     description: string;
     logoUrl: string;
   };
+  keyFeatures?: KeyFeatureCard[];
 }
 
 interface ProductDetailClientProps {
@@ -82,7 +83,9 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             name: apiProduct.brand.name,
             description: apiProduct.brand.description,
             logoUrl: apiProduct.brand.logoUrl
-          } : undefined
+          } : undefined,
+          // 添加關鍵特性
+          keyFeatures: apiProduct.keyFeatures || []
         };
         
         setProduct(displayProduct);
@@ -258,12 +261,14 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       
       <KeyFeatures
         scrollRef={keyFeaturesScrollRef}
-        features={[
-          { image: "https://placehold.co/100x100/FF9800/FFFFFF?text=💪", title: "高品質", description: "精選優質材料，嚴格品控" },
-          { image: "https://placehold.co/100x100/4CAF50/FFFFFF?text=🛡️", title: "安全可靠", description: "多重安全認證，使用無顧慮" },
-          { image: "https://placehold.co/100x100/2196F3/FFFFFF?text=🔋", title: "續航持久", description: "長效電池，持久耐用" },
-          { image: "https://placehold.co/100x100/9C27B0/FFFFFF?text=🔄", title: "售後保障", description: "兩年保固，終身技術支援" }
-        ]}
+        features={(product?.keyFeatures && product.keyFeatures.length > 0) 
+          ? product.keyFeatures 
+          : [
+            { image: "https://placehold.co/100x100/FF9800/FFFFFF?text=💪", title: "高品質", description: "精選優質材料，嚴格品控" },
+            { image: "https://placehold.co/100x100/4CAF50/FFFFFF?text=🛡️", title: "安全可靠", description: "多重安全認證，使用無顧慮" },
+            { image: "https://placehold.co/100x100/2196F3/FFFFFF?text=🔋", title: "續航持久", description: "長效電池，持久耐用" },
+            { image: "https://placehold.co/100x100/9C27B0/FFFFFF?text=🔄", title: "售後保障", description: "兩年保固，終身技術支援" }
+          ]}
       />
       
       <FeatureDetails details={featureDetails} />

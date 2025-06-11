@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -57,5 +57,26 @@ export class ProductsController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return this.productsService.remove(id);
+  }
+
+  /**
+   * 獲取產品的關鍵特性
+   * 
+   * @param id 產品ID（UUID格式）
+   * @returns 產品關鍵特性列表
+   * 
+   * @example
+   * GET /products/123e4567-e89b-12d3-a456-426614174000/key-features
+   */
+  @Public()
+  @Get(':id/key-features')
+  async getKeyFeatures(@Param('id') id: string) {
+    const product = await this.productsService.findOne(id);
+    
+    if (!product.keyFeatures || product.keyFeatures.length === 0) {
+      throw new NotFoundException(`No key features found for product with ID ${id}`);
+    }
+    
+    return product.keyFeatures;
   }
 }

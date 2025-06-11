@@ -33,27 +33,28 @@ const KeyFeatures: React.FC<KeyFeaturesProps> = ({ features, scrollRef }) => {
               style={{ height: 420 }}
             >
               <div className="w-full h-[300px] relative overflow-hidden">
-  {/* 圖片完全填滿卡片頂部 */}
-  <img
-    src={f.image}
-    alt={f.title}
-    className="object-cover w-full h-full rounded-t-3xl"
-    draggable={false}
-  />
-</div>
-<div className="flex-1 flex flex-col justify-end p-5">
-  {f.subtitle && (
-    <div className="text-xs md:text-sm text-gray-500 font-semibold mb-1 tracking-wide">
-      {f.subtitle}
-    </div>
-  )}
-  <div className="text-xl md:text-2xl font-bold text-gray-900 mb-2 leading-tight">
-    {f.title}
-  </div>
-  <div className="text-gray-600 text-base md:text-lg leading-snug mb-1 min-h-[48px]">
-    {f.description}
-  </div>
-</div>
+                {/* 圖片完全填滿卡片頂部 */}
+                <img
+                  src={f.image}
+                  alt={f.title}
+                  className="object-cover w-full h-full rounded-t-3xl"
+                  draggable={false}
+                  onError={(e) => { e.currentTarget.src = 'https://placehold.co/100x100?text=Image+Not+Found'; }}
+                />
+              </div>
+              <div className="flex-1 flex flex-col justify-end p-5">
+                {f.subtitle && (
+                  <div className="text-xs md:text-sm text-gray-500 font-semibold mb-1 tracking-wide">
+                    {f.subtitle}
+                  </div>
+                )}
+                <div className="text-xl md:text-2xl font-bold text-gray-900 mb-2 leading-tight">
+                  {f.title}
+                </div>
+                <div className="text-gray-600 text-base md:text-lg leading-snug mb-1 min-h-[48px]">
+                  {f.description}
+                </div>
+              </div>
             </div>
           ))}
         </div>
