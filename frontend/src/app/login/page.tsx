@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const router = useRouter();
   const { login } = useUser();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -20,11 +21,21 @@ export default function LoginPage() {
     setError(null);
     // TODO: Replace with real API call
     await new Promise((res) => setTimeout(res, 800));
-    if (form.email === "demo@example.com" && form.password === "demo123") {
-      login({ name: "王小明", email: form.email });
-      router.push("/");
+    if (mode === 'login') {
+      if (form.email === "demo@example.com" && form.password === "demo123") {
+        login({ name: "王小明", email: form.email });
+        router.push("/");
+      } else {
+        setError("帳號或密碼錯誤");
+      }
     } else {
-      setError("帳號或密碼錯誤");
+      // 註冊模式下，簡單檢查 email 是否已存在
+      if (form.email === "demo@example.com") {
+        setError("此信箱已註冊，請直接登入");
+      } else {
+        login({ name: "新會員", email: form.email });
+        router.push("/");
+      }
     }
     setLoading(false);
   };
@@ -36,11 +47,29 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-md">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md min-h-[520px] flex flex-col gap-6 justify-between">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">會員登入</h2>
+          <div className="flex justify-center mb-6">
+            <button
+              type="button"
+              className={`px-6 py-2 rounded-t-md text-lg font-semibold focus:outline-none transition border-b-2 ${mode === 'login' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'}`}
+              onClick={() => setMode('login')}
+              disabled={mode === 'login'}
+            >
+              登入
+            </button>
+            <button
+              type="button"
+              className={`px-6 py-2 rounded-t-md text-lg font-semibold focus:outline-none transition border-b-2 ${mode === 'register' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'}`}
+              onClick={() => setMode('register')}
+              disabled={mode === 'register'}
+            >
+              註冊
+            </button>
+          </div>
+          
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-1 flex-1 flex flex-col justify-center gap-6" onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div className="mb-6">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -73,9 +102,13 @@ export default function LoginPage() {
                 className="appearance-none rounded-md relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm h-12 mt-2 text-black"
                 placeholder="請輸入密碼"
               />
-              <div className="text-right mt-2">
-                <a href="/forgot-password" className="text-sm text-gray-500 hover:text-gray-800 underline transition">忘記密碼？</a>
-              </div>
+              {mode === 'login' ? (
+                <div className="text-right mt-2 min-h-[24px]">
+                  <a href="/forgot-password" className="text-sm text-gray-500 hover:text-gray-800 underline transition">忘記密碼？</a>
+                </div>
+              ) : (
+                <div className="min-h-[24px]" />
+              )}
             </div>
           </div>
           {error && <div className="text-red-500 text-sm text-center">{error}</div>}
@@ -89,10 +122,7 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        <div className="flex items-center justify-center my-4">
-          <span className="text-gray-400 text-sm">或</span>
-        </div>
-        <div>
+        <div className="mt-2">
           <button
             type="button"
             onClick={handleGoogleLogin}
