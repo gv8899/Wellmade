@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
+import { signIn } from "next-auth/react";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -84,9 +86,16 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // TODO: Replace with real Google OAuth
-    window.alert("Google 登入尚未串接，請整合 NextAuth 或 Google API");
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      // 使用 NextAuth 的 signIn 方法進行 Google 登入
+      await signIn('google', { callbackUrl: '/' });
+    } catch (err) {
+      console.error('Google 登入失敗:', err);
+      setError('Google 登入失敗，請稍後再試');
+      setLoading(false);
+    }
   };
 
   return (
@@ -167,14 +176,7 @@ export default function LoginPage() {
           </div>
         </form>
         <div className="mt-2">
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 font-medium shadow-sm transition"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.29 1.53 7.73 2.81l5.69-5.54C33.62 3.66 29.31 1.5 24 1.5 14.97 1.5 7.09 7.58 3.68 15.09l6.63 5.14C12.09 14.46 17.55 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.5c0-1.64-.15-3.21-.43-4.73H24v9.23h12.44c-.54 2.88-2.18 5.32-4.64 6.98l7.13 5.57C43.73 37.64 46.1 31.6 46.1 24.5z"/><path fill="#FBBC05" d="M10.31 28.23a14.5 14.5 0 0 1 0-8.46l-6.63-5.14A23.98 23.98 0 0 0 0 24c0 3.93.94 7.65 2.61 10.91l7.7-6.68z"/><path fill="#EA4335" d="M24 46.5c6.48 0 11.93-2.13 15.9-5.81l-7.13-5.57c-2.01 1.35-4.61 2.16-8.77 2.16-6.45 0-11.91-4.96-13.69-11.58l-7.7 6.68C7.09 40.42 14.97 46.5 24 46.5z"/></g></svg>
-            使用 Google 帳號登入
-          </button>
+          <GoogleLoginButton />
         </div>
       </div>
     </div>

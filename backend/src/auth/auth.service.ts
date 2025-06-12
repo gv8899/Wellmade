@@ -82,4 +82,59 @@ export class AuthService {
       throw new Error(`註冊失敗: ${error.message}`);
     }
   }
+  
+  async validateOAuthLogin(profile: any): Promise<SafeUser> {
+    this.logger.debug(`Validating OAuth login for: ${profile.email}`);
+    
+    try {
+      // 檢查用戶是否已存在
+      let user = await this.usersService.findOneByEmail(profile.email);
+      
+      // 如果用戶不存在，創建新用戶
+      if (!user) {
+        this.logger.debug(`Creating new user for OAuth login: ${profile.email}`);
+        const createUserDto = {
+          username: profile.email,
+          email: profile.email,
+          // 產生隨機密碼，因為 OAuth 用戶不需要密碼登入
+          password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8),
+          roles: [UserRole.USER],
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          picture: profile.picture
+        };
+        
+        user = await this.usersService.create(createUserDto);
+      }
+      
+      // 產生 JWT token
+      const payload = { email: user.email, sub: user.id, roles: user.roles };
+      const token = await this.jwtService.signAsync(payload);
+      
+      // 僅提取安全字段
+      const { id, username, email, roles, isActive, createdAt, updatedAt } = user;
+      const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt };
+      
+      // 添加 token 到用戶對象
+      (safeUser as any).access_token = token;
+      
+      this.logger.debug(`OAuth login successful for: ${profile.email}`);
+      return safeUser;
+    } catch (error) {
+      this.logger.error(`OAuth login failed for: ${profile.email}`, error);
+      throw new Error(`OAuth 登入失敗: ${error.message}`);
+    }
+  }
+  
+  async googleLogin(req) {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from Google');
+    }
+    
+    return {
+      message: '使用 Google 登入成功',
+      user: req.user,
+      access_token: req.user.access_token
+    };
+  }
 }

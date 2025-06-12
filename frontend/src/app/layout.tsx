@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 import { CartProvider } from '@/CartContext';
 import { UserProvider } from "@/app/components/UserContext";
 import Header from "@/app/components/Header";
+import { AuthProvider } from "@/app/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -33,26 +34,27 @@ export default function RootLayout({
         className={`min-h-screen bg-background text-foreground font-sans antialiased ${geistSans.variable} ${geistMono.variable}`}
         suppressHydrationWarning={true}
       >
-        <UserProvider>
-          <CartProvider>
-            <Header />
-            <main className="pt-16 min-h-[calc(100vh-4rem)]">
-              {children}
-            </main>
-            <Toaster position="bottom-right" toastOptions={{
-              style: {
-                background: '#333',
-                color: '#fff',
-                padding: '16px',
-                borderRadius: '10px',
-              },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#FFFFFF',
+        <AuthProvider>
+          <UserProvider>
+            <CartProvider>
+              <Header />
+              <main className="pt-16 min-h-[calc(100vh-4rem)]">
+                {children}
+              </main>
+              <Toaster position="bottom-right" toastOptions={{
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                  padding: '16px',
+                  borderRadius: '10px',
                 },
-              },
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#10B981',
+                    secondary: '#FFFFFF',
+                  }
+                },
               error: {
                 duration: 4000,
                 iconTheme: {
@@ -63,6 +65,7 @@ export default function RootLayout({
             }} />
           </CartProvider>
         </UserProvider>
+        </AuthProvider>
       </body>
     </html>
   );

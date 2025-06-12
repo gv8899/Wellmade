@@ -1,4 +1,5 @@
-import { Controller, Post, UseGuards, Body, Logger, HttpCode, HttpStatus, ConflictException } from '@nestjs/common';
+import { Controller, Post, Get, UseGuards, Body, Logger, HttpCode, HttpStatus, ConflictException, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginDto } from './dto/login.dto';
@@ -45,6 +46,52 @@ export class AuthController {
         throw new ConflictException('此電子郵件已被註冊');
       }
       throw error; // Re-throw to let NestJS handle the HTTP response
+    }
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // 這個端點會自動由 Passport 處理，將用戶重定向到 Google
+    return { msg: 'Google Authentication' };
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req) {
+    // 處理從 Google 返回的請求
+    return this.authService.googleLogin(req);
+  }
+
+  @Public()
+  @Post('oauth-sync')
+  @HttpCode(HttpStatus.OK)
+  async oauthSync(@Body() oauthData: { email: string; name: string; picture: string; provider: string }) {
+    this.logger.log(`OAuth sync request for user: ${oauthData.email} via ${oauthData.provider}`);
+    try {
+      // 構建 profile 對象，以便重用現有的 validateOAuthLogin 方法
+      const profile = {
+        email: oauthData.email,
+        firstName: oauthData.name?.split(' ')[0] || '',
+        lastName: oauthData.name?.split(' ')[1] || '',
+        picture: oauthData.picture,
+        provider: oauthData.provider
+      };
+      
+      // 驗證或創建用戶
+      const user = await this.authService.validateOAuthLogin(profile);
+      
+      // 返回用戶資料和訪問令牌
+      return {
+        user,
+        accessToken: (user as any).access_token,
+        message: '用戶資料同步成功'
+      };
+    } catch (error) {
+      this.logger.error(`OAuth sync failed for ${oauthData.email}: ${error.message}`);
+      throw error;
     }
   }
 }
