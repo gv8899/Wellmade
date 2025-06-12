@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-export class LoginDto {
+export class RegisterDto {
   @IsEmail({}, { message: '請輸入有效的電子郵件地址' })
   @IsNotEmpty({ message: '電子郵件不能為空' })
   email: string;

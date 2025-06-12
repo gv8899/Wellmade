@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 export interface User {
   name: string;
   email: string;
+  token?: string; // JWT token
 }
 
 interface UserContextType {

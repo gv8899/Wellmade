@@ -22,7 +22,14 @@ const nextConfig = {
       },
     ],
   },
-  // 其他配置...
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3003/:path*', // 代理到 NestJS
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

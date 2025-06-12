@@ -1,9 +1,9 @@
-import { Controller, Post, UseGuards, Body, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Logger, HttpCode, HttpStatus, ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { Public } from './decorators/public.decorator';
-import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +16,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    this.logger.debug(`Login attempt for user: ${loginDto.username}`);
+    this.logger.debug(`Login attempt for user with email: ${loginDto.email}`);
     return this.authService.login(loginDto);
   }
 
@@ -27,19 +27,24 @@ export class AuthController {
   //   return req.user; // req.user is populated by JwtStrategy
   // }
 
-  // Optional: Registration endpoint
-  // @Public()
-  // @Post('register')
-  // async register(@Body() createUserDto: CreateUserDto) {
-  //   this.logger.log(`Registration attempt for username: ${createUserDto.username}`);
-  //   try {
-  //     const user = await this.authService.register(createUserDto);
-  //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //     const { password, ...result } = user;
-  //     return result;
-  //   } catch (error) {
-  //     this.logger.error(`Registration failed for ${createUserDto.username}: ${error.message}`);
-  //     throw error; // Re-throw to let NestJS handle the HTTP response
-  //   }
-  // }
+  @Public()
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto) {
+    this.logger.log(`Registration attempt for email: ${registerDto.email}`);
+    try {
+      const user = await this.authService.register(registerDto);
+      return {
+        success: true,
+        message: '註冊成功',
+        user
+      };
+    } catch (error) {
+      this.logger.error(`Registration failed for ${registerDto.email}: ${error.message}`);
+      if (error.code === '23505') { // PostgreSQL unique constraint violation
+        throw new ConflictException('此電子郵件已被註冊');
+      }
+      throw error; // Re-throw to let NestJS handle the HTTP response
+    }
+  }
 }

@@ -19,25 +19,69 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    // TODO: Replace with real API call
-    await new Promise((res) => setTimeout(res, 800));
-    if (mode === 'login') {
-      if (form.email === "demo@example.com" && form.password === "demo123") {
-        login({ name: "王小明", email: form.email });
-        router.push("/");
+    
+    try {
+      if (mode === 'login') {
+        // 呼叫登入 API
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.message || '登入失敗，請檢查帳號密碼');
+          return;
+        }
+        
+        // 登入成功
+        login({ 
+          name: data.user.email, // 可以從 API 回傳的用戶資料取得名稱
+          email: data.user.email,
+          token: data.access_token
+        });
+        router.push('/');
       } else {
-        setError("帳號或密碼錯誤");
+        // 呼叫註冊 API
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.message || '註冊失敗，請檢查輸入資訊');
+          return;
+        }
+        
+        // 註冊成功後自動登入
+        login({
+          name: data.user.email, 
+          email: data.user.email,
+          token: data.access_token
+        });
+        router.push('/');
       }
-    } else {
-      // 註冊模式下，簡單檢查 email 是否已存在
-      if (form.email === "demo@example.com") {
-        setError("此信箱已註冊，請直接登入");
-      } else {
-        login({ name: "新會員", email: form.email });
-        router.push("/");
-      }
+    } catch (err) {
+      console.error('API 請求錯誤:', err);
+      setError('連線伺服器失敗，請稍後再試');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogleLogin = () => {
@@ -118,7 +162,7 @@ export default function LoginPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
             >
-              {loading ? "登入中..." : "登入"}
+              {loading ? (mode === 'login' ? "登入中..." : "註冊中...") : (mode === 'login' ? "登入" : "註冊")}
             </button>
           </div>
         </form>

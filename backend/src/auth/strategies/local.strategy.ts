@@ -9,23 +9,23 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   constructor(private authService: AuthService) {
     super({
-      usernameField: 'username',
+      usernameField: 'email',
       passwordField: 'password',
     });
   }
 
-  async validate(username: string, password: string): Promise<any> {
-    this.logger.debug(`Validating user: ${username}`);
+  async validate(email: string, password: string): Promise<any> {
+    this.logger.debug(`Validating user with email: ${email}`);
     try {
-      const user = await this.authService.validateUser(username, password);
+      const user = await this.authService.validateUser(email, password);
       if (!user) {
-        this.logger.warn(`User validation failed for username: ${username}`);
-        throw new UnauthorizedException('Invalid credentials');
+        this.logger.warn(`User validation failed for email: ${email}`);
+        throw new UnauthorizedException('電子郵件或密碼錯誤');
       }
-      this.logger.debug(`User ${username} validated successfully`);
+      this.logger.debug(`User with email ${email} validated successfully`);
       return user;
     } catch (error) {
-      this.logger.error(`User validation error for ${username}:`, error);
+      this.logger.error(`User validation error for ${email}:`, error);
       throw error;
     }
   }
