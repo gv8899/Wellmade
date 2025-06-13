@@ -24,6 +24,37 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // 明確定義需要代理到後端的身份驗證路徑
+      {
+        source: '/api/auth/login',
+        destination: 'http://localhost:3003/auth/login', // 代理到 NestJS 的登入 API
+      },
+      {
+        source: '/api/auth/register',
+        destination: 'http://localhost:3003/auth/register', // 代理到 NestJS 的註冊 API
+      },
+      // NextAuth 相關路徑不代理
+      {
+        source: '/api/auth/signin',
+        destination: '/api/auth/signin',
+      },
+      {
+        source: '/api/auth/signout',
+        destination: '/api/auth/signout',
+      },
+      {
+        source: '/api/auth/session',
+        destination: '/api/auth/session',
+      },
+      {
+        source: '/api/auth/csrf',
+        destination: '/api/auth/csrf',
+      },
+      {
+        source: '/api/auth/callback/:path*',
+        destination: '/api/auth/callback/:path*',
+      },
+      // 其他 API 代理到 NestJS
       {
         source: '/api/:path*',
         destination: 'http://localhost:3003/:path*', // 代理到 NestJS
@@ -34,11 +65,6 @@ const nextConfig = {
             value: '(?!)',  // 永遠不匹配的正則表達式
           },
         ],
-      },
-      // 特別對 NextAuth 路徑設置
-      {
-        source: '/api/auth/:path*',
-        destination: '/api/auth/:path*',  // 不代理 NextAuth 路徑
       },
     ];
   },

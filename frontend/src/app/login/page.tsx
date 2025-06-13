@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
 import { signIn } from "next-auth/react";
 import GoogleLoginButton from "../components/GoogleLoginButton";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -49,6 +50,7 @@ export default function LoginPage() {
           email: data.user.email,
           token: data.access_token
         });
+        toast.success('登入成功');
         router.push('/');
       } else {
         // 呼叫註冊 API
@@ -76,6 +78,7 @@ export default function LoginPage() {
           email: data.user.email,
           token: data.access_token
         });
+        toast.success('註冊成功');
         router.push('/');
       }
     } catch (err) {
@@ -91,6 +94,8 @@ export default function LoginPage() {
       setLoading(true);
       // 使用 NextAuth 的 signIn 方法進行 Google 登入
       await signIn('google', { callbackUrl: '/' });
+      // Note: For Google login, the toast will not show here because the page redirects
+      // The toast would need to be shown on the callback page
     } catch (err) {
       console.error('Google 登入失敗:', err);
       setError('Google 登入失敗，請稍後再試');

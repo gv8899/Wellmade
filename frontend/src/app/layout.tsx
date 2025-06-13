@@ -41,7 +41,7 @@ export default function RootLayout({
               <main className="pt-16 min-h-[calc(100vh-4rem)]">
                 {children}
               </main>
-              <Toaster position="bottom-right" toastOptions={{
+              <Toaster position="top-center" toastOptions={{
                 style: {
                   background: '#333',
                   color: '#fff',

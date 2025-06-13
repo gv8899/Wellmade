@@ -28,11 +28,11 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUserByUsername = await this.findOneByUsername(createUserDto.username);
     if (existingUserByUsername) {
-      throw new ConflictException('Username already exists');
+      throw new ConflictException('已經有註冊過囉！');
     }
     const existingUserByEmail = await this.findOneByEmail(createUserDto.email);
     if (existingUserByEmail) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('已經有註冊過囉！');
     }
 
     // If roles are not provided, default to [UserRole.USER]

@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import toast from "react-hot-toast";
 
 export interface User {
   name: string;
@@ -30,9 +31,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // 如果你有將 token 添加到 NextAuth session，可以從這裡獲取
         token: (session as any).token || undefined
       });
+      
+      // 檢查是否是新登入的會話（透過localStorage標記來判斷）
+      const hasShownLoginToast = localStorage.getItem('hasShownLoginToast');
+      if (!hasShownLoginToast) {
+        toast.success('登入成功');
+        localStorage.setItem('hasShownLoginToast', 'true');
+        
+        // 設定一個定時器，在一段時間後清除標記，以便下次登入時能再次顯示提示
+        setTimeout(() => {
+          localStorage.removeItem('hasShownLoginToast');
+        }, 3000); // 3秒後清除，確保不會重複顯示
+      }
     } else if (status === 'unauthenticated') {
       // 如果沒有會話，則用戶未登入
       setUser(null);
+      localStorage.removeItem('hasShownLoginToast');
     }
   }, [session, status]);
 
@@ -46,6 +60,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setUser(null);
     await signOut({ redirect: false }); // 不自動重定向，讓應用自行處理導航
+    toast.success('已成功登出', {
+      duration: 3000
+    });
   };
 
   return (
