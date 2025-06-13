@@ -18,6 +18,7 @@ const handler = NextAuth({
           try {
             console.log('正在將用戶資料同步到後端...', { email: user.email, name: user.name, image: user.image });
             // 發送使用者資料到後端 API
+            // 直接使用完整的 URL 而非相對路徑，防止被 next.config.js 中的代理規則攝獲
             const response = await fetch('http://localhost:3003/auth/oauth-sync', {
               method: 'POST',
               headers: {

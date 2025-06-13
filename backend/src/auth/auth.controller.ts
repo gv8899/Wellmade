@@ -69,19 +69,38 @@ export class AuthController {
   @Post('oauth-sync')
   @HttpCode(HttpStatus.OK)
   async oauthSync(@Body() oauthData: { email: string; name: string; picture: string; provider: string }) {
-    this.logger.log(`OAuth sync request for user: ${oauthData.email} via ${oauthData.provider}`);
+    this.logger.log(`OAuth 同步請求收到：`, JSON.stringify(oauthData));
     try {
       // 構建 profile 對象，以便重用現有的 validateOAuthLogin 方法
+      let firstName = '';
+      let lastName = '';
+      
+      if (oauthData.name) {
+        const nameParts = oauthData.name.split(' ');
+        if (nameParts.length >= 2) {
+          // 西式名字格式：姓在後
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(' ');
+        } else if (nameParts.length === 1) {
+          // 只有一個名字，放在 firstName
+          firstName = nameParts[0];
+        }
+      }
+      
       const profile = {
         email: oauthData.email,
-        firstName: oauthData.name?.split(' ')[0] || '',
-        lastName: oauthData.name?.split(' ')[1] || '',
-        picture: oauthData.picture,
+        firstName,
+        lastName,
+        picture: oauthData.picture || null,
         provider: oauthData.provider
       };
       
+      this.logger.log(`處理後的資料：`, JSON.stringify(profile));
+      
       // 驗證或創建用戶
       const user = await this.authService.validateOAuthLogin(profile);
+      
+      this.logger.log(`用戶已存入/更新到數據庫，回傳結果：`, JSON.stringify(user));
       
       // 返回用戶資料和訪問令牌
       return {
@@ -90,7 +109,7 @@ export class AuthController {
         message: '用戶資料同步成功'
       };
     } catch (error) {
-      this.logger.error(`OAuth sync failed for ${oauthData.email}: ${error.message}`);
+      this.logger.error(`OAuth 同步失敗，用戶： ${oauthData.email}`, error);
       throw error;
     }
   }

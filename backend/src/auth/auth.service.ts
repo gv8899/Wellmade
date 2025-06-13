@@ -45,8 +45,8 @@ export class AuthService {
     }
     const payload = { email: user.email, sub: user.id, roles: user.roles };
     this.logger.debug(`Generating JWT for user with email: ${user.email} with payload: ${JSON.stringify(payload)}`);
-    const { id, username, email, roles, isActive, createdAt, updatedAt } = user;
-    const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt };
+    const { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture } = user;
+    const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -69,8 +69,8 @@ export class AuthService {
       const user = await this.usersService.create(createUserDto);
       
       // 僅提取安全字段
-      const { id, username, email, roles, isActive, createdAt, updatedAt } = user;
-      const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt };
+      const { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture } = user;
+      const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture };
       
       this.logger.debug(`User with email ${email} registered successfully`);
       return safeUser;
@@ -84,27 +84,67 @@ export class AuthService {
   }
   
   async validateOAuthLogin(profile: any): Promise<SafeUser> {
-    this.logger.debug(`Validating OAuth login for: ${profile.email}`);
+    this.logger.log(`收到 OAuth 登入請求，使用者: ${profile.email}, 資料:`, JSON.stringify(profile));
     
     try {
       // 檢查用戶是否已存在
+      this.logger.log(`檢查使用者是否已存在: ${profile.email}`);
       let user = await this.usersService.findOneByEmail(profile.email);
+      
+      // 清理資料
+      const cleanProfile = {
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        picture: profile.picture || null
+      };
+      
+      this.logger.log(`清理後的資料:`, JSON.stringify(cleanProfile));
       
       // 如果用戶不存在，創建新用戶
       if (!user) {
-        this.logger.debug(`Creating new user for OAuth login: ${profile.email}`);
+        this.logger.log(`使用者不存在，建立新使用者: ${profile.email}`);
+        
+        // 創建使用者資料
         const createUserDto = {
           username: profile.email,
           email: profile.email,
           // 產生隨機密碼，因為 OAuth 用戶不需要密碼登入
           password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8),
           roles: [UserRole.USER],
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          picture: profile.picture
+          firstName: cleanProfile.firstName,
+          lastName: cleanProfile.lastName,
+          picture: cleanProfile.picture
         };
         
-        user = await this.usersService.create(createUserDto);
+        this.logger.log(`嘗試建立使用者，資料:`, JSON.stringify(createUserDto));
+        try {
+          user = await this.usersService.create(createUserDto);
+          this.logger.log(`使用者建立成功: ${user.email} (${user.id})`, user);
+        } catch (error) {
+          this.logger.error(`創建用戶失敗:`, error);
+          throw error;
+        }
+      } else {
+        this.logger.log(`使用者已存在: ${user.email} (${user.id})`);
+        
+        // 直接更新用戶資料，確保新資料會存入
+        user.firstName = cleanProfile.firstName;
+        user.lastName = cleanProfile.lastName;
+        if (cleanProfile.picture) {
+          user.picture = cleanProfile.picture;
+        }
+        
+        this.logger.log(`正在更新用戶資料: ${user.email}`, JSON.stringify(user));
+        try {
+          await this.usersService.save(user);
+          this.logger.log(`用戶資料更新成功: ${user.email} (${user.id})`);
+          // 重新查詢用戶資料，確保有最新狀態
+          user = await this.usersService.findOneByEmail(profile.email);
+          this.logger.log(`更新後的用戶資料:`, JSON.stringify(user));
+        } catch (error) {
+          this.logger.error(`更新用戶資料失敗:`, error);
+          throw error;
+        }
       }
       
       // 產生 JWT token
@@ -112,8 +152,8 @@ export class AuthService {
       const token = await this.jwtService.signAsync(payload);
       
       // 僅提取安全字段
-      const { id, username, email, roles, isActive, createdAt, updatedAt } = user;
-      const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt };
+      const { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture } = user;
+      const safeUser: SafeUser = { id, username, email, roles, isActive, createdAt, updatedAt, firstName, lastName, picture };
       
       // 添加 token 到用戶對象
       (safeUser as any).access_token = token;
