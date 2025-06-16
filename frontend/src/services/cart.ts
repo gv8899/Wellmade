@@ -1,11 +1,22 @@
 import axios from 'axios';
 import { CartItem } from '@/CartContext';
+import { getSession } from 'next-auth/react';
 
 // 統一的 API 基礎 URL - 指向實際後端 API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api';
 
-// 檢查是否處於開發模式 - 在開發模式下使用本地儲存而不是真實 API 調用
+// 檢查是否處於開發模式 - 在開發模式下我們會提供模擬 API 作為回退
 const isDevelopment = process.env.NODE_ENV === 'development';
+
+// 購物車 API 端點定義
+const CART_API = {
+  GET_CART: '/cart',                 // 獲取當前用戶的購物車
+  ADD_ITEM: '/cart/items',           // 添加商品到購物車
+  UPDATE_ITEM: '/cart/items',        // 更新購物車商品數量
+  REMOVE_ITEM: '/cart/items',        // 從購物車中移除商品
+  CLEAR_CART: '/cart',               // 清空購物車
+  MERGE_CART: '/cart/merge'          // 合併本地購物車到用戶帳號
+};
 
 // 模擬檢索購物車函数 - 先定義以供后續使用
 const mockGetCart = (): ApiResponse<CartItem[]> => {
@@ -95,9 +106,22 @@ const api = axios.create({
   timeout: isDevelopment ? 2000 : 10000,
 });
 
+// 添加請求攔截器來處理認證
+api.interceptors.request.use(async (config) => {
+  try {
+    const session = await getSession();
+    if (session && (session as any).accessToken) {
+      config.headers.Authorization = `Bearer ${(session as any).accessToken}`;
+    }
+  } catch (error) {
+    console.error('獲取會話失敗:', error);
+  }
+  return config;
+});
+
 // API 請求和響應類型定義
 export interface CartApiItem {
-  id: string;
+  id?: string;
   productId: string;
   variantId?: string;
   quantity: number;
@@ -108,6 +132,13 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
+}
+
+// 購物車響應類型
+export interface CartResponse {
+  items: CartItem[];
+  total: number;
+  count: number;
 }
 
 // 購物車 API 服務
@@ -122,8 +153,14 @@ export const cartApi = {
     }
     
     try {
-      const response = await api.get('/cart');
-      return { success: true, data: response.data };
+      const session = await getSession();
+      // 如果用戶未登入且不在開發模式，傳回本地購物車
+      if (!session) {
+        return mockGetCart();
+      }
+      
+      const response = await api.get(CART_API.GET_CART);
+      return { success: true, data: response.data.items || [] };
     } catch (error) {
       console.error('獲取購物車失敗:', error);
       
@@ -136,13 +173,14 @@ export const cartApi = {
    * 添加商品到購物車
    */
   addToCart: async (item: Omit<CartApiItem, 'id'>): Promise<ApiResponse<CartItem>> => {
-    // 開發模式下模擬 API 響應
-    if (isDevelopment) {
-      return mockAddToCart(item);
-    }
-    
+    // 開發模式下，或者用戶未登入時，使用本地存儲
     try {
-      const response = await api.post('/cart/items', item);
+      const session = await getSession();
+      if (isDevelopment || !session) {
+        return mockAddToCart(item);
+      }
+      
+      const response = await api.post(CART_API.ADD_ITEM, item);
       return { success: true, data: response.data };
     } catch (error) {
       console.error('添加商品到購物車失敗:', error);
@@ -156,13 +194,13 @@ export const cartApi = {
    * 更新購物車商品數量
    */
   updateQuantity: async (itemId: string, quantity: number): Promise<ApiResponse<CartItem>> => {
-    // 開發模式下直接返回成功
-    if (isDevelopment) {
-      return mockUpdateQuantity(itemId, quantity);
-    }
-    
     try {
-      const response = await api.patch(`/cart/items/${itemId}`, { quantity });
+      const session = await getSession();
+      if (isDevelopment || !session) {
+        return mockUpdateQuantity(itemId, quantity);
+      }
+      
+      const response = await api.patch(`${CART_API.UPDATE_ITEM}/${itemId}`, { quantity });
       return { success: true, data: response.data };
     } catch (error) {
       console.error('更新購物車商品數量失敗:', error);
@@ -176,13 +214,13 @@ export const cartApi = {
    * 從購物車移除商品
    */
   removeFromCart: async (itemId: string): Promise<ApiResponse<void>> => {
-    // 開發模式下直接返回成功
-    if (isDevelopment) {
-      return { success: true };
-    }
-    
     try {
-      await api.delete(`/cart/items/${itemId}`);
+      const session = await getSession();
+      if (isDevelopment || !session) {
+        return { success: true };
+      }
+      
+      await api.delete(`${CART_API.REMOVE_ITEM}/${itemId}`);
       return { success: true };
     } catch (error) {
       console.error('從購物車移除商品失敗:', error);
@@ -194,17 +232,40 @@ export const cartApi = {
    * 清空購物車
    */
   clearCart: async (): Promise<ApiResponse<void>> => {
-    // 開發模式下直接返回成功
-    if (isDevelopment) {
-      return { success: true };
-    }
-    
     try {
-      await api.delete('/cart');
+      const session = await getSession();
+      if (isDevelopment || !session) {
+        return { success: true };
+      }
+      
+      await api.delete(CART_API.CLEAR_CART);
       return { success: true };
     } catch (error) {
       console.error('清空購物車失敗:', error);
       return { success: true }; // 即使 API 失敗也返回成功，前端已進行樂觀更新
+    }
+  },
+  
+  /**
+   * 合併本地購物車到用戶帳號
+   * @param items 本地購物車項目
+   */
+  mergeCart: async (items: CartItem[]): Promise<ApiResponse<CartItem[]>> => {
+    if (items.length === 0) {
+      return { success: true, data: [] };
+    }
+    
+    try {
+      const session = await getSession();
+      if (isDevelopment || !session) {
+        return { success: true, data: items };
+      }
+      
+      const response = await api.post(CART_API.MERGE_CART, { items });
+      return { success: true, data: response.data.items || [] };
+    } catch (error) {
+      console.error('合併購物車失敗:', error);
+      return { success: false, message: '合併購物車失敗', data: items };
     }
   }
 };

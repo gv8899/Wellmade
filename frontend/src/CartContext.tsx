@@ -1,7 +1,8 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { cartApi, localCartStorage } from "@/services/cart";
+import { useSession } from "next-auth/react";
 
 export interface CartItem {
   id: string;
@@ -12,9 +13,13 @@ export interface CartItem {
   specs: { [key: string]: string }; // 確保與後端命名一致：商品規格（如顏色、長度等）
 }
 
+export interface CartItemInput extends Omit<CartItem, "quantity"> {
+  quantity?: number; // 可選的數量參數
+}
+
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  addToCart: (item: CartItemInput) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -22,6 +27,8 @@ interface CartContextType {
   cartClickCount: number;
   addCartClick: () => void;
   isLoading: boolean;
+  refreshCart: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,29 +44,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartClickCount, setCartClickCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
-  // 初始化購物車 - 嘗試從 API 獲取，失敗則從本地存儲加載
-  useEffect(() => {
-    const initializeCart = async () => {
-      try {
-        // 嘗試從 API 獲取購物車
-        const response = await cartApi.getCart();
-        if (response.success && response.data) {
-          setCartItems(response.data);
-        } else {
-          // API 失敗，嘗試從本地存儲加載
-          const savedCart = localStorage.getItem("cart");
-          if (savedCart) {
-            try {
-              setCartItems(JSON.parse(savedCart));
-            } catch {
-              setCartItems([]);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('初始化購物車失敗:', error);
-        // 加載本地存儲作為後備
+  // 刷新購物車資料
+  const refreshCart = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // 從 API 獲取購物車
+      const response = await cartApi.getCart();
+      if (response.success && response.data) {
+        setCartItems(response.data);
+      } else {
+        // API 失敗或未登入，從本地存儲加載
         const savedCart = localStorage.getItem("cart");
         if (savedCart) {
           try {
@@ -68,14 +65,90 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setCartItems([]);
           }
         }
-      } finally {
-        setIsLoading(false);
-        setIsInitialized(true);
       }
-    };
-
-    initializeCart();
+    } catch (error) {
+      console.error('刷新購物車失敗:', error);
+      // 加載本地存儲作為後備
+      const savedCart = localStorage.getItem("cart");
+      if (savedCart) {
+        try {
+          setCartItems(JSON.parse(savedCart));
+        } catch {
+          setCartItems([]);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // 合併本地購物車到會員帳號
+  const mergeCartsOnLogin = useCallback(async () => {
+    // 只有在登入狀態下執行合併
+    if (!isAuthenticated) return;
+    
+    setIsLoading(true);
+    try {
+      // 獲取本地購物車
+      const localCart = localCartStorage.getCart();
+      
+      // 先獲取服務器購物車數據
+      const serverResponse = await cartApi.getCart();
+      const serverCart = serverResponse.success && serverResponse.data ? serverResponse.data : [];
+      
+      // 如果本地購物車有商品，則執行合併
+      if (localCart.length > 0) {
+        const response = await cartApi.mergeCart(localCart);
+        if (response.success && response.data) {
+          setCartItems(response.data);
+          // 清空本地購物車
+          localCartStorage.saveCart([]);
+          toast.success('購物車已同步到您的帳號');
+        } else {
+          throw new Error(response.message || '合併購物車失敗');
+        }
+      } else if (serverCart.length > 0) {
+        // 如果本地購物車為空，但服務器有購物車數據
+        setCartItems(serverCart);
+        toast.success('已載入您的購物車');
+      } else {
+        // 兩者都為空，就不做任何處理
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error('合併購物車失敗:', error);
+      toast.error('購物車同步失敗，請稍後再試');
+      await refreshCart(); // 仍然嘗試刷新購物車
+    } finally {
+      setIsLoading(false);
+      setIsInitialized(true);
+    }
+  }, [isAuthenticated, refreshCart]);
+
+  // 監聽會話狀態變更
+  useEffect(() => {
+    // 當用戶登入時，合併購物車
+    if (status === 'authenticated') {
+      mergeCartsOnLogin();
+    } 
+    // 當用戶登出時，將服務器購物車保存到本地
+    else if (status === 'unauthenticated' && isInitialized) {
+      // 確保在登出前我們已經將服務器購物車存到本地
+      const localCart = localCartStorage.getCart();
+      if (localCart && localCart.length > 0) {
+        setCartItems(localCart);
+      } else {
+        refreshCart();
+      }
+    }
+  }, [status, mergeCartsOnLogin, refreshCart, isInitialized]);
+
+  // 初始化購物車
+  useEffect(() => {
+    if (!isInitialized) {
+      refreshCart().then(() => setIsInitialized(true));
+    }
+  }, [isInitialized, refreshCart]);
 
   // 監聽 localStorage 變動（跨分頁/視窗）
   useEffect(() => {
@@ -110,20 +183,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartClickCount(savedCount ? parseInt(savedCount, 10) : 0);
   }, []);
 
-  const addToCart = async (item: Omit<CartItem, "quantity">) => {
+  const addToCart = async (item: CartItemInput) => {
     setIsLoading(true);
+    const quantity = item.quantity || 1; // 如果沒有指定數量，預設為 1
 
     try {
       // 檢查是否已存在相同商品 (id相同)
       const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
 
       if (existingItem) {
-        // 如果已存在相同id的商品，則增加數量
-        await updateQuantity(item.id, existingItem.quantity + 1);
+        // 如果已存在相同id的商品，則增加指定數量
+        await updateQuantity(item.id, existingItem.quantity + quantity);
       } else {
-        // 否則新增商品到購物車
+        // 否則新增商品到購物車，使用指定數量
         // 先進行樂觀更新
-        const newItem = { ...item, quantity: 1 };
+        const newItem = { ...item, quantity };
         setCartItems(prev => [...prev, newItem]);
 
         // 然後嘗試 API 調用
@@ -136,7 +210,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const response = await cartApi.addToCart({
           productId,
           variantId,
-          quantity: 1,
+          quantity,
           specs: item.specs
         });
 
@@ -294,6 +368,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartClickCount,
         addCartClick,
         isLoading,
+        refreshCart,
+        isAuthenticated,
       }}
     >
       {children}

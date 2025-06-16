@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useCart } from "@/CartContext";
+import { useCart, CartItemInput } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
 import { toast } from "react-hot-toast";
 
@@ -97,15 +97,15 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             setIsAddingToCart(true);
             
             // 直接更新前端購物車狀態，不調用 API
-            for (let i = 0; i < quantity; i++) {
-              addToCart({
-                id: currentVariant.id,
-                name: currentVariant.variantTitle || title,
-                price: currentVariant.price,
-                cover: currentVariant.image,
-                specs: selectedSpecs, // 帶入目前選擇的規格
-              });
-            }
+            // 一次性添加指定數量，而不是循環多次添加
+            addToCart({
+              id: currentVariant.id,
+              name: currentVariant.variantTitle || title,
+              price: currentVariant.price,
+              cover: currentVariant.image,
+              specs: selectedSpecs, // 帶入目前選擇的規格
+              quantity: quantity // 直接添加數量參數
+            });
             addCartClick();
             toast.success('已成功加入購物車');
             setIsAddingToCart(false);
