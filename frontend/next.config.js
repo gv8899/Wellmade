@@ -54,6 +54,11 @@ const nextConfig = {
         source: '/api/auth/callback/:path*',
         destination: '/api/auth/callback/:path*',
       },
+      // 特別為 NextAuth 路由設置
+      {
+        source: '/api/auth/:path*',
+        destination: '/api/auth/:path*',  // 不代理 NextAuth 路由
+      },
       // 其他 API 代理到 NestJS
       {
         source: '/api/:path*',
