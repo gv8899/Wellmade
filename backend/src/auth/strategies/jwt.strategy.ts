@@ -35,10 +35,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // }
     // For now, we'll just return the payload as is, assuming it contains enough info.
     // Ensure the payload structure matches what you sign in AuthService.login
-    if (!payload || !payload.sub || !payload.username || !payload.roles) {
+    // 修正：接受email字段代替username字段
+    if (!payload || !payload.sub || !(payload.username || payload.email) || !payload.roles) {
         this.logger.error('Invalid JWT payload structure.');
         throw new UnauthorizedException('Invalid token payload.');
     }
-    return { userId: payload.sub, username: payload.username, roles: payload.roles };
+    return { 
+      userId: payload.sub, 
+      username: payload.username || payload.email, // 使用username或email
+      email: payload.email,
+      roles: payload.roles 
+    };
   }
 }

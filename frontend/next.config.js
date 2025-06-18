@@ -61,15 +61,16 @@ const nextConfig = {
       },
       // 其他 API 代理到 NestJS
       {
+        source: '/api/cart/:path*',
+        destination: 'http://localhost:3003/cart/:path*',
+      },
+      {
+        source: '/api/cart',
+        destination: 'http://localhost:3003/cart',
+      },
+      {
         source: '/api/:path*',
-        destination: 'http://localhost:3003/:path*', // 代理到 NestJS
-        has: [
-          {
-            type: 'header',
-            key: 'x-custom-skip-auth',
-            value: '(?!)',  // 永遠不匹配的正則表達式
-          },
-        ],
+        destination: 'http://localhost:3003/:path*',
       },
     ];
   },

@@ -21,28 +21,74 @@ export class CartsService {
 
   /**
    * 根據 userId 或 sessionId 查找購物車，如果不存在則創建一個新的
+   * 如果用戶已登入，會更新已存在的匿名購物車為該用戶的購物車
    */
   async getOrCreateCart(userId?: string, sessionId?: string): Promise<Cart> {
+    console.log('getOrCreateCart 被調用，參數:', { userId, sessionId });
     let cart: Cart;
 
     // 優先根據用戶 ID 查詢
     if (userId) {
+      console.log('嘗試根據用戶 ID 查找購物車:', userId);
       cart = await this.cartRepository.findOne({ 
         where: { userId },
-        relations: ['items']
+        relations: ['items', 'items.product']
       });
+      
+      if (cart) {
+        console.log('找到用戶購物車:', cart.id);
+      }
     }
     
     // 如果沒有用戶 ID 或找不到購物車，則根據會話 ID 查詢
     if (!cart && sessionId) {
+      console.log('嘗試根據會話 ID 查找購物車:', sessionId);
       cart = await this.cartRepository.findOne({
         where: { sessionId },
-        relations: ['items']
+        relations: ['items', 'items.product']
       });
+      
+      // 如果找到匿名購物車，且有用戶ID，則更新為該用戶的購物車
+      if (cart && userId) {
+        console.log('更新匿名購物車為用戶購物車, 用戶ID:', userId);
+        
+        // 檢查該用戶是否已有購物車
+        const existingUserCart = await this.cartRepository.findOne({
+          where: { userId },
+          relations: ['items', 'items.product']
+        });
+        
+        if (existingUserCart) {
+          console.log('用戶已有購物車，合併匿名購物車項目到用戶購物車');
+          // 合併購物車項目
+          for (const item of cart.items) {
+            // 查找用戶購物車中是否已有相同產品
+            const existingItem = existingUserCart.items.find(i => i.productId === item.productId);
+            if (existingItem) {
+              // 增加數量
+              existingItem.quantity += item.quantity;
+              await this.cartItemRepository.save(existingItem);
+            } else {
+              // 移動項目到用戶購物車
+              item.cart = existingUserCart;
+              await this.cartItemRepository.save(item);
+            }
+          }
+          // 刪除匿名購物車
+          await this.cartRepository.remove(cart);
+          cart = existingUserCart;
+        } else {
+          // 直接將匿名購物車轉換為用戶購物車
+          cart.userId = userId;
+          cart.sessionId = null; // 清除會話ID，確保這是一個純用戶購物車
+          await this.cartRepository.save(cart);
+        }
+      }
     }
 
     // 如果仍然找不到購物車，則創建一個新的
     if (!cart) {
+      console.log('創建新購物車, 參數:', { userId, sessionId });
       cart = this.cartRepository.create({
         userId,
         sessionId,

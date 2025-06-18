@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as crypto from 'crypto'; // Explicitly import crypto
+import * as session from 'express-session';
+import * as cookieParser from 'cookie-parser'; // 我們也需要 cookie-parser
 
 console.log('Is crypto (imported) defined in main.ts?', typeof crypto, typeof crypto?.randomUUID);
 
@@ -16,6 +18,24 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+  
+  // 配置 Cookie 解析
+  app.use(cookieParser());
+  
+  // 配置 Session 中間件
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'wellmade-session-secret',
+      resave: false,
+      saveUninitialized: true,
+      cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 1 天
+      },
+      name: 'wellmade.sid'
+    }),
+  );
   
   // 啟用全局驗證管道，用於 DTO 驗證
   app.useGlobalPipes(

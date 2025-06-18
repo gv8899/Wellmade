@@ -1,7 +1,9 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import type { NextAuthOptions } from 'next-auth';
 
-const handler = NextAuth({
+// 導出 authOptions 以便其他 API 路由能夠使用
+export const authOptions: NextAuthOptions = {
 
   providers: [
     GoogleProvider({
@@ -68,15 +70,19 @@ const handler = NextAuth({
       (session as any).accessToken = token.accessToken;
       (session as any).idToken = token.idToken;
       (session as any).provider = token.provider;
-      // if (token.backendToken) {
-      //   (session as any).backendToken = token.backendToken;
-      // }
+      if (token.backendToken) {
+        (session as any).backendToken = token.backendToken;
+      }
       return session;
     },
   },
   pages: {
     signIn: '/login',
   },
-});
+};
 
+// 创建處理程序實例
+const handler = NextAuth(authOptions);
+
+// 導出 GET 和 POST 處理程序
 export { handler as GET, handler as POST };
