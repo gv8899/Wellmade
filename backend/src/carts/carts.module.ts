@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CartsService } from './carts.service';
 import { CartsController } from './carts.controller';
 import { Cart } from './entities/cart.entity';
@@ -13,9 +14,20 @@ import { UsersModule } from '../users/users.module';
     TypeOrmModule.forFeature([Cart, CartItem]),
     ProductsModule,
     UsersModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        const expiresIn = configService.get<string>('JWT_EXPIRATION_TIME');
+        
+        return {
+          secret,
+          signOptions: { 
+            expiresIn: expiresIn || '1d'
+          },
+        };
+      },
+      inject: [ConfigService],
     }),
   ],
   controllers: [CartsController],

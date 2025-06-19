@@ -19,6 +19,27 @@ export class CartsController {
   ) {}
 
   /**
+   * 獲取穩定的會話ID
+   */
+  private getSessionId(request: Request): string {
+    // 優先使用 express-session 提供的 session ID
+    const sessionId = (request as any).session?.id || (request as any).sessionID;
+    
+    if (sessionId) {
+      console.log('使用 express-session ID:', sessionId);
+      return sessionId;
+    }
+    
+    // 如果沒有 session ID，使用 IP + User-Agent 產生相對穩定的訪客ID
+    const ip = request.ip || request.connection?.remoteAddress || 'unknown';
+    const userAgent = request.headers['user-agent'] || 'unknown';
+    const stableId = `guest-${Buffer.from(`${ip}-${userAgent}`).toString('base64').substring(0, 12)}`;
+    
+    console.log('生成穩定訪客ID:', stableId, { ip, userAgent: userAgent.substring(0, 50) });
+    return stableId;
+  }
+
+  /**
    * 嘗試從 JWT 令牌中獲取用戶（可選認證）
    */
   private async getOptionalUser(authorization?: string) {
@@ -48,44 +69,43 @@ export class CartsController {
       // JWT payload 結構: { email: user.email, sub: user.id, roles: user.roles }
       let user = null;
       
-      // 優先使用 userId (sub) 查找
-      const userId = payload.sub;
-      if (userId) {
-        console.log('使用 userId 查找用戶:', userId);
-        try {
-          user = await this.usersService.findById(userId);
+      try {
+        // 優先使用 userId (sub) 查找
+        if (payload.sub) {
+          console.log('使用 userId 查找用戶:', payload.sub, '(類型:', typeof payload.sub, ')');
+          user = await this.usersService.findById(payload.sub);
           if (user) {
-            console.log('使用 ID 找到用戶:', user.id);
+            console.log('使用 ID 找到用戶:', user.id, user.email);
           } else {
-            console.log('使用 ID 未找到用戶，將嘗試使用 email');
-            
-            // 如果 ID 查找失敗，嘗試用 email 查找
-            if (payload.email) {
-              console.log('使用 email 查找用戶:', payload.email);
-              user = await this.usersService.findOneByEmail(payload.email);
-              if (user) {
-                console.log('使用 email 找到用戶:', user.id);
-              } else {
-                console.log('使用 email 也未找到用戶');
+            console.log('使用 ID 未找到用戶，檢查用戶是否存在於資料庫');
+          }
+        }
+        
+        // 如果 ID 查找失敗，嘗試用 email 查找
+        if (!user && payload.email) {
+          console.log('使用 email 查找用戶:', payload.email);
+          try {
+            user = await this.usersService.findOneByEmail(payload.email);
+            if (user) {
+              console.log('使用 email 找到用戶:', user.id, user.email);
+              if (payload.sub !== user.id) {
+                console.log('警告：用戶ID不匹配！JWT中的ID:', payload.sub, '實際ID:', user.id);
+                console.log('這可能是因為用戶重新註冊或資料庫重置導致的，但會繼續使用 email 找到的用戶');
               }
+            } else {
+              console.log('使用 email 也未找到用戶');
             }
+          } catch (emailError) {
+            console.log('email 查找發生錯誤:', emailError.message);
           }
-        } catch (error) {
-          console.log('查找用戶時發生錯誤:', error.message);
-          console.error('完整錯誤:', error);
         }
-      } else if (payload.email) {
-        console.log('無 userId，僅使用 email 查找用戶:', payload.email);
-        try {
-          user = await this.usersService.findOneByEmail(payload.email);
-          if (user) {
-            console.log('僅使用 email 找到用戶:', user.id);
-          } else {
-            console.log('僅使用 email 未找到用戶');
-          }
-        } catch (error) {
-          console.log('查找用戶時發生錯誤:', error.message);
+        
+        if (!user) {
+          console.log('未找到用戶，詳細payload:', JSON.stringify(payload, null, 2));
         }
+      } catch (error) {
+        console.log('查找用戶時發生錯誤:', error.message);
+        console.error('完整錯誤:', error);
       }
       
       console.log('用戶查找結果:', { found: !!user, userId: user?.id, email: user?.email });
@@ -94,6 +114,96 @@ export class CartsController {
       console.log('JWT 驗證失敗:', error.message);
       console.log('錯誤詳情:', error);
       return null;
+    }
+  }
+
+  /**
+   * 檢查 JWT 配置端點
+   */
+  @Public()
+  @Get('debug-jwt-config')
+  async debugJwtConfig() {
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+    const jwtExpiration = this.configService.get<string>('JWT_EXPIRATION_TIME');
+    const jwtExpiresIn = this.configService.get<string>('JWT_EXPIRES_IN');
+    
+    return {
+      hasJwtSecret: !!jwtSecret,
+      jwtSecretLength: jwtSecret?.length || 0,
+      jwtSecretPreview: jwtSecret ? jwtSecret.substring(0, 10) + '...' : null,
+      jwtExpiration,
+      jwtExpiresIn,
+      allEnvKeys: Object.keys(process.env).filter(key => key.includes('JWT')),
+      nodeEnv: process.env.NODE_ENV
+    };
+  }
+
+  /**
+   * 調試用戶查找端點
+   */
+  @Public()
+  @Get('debug-user')
+  async debugUser(@Headers('authorization') authorization: string) {
+    console.log('=== DEBUG USER 端點被調用 ===');
+    
+    if (!authorization || !authorization.startsWith('Bearer ')) {
+      return {
+        hasAuthorization: false,
+        error: '沒有有效的 Bearer token',
+        message: '認證失敗'
+      };
+    }
+
+    try {
+      const token = authorization.substring(7);
+      const payload = this.jwtService.verify(token);
+      
+      console.log('JWT 解析成功，payload:', payload);
+      
+      let debugInfo = {
+        hasAuthorization: true,
+        jwtPayload: payload,
+        userId: payload.sub,
+        email: payload.email
+      };
+      
+      // 測試用戶查找
+      let user = null;
+      if (payload.sub) {
+        try {
+          user = await this.usersService.findById(payload.sub);
+          debugInfo['userFindByIdResult'] = user ? '找到' : '未找到';
+          debugInfo['userFindByIdError'] = null;
+        } catch (error) {
+          debugInfo['userFindByIdResult'] = '錯誤';
+          debugInfo['userFindByIdError'] = error.message;
+        }
+      }
+      
+      if (!user && payload.email) {
+        try {
+          user = await this.usersService.findOneByEmail(payload.email);
+          debugInfo['userFindByEmailResult'] = user ? '找到' : '未找到';
+          debugInfo['userFindByEmailError'] = null;
+        } catch (error) {
+          debugInfo['userFindByEmailResult'] = '錯誤';
+          debugInfo['userFindByEmailError'] = error.message;
+        }
+      }
+      
+      debugInfo['finalUser'] = user ? {
+        id: user.id,
+        email: user.email,
+        username: user.username
+      } : null;
+      
+      return debugInfo;
+    } catch (error) {
+      return {
+        hasAuthorization: true,
+        jwtError: error.message,
+        message: 'JWT 驗證失敗'
+      };
     }
   }
 
@@ -170,39 +280,14 @@ export class CartsController {
     const user = await this.getOptionalUser(authorization);
     const userId = user?.id;
     
-    // 詳細記錄會話信息
-    console.log('會話物件完整內容:', session);
+    // 使用新的穩定會話ID邏輯
+    const sessionId = this.getSessionId(request);
     
-    // Express 會話 ID 應該被存儲在 request.sessionID
-    const cookies = (request.headers.cookie as string) || '';
-    console.log('請求 cookies:', cookies);
-    
-    // 獲取會話 ID
-    // 1. 優先使用 express-session 特定的 sessionID
-    // 2. 然後嘗試手動從 cookie 中解析 (wellmade.sid)
-    // 3. 最後才使用預設值
-    let sessionId = (request as any).sessionID || '';
-    
-    if (!sessionId && cookies) {
-      const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('wellmade.sid='));
-      if (sessionCookie) {
-        sessionId = sessionCookie.trim().substring('wellmade.sid='.length);
-      }
-    }
-    
-    if (!sessionId) {
-      sessionId = session?.id || 'anonymous-session-' + Date.now();
-    }
-    
-    console.log('獲取購物車 - 詳細會話信息:', { 
+    console.log('獲取購物車 - 會話信息:', { 
       userId, 
       sessionId, 
       hasUser: !!user, 
-      hasSession: !!session,
-      sessionKeys: session ? Object.keys(session) : [],
-      requestSessionID: (request as any).sessionID,
-      hasCookies: !!cookies,
-      cookiesLength: cookies.length
+      hasSession: !!session
     });
 
     // 獲取或創建購物車
@@ -233,30 +318,13 @@ export class CartsController {
     const user = await this.getOptionalUser(authorization);
     const userId = user?.id;
     
-    // Express 會話 ID 應該被存儲在 request.sessionID
-    const cookies = (request.headers.cookie as string) || '';
-    
-    // 獲取會話 ID
-    let sessionId = (request as any).sessionID || '';
-    
-    if (!sessionId && cookies) {
-      const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('wellmade.sid='));
-      if (sessionCookie) {
-        sessionId = sessionCookie.trim().substring('wellmade.sid='.length);
-      }
-    }
-    
-    if (!sessionId) {
-      sessionId = session?.id || 'anonymous-session-' + Date.now();
-    }
+    // 使用新的穩定會話ID邏輯
+    const sessionId = this.getSessionId(request);
 
     console.log('添加商品到購物車 - 用戶信息:', { 
       userId, 
       sessionId, 
-      hasUser: !!user, 
-      hasSession: !!session,
-      requestSessionID: (request as any).sessionID,
-      hasCookies: !!cookies
+      hasUser: !!user
     });
     console.log('添加的商品:', createCartItemDto);
 
@@ -285,12 +353,13 @@ export class CartsController {
     @Param('id') id: string,
     @Body() updateCartItemDto: UpdateCartItemDto,
     @Headers('authorization') authorization: string,
-    @Session() session: Record<string, any>
+    @Session() session: Record<string, any>,
+    @Req() request: Request
   ) {
     // 嘗試獲取用戶（可選認證）
     const user = await this.getOptionalUser(authorization);
     const userId = user?.id;
-    const sessionId = session?.id || 'anonymous-session';
+    const sessionId = this.getSessionId(request);
 
     // 獲取購物車
     const cart = await this.cartsService.getOrCreateCart(userId, sessionId);
@@ -308,12 +377,13 @@ export class CartsController {
   async removeFromCart(
     @Param('id') id: string,
     @Headers('authorization') authorization: string,
-    @Session() session: Record<string, any>
+    @Session() session: Record<string, any>,
+    @Req() request: Request
   ) {
     // 嘗試獲取用戶（可選認證）
     const user = await this.getOptionalUser(authorization);
     const userId = user?.id;
-    const sessionId = session?.id || 'anonymous-session';
+    const sessionId = this.getSessionId(request);
 
     // 獲取購物車
     const cart = await this.cartsService.getOrCreateCart(userId, sessionId);
@@ -330,12 +400,13 @@ export class CartsController {
   @HttpCode(204)
   async clearCart(
     @Headers('authorization') authorization: string,
-    @Session() session: Record<string, any>
+    @Session() session: Record<string, any>,
+    @Req() request: Request
   ) {
     // 嘗試獲取用戶（可選認證）
     const user = await this.getOptionalUser(authorization);
     const userId = user?.id;
-    const sessionId = session?.id || 'anonymous-session';
+    const sessionId = this.getSessionId(request);
 
     // 獲取購物車
     const cart = await this.cartsService.getOrCreateCart(userId, sessionId);
@@ -347,11 +418,13 @@ export class CartsController {
   /**
    * 合併本地購物車到用戶帳號
    */
+  @Public()
   @Post('merge')
   async mergeCart(
     @Body() mergeCartDto: { items: any[] },
     @Headers('authorization') authorization: string,
-    @Session() session: Record<string, any>
+    @Session() session: Record<string, any>,
+    @Req() request: Request
   ) {
     // 確保用戶已登入
     const user = await this.getOptionalUser(authorization);
@@ -360,7 +433,7 @@ export class CartsController {
     }
 
     const userId = user.id;
-    const sessionId = session?.id || 'anonymous-session';
+    const sessionId = this.getSessionId(request);
     
     // 獲取用戶購物車
     const cart = await this.cartsService.getOrCreateCart(userId, sessionId);
