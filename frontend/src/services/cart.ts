@@ -12,21 +12,21 @@ export interface CartItemType {
 }
 import { getSession } from 'next-auth/react';
 
-// 統一的 API 基礎 URL - 指向實際後端 API
-// 修改為直接使用後端服務器URL，不包含 /api 前綴
-const API_BASE_URL = 'http://localhost:3003';
+// 統一的 API 基礎 URL - 使用 Next.js API 路由作為代理
+// 這樣可以避免 CORS 和認證問題
+const API_BASE_URL = '/api';
 
 // 檢查是否處於開發模式 - 在開發模式下我們會提供模擬 API 作為回退
 const isDevelopment = false; // process.env.NODE_ENV === 'development';
 
-// 使用 Next.js API 路由代理到後端
+// 直接呼叫後端 API，不經過 Next.js API 路由
 const CART_API = {
-  GET_CART: '/api/cart',                 // 獲取當前用戶的購物車
-  ADD_ITEM: '/api/cart/items',           // 添加商品到購物車
-  UPDATE_ITEM: '/api/cart/items',        // 更新購物車商品數量
-  REMOVE_ITEM: '/api/cart/items',        // 從購物車中移除商品
-  CLEAR_CART: '/api/cart',               // 清空購物車
-  MERGE_CART: '/api/cart/merge'          // 合併本地購物車到用戶帳號
+  GET_CART: '/cart',                     // 獲取當前用戶的購物車
+  ADD_ITEM: '/cart/items',               // 添加商品到購物車
+  UPDATE_ITEM: '/cart/items',            // 更新購物車商品數量
+  REMOVE_ITEM: '/cart/items',            // 從購物車中移除商品
+  CLEAR_CART: '/cart',                   // 清空購物車
+  MERGE_CART: '/cart/merge'              // 合併本地購物車到用戶帳號
 };
 
 // 模擬檢索購物車函数 - 先定義以供后續使用
@@ -120,7 +120,7 @@ const api = axios.create({
 
 // 添加更詳細的請求記錄和連続狀態追蹤
 
-// 請求攝截器 - 添加所有API請求的詳細日誌
+// 請求攝截器 - 添加授權標頭和詳細日誌
 api.interceptors.request.use(async (config) => {
   console.log(`準備發送請求到: ${config.url}`, { 
     method: config.method, 
@@ -129,13 +129,20 @@ api.interceptors.request.use(async (config) => {
   });
   
   try {
-    // 不再手動添加授權標頭，因為我們現在使用 Next.js 的 API 路由
-    // 其將以服務器端該的方式做達成驗證
-    // 此器可來進行追蹤記錄
+    // 添加授權標頭
     const session = await getSession();
-    console.log('當前用戶會話:', { 
+    if (session && (session as any).backendToken) {
+      config.headers.Authorization = `Bearer ${(session as any).backendToken}`;
+      console.log('添加授權標頭到請求');
+    }
+    
+    console.log('當前用戶會話詳細信息:', { 
       hasSession: !!session, 
       hasBackendToken: !!(session && (session as any).backendToken),
+      provider: (session as any)?.provider,
+      email: session?.user?.email,
+      sessionKeys: session ? Object.keys(session) : [],
+      backendTokenLength: (session as any)?.backendToken?.length || 0
     });
   } catch (error) {
     console.error('獲取會話時發生錯誤:', error);
@@ -199,29 +206,17 @@ export const cartApi = {
    */
   getCart: async (): Promise<ApiResponse<CartItem[]>> => {
     try {
-      const session = await getSession();
-      
-      console.log('獲取購物車 - 當前會話狀態:', {
-        hasSession: !!session,
-        hasBackendToken: !!(session && (session as any).backendToken),
-        tokenPreview: session && (session as any).backendToken ? 
-          `${(session as any).backendToken.substring(0, 20)}...` : 'none'
-      });
-      
-      // 未登入時使用本地存儲
-      if (!session) {
-        console.log('用戶未登入，使用本地購物車');
-        return mockGetCart();
-      }
-
-      // 發送請求到後端 API
       console.log('發送獲取購物車請求到後端:', CART_API.GET_CART);
       const response = await api.get(CART_API.GET_CART);
       console.log('獲取購物車成功:', response.data);
-      return { success: true, data: response.data.items || [] };
+      
+      // 處理後端返回的購物車數據
+      const cartItems = response.data.items || [];
+      return { success: true, data: cartItems };
     } catch (error) {
       console.error('獲取購物車失敗:', error);
-      // 發生錯誤時降級到本地
+      // 發生錯誤時降級到本地購物車
+      console.log('降級使用本地購物車');
       return mockGetCart();
     }
   },
@@ -231,23 +226,6 @@ export const cartApi = {
    */
   addToCart: async (item: Omit<CartApiItem, 'id'>): Promise<ApiResponse<CartItem>> => {
     try {
-      const session = await getSession();
-      
-      // 詳細記錄 session 資訊用於調試
-      console.log('添加商品到購物車 - 當前 session:', {
-        isAuth: !!session,
-        hasBackendToken: !!(session && (session as any).backendToken),
-        tokenPreview: session && (session as any).backendToken ? 
-          `${(session as any).backendToken.substring(0, 20)}...` : 'none'
-      });
-      
-      // 如果用戶未登入，使用本地儲存
-      if (!session) {
-        console.log('用戶未登入，使用本地儲存');
-        return mockAddToCart(item);
-      }
-      
-      // 用戶已登入，使用後端 API
       console.log('發送添加購物車請求到後端 API:', {
         url: CART_API.ADD_ITEM,
         item
@@ -255,10 +233,14 @@ export const cartApi = {
       
       const response = await api.post(CART_API.ADD_ITEM, item);
       console.log('API 添加購物車響應:', response.data);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('添加商品到購物車整體處理失敗:', error);
       
+      // 處理後端返回的購物車數據
+      const cartData = response.data;
+      const addedItem = cartData.items?.[cartData.items.length - 1] || cartData;
+      
+      return { success: true, data: addedItem };
+    } catch (error) {
+      console.error('添加商品到購物車失敗:', error);
       // API 調用失敗，使用模擬響應
       console.log('降級為使用本地儲存');
       return mockAddToCart(item);
@@ -326,23 +308,6 @@ export const cartApi = {
    */
   mergeCart: async (localCart: CartItem[]): Promise<ApiResponse<CartItem[]>> => {
     try {
-      const session = await getSession();
-      
-      // 詳細記錄會話狀態
-      console.log('合併購物車 - 當前會話狀態:', {
-        hasSession: !!session,
-        hasBackendToken: !!(session && (session as any).backendToken),
-        tokenPreview: session && (session as any).backendToken ? 
-          `${(session as any).backendToken.substring(0, 20)}...` : 'none',
-        localCartItems: localCart.length
-      });
-      
-      // 如果沒有會話，無法合併
-      if (!session) {
-        console.error('沒有登入會話，無法合併購物車');
-        return { success: false, error: '您需要登入才能合併購物車' };
-      }
-
       // 如果本地購物車為空，則直接獲取用戶的購物車
       if (localCart.length === 0) {
         console.log('本地購物車為空，直接獲取後端購物車');

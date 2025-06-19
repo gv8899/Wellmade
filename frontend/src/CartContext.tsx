@@ -82,66 +82,74 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // 合併本地購物車到會員帳號
+  // 合併本地購物車到會員帳號 - 簡化邏輯
   const mergeCartsOnLogin = useCallback(async () => {
-    // 只有在登入狀態下執行合併
     if (!isAuthenticated) return;
+    
+    // 等待一小段時間確保 session 完全載入
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 驗證 session 和 backendToken 是否存在
+    if (!session || !(session as any).backendToken) {
+      console.log('Session 或 backendToken 不存在，跳過購物車合併');
+      return;
+    }
     
     setIsLoading(true);
     try {
-      // 獲取本地購物車
       const localCart = localCartStorage.getCart();
       
-      // 先獲取服務器購物車數據
-      const serverResponse = await cartApi.getCart();
-      const serverCart = serverResponse.success && serverResponse.data ? serverResponse.data : [];
-      
-      // 如果本地購物車有商品，則執行合併
       if (localCart.length > 0) {
-        const response = await cartApi.mergeCart(localCart);
-        if (response.success && response.data) {
-          setCartItems(response.data);
-          // 清空本地購物車
-          localCartStorage.saveCart([]);
-          toast.success('購物車已同步到您的帳號');
-        } else {
-          throw new Error(response.message || '合併購物車失敗');
+        // 有本地購物車，執行合併
+        console.log('合併本地購物車到服務器:', localCart.length);
+        
+        // 臨時解決方案：直接添加商品到服務器購物車，而不使用 merge API
+        try {
+          for (const item of localCart) {
+            await cartApi.addToCart({
+              productId: item.id,
+              quantity: item.quantity,
+              specs: item.specs
+            });
+          }
+          localCartStorage.saveCart([]); // 清空本地購物車
+          await refreshCart(); // 重新載入購物車
+          toast.success(`已合併 ${localCart.length} 項商品到您的帳號`);
+        } catch (addError) {
+          console.error('逐項添加商品失敗:', addError);
+          throw new Error('合併購物車失敗');
         }
-      } else if (serverCart.length > 0) {
-        // 如果本地購物車為空，但服務器有購物車數據
-        setCartItems(serverCart);
-        toast.success('已載入您的購物車');
       } else {
-        // 兩者都為空，就不做任何處理
-        setCartItems([]);
+        // 本地購物車為空，直接載入服務器購物車
+        console.log('本地購物車為空，載入服務器購物車');
+        await refreshCart();
       }
     } catch (error) {
       console.error('合併購物車失敗:', error);
-      toast.error('購物車同步失敗，請稍後再試');
-      await refreshCart(); // 仍然嘗試刷新購物車
+      toast.error('購物車同步失敗，但商品仍在本地保存');
+      // 發生錯誤時保持本地購物車
+      const localCart = localCartStorage.getCart();
+      setCartItems(localCart);
     } finally {
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, [isAuthenticated, refreshCart]);
+  }, [isAuthenticated, session, refreshCart]);
 
-  // 監聽會話狀態變更
+  // 監聽會話狀態變更 - 簡化邏輯
   useEffect(() => {
-    // 當用戶登入時，合併購物車
+    if (!isInitialized) return;
+    
     if (status === 'authenticated') {
+      // 用戶登入：合併本地購物車到服務器
       mergeCartsOnLogin();
-    } 
-    // 當用戶登出時，將服務器購物車保存到本地
-    else if (status === 'unauthenticated' && isInitialized) {
-      // 確保在登出前我們已經將服務器購物車存到本地
+    } else if (status === 'unauthenticated') {
+      // 用戶登出：使用本地購物車
       const localCart = localCartStorage.getCart();
-      if (localCart && localCart.length > 0) {
-        setCartItems(localCart);
-      } else {
-        refreshCart();
-      }
+      setCartItems(localCart);
+      console.log('用戶登出，載入本地購物車:', localCart.length);
     }
-  }, [status, mergeCartsOnLogin, refreshCart, isInitialized]);
+  }, [status, isInitialized]);
 
   // 初始化購物車
   useEffect(() => {

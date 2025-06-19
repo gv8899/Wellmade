@@ -59,19 +59,16 @@ const nextConfig = {
         source: '/api/auth/:path*',
         destination: '/api/auth/:path*',  // 不代理 NextAuth 路由
       },
-      // 其他 API 代理到 NestJS
+      // 其他 API 代理到 NestJS (排除 auth 和 cart，使用 Next.js API 路由)
       {
-        source: '/api/cart/:path*',
-        destination: 'http://localhost:3003/cart/:path*',
+        source: '/api/products/:path*',
+        destination: 'http://localhost:3003/products/:path*',
       },
       {
-        source: '/api/cart',
-        destination: 'http://localhost:3003/cart',
+        source: '/api/brands/:path*',
+        destination: 'http://localhost:3003/brands/:path*',
       },
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:3003/:path*',
-      },
+      // 可以根據需要添加其他特定的 API 代理
     ];
   },
 };
