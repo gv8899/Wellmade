@@ -184,19 +184,35 @@ export class CartsService {
    * 從購物車中移除項目
    */
   async removeCartItem(cart: Cart, itemId: string): Promise<void> {
-    // 查詢並確保該項目屬於指定的購物車
-    const cartItem = cart.items?.find(item => item.id === itemId);
+    // 使用事務確保數據一致性
+    await this.cartItemRepository.manager.transaction(async transactionalEntityManager => {
+      // 查詢並確保該項目屬於指定的購物車
+      const cartItem = cart.items?.find(item => item.id === itemId);
 
-    if (!cartItem) {
-      throw new NotFoundException(`找不到 ID 為 ${itemId} 的購物車項目`);
-    }
+      if (!cartItem) {
+        throw new NotFoundException(`找不到 ID 為 ${itemId} 的購物車項目`);
+      }
 
-    // 從數據庫中刪除
-    await this.cartItemRepository.remove(cartItem);
-
-    // 更新購物車的項目數組（移除已刪除的項目）
-    cart.items = cart.items.filter(item => item.id !== itemId);
-    await this.cartRepository.save(cart);
+      console.log(`刪除購物車項目: ${itemId} from cart: ${cart.id}`);
+      
+      // 在事務中刪除購物車項目
+      await transactionalEntityManager.remove(cartItem);
+      
+      // 重新加載購物車以獲取最新狀態
+      const updatedCart = await transactionalEntityManager.findOne(this.cartRepository.target, {
+        where: { id: cart.id },
+        relations: ['items']
+      });
+      
+      if (updatedCart) {
+        // 確認項目確實已被刪除
+        const itemStillExists = updatedCart.items?.some(item => item.id === itemId);
+        if (itemStillExists) {
+          throw new Error(`購物車項目 ${itemId} 刪除失敗`);
+        }
+        console.log(`購物車項目 ${itemId} 已成功刪除，剩餘 ${updatedCart.items?.length || 0} 項`);
+      }
+    });
   }
 
   /**

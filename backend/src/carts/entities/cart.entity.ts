@@ -17,7 +17,7 @@ export class Cart {
   user: User;
 
   @OneToMany('CartItem', 'cart', { 
-    cascade: true,
+    cascade: ['insert', 'update'],  // 移除 'remove' 避免自動刪除衝突
     eager: true 
   })
   items: any[];
