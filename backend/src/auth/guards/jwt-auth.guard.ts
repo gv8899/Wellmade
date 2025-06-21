@@ -28,17 +28,22 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // For non-public routes, proceed with JWT validation
     const result = super.canActivate(context);
     if (result instanceof Promise) {
-      result.then(res => this.logger.debug(`JWT validation result: ${res}`))
-            .catch(err => this.logger.error('JWT validation failed:', err));
+      result
+        .then((res) => this.logger.debug(`JWT validation result: ${res}`))
+        .catch((err) => this.logger.error('JWT validation failed:', err));
     }
     return result;
   }
 
   handleRequest(err, user, info, context) {
-    this.logger.debug(`JwtAuthGuard handleRequest called. User: ${JSON.stringify(user)}, Info: ${JSON.stringify(info)}, Error: ${err}`);
-    
+    this.logger.debug(
+      `JwtAuthGuard handleRequest called. User: ${JSON.stringify(user)}, Info: ${JSON.stringify(info)}, Error: ${err}`,
+    );
+
     if (err || !user) {
-      this.logger.warn(`JWT authentication failed. Error: ${err}, User: ${user}`);
+      this.logger.warn(
+        `JWT authentication failed. Error: ${err}, User: ${user}`,
+      );
       throw err || new Error(info?.message || 'Unauthorized from JwtAuthGuard');
     }
     return user;

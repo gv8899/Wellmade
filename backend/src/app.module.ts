@@ -9,6 +9,9 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { BrandsModule } from './brands/brands.module';
 import { CartsModule } from './carts/carts.module';
+import { AdminModule } from './admin/admin.module';
+import { CategoriesModule } from './categories/categories.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -23,6 +26,9 @@ import { RolesGuard } from './auth/guards/roles.guard';
     ProductsModule,
     BrandsModule,
     CartsModule,
+    AdminModule,
+    CategoriesModule,
+    UploadsModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -30,7 +36,9 @@ import { RolesGuard } from './auth/guards/roles.guard';
         const dbPort = configService.get<number>('DB_PORT');
         const dbUser = configService.get<string>('DB_USER');
         const dbName = configService.get<string>('DB_NAME');
-        console.log(`[AppModule] Attempting DB connection with: HOST='${dbHost}', PORT='${dbPort}', USER='${dbUser}', DBNAME='${dbName}'`);
+        console.log(
+          `[AppModule] Attempting DB connection with: HOST='${dbHost}', PORT='${dbPort}', USER='${dbUser}', DBNAME='${dbName}'`,
+        );
         return {
           type: 'postgres',
           host: dbHost,

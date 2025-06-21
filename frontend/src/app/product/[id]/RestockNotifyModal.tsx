@@ -12,7 +12,7 @@ const RestockNotifyModal: React.FC<RestockNotifyModalProps> = ({ open, onClose, 
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [successOpen, setSuccessOpen] = useState(false);
-  let timer: NodeJS.Timeout | null = null;
+  const timer: NodeJS.Timeout | null = null;
 
   if (!open) return null;
 

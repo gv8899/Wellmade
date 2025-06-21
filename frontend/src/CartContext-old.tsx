@@ -1,0 +1,409 @@
+"use client";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
+import { toast } from "react-hot-toast";
+import { cartApi, localCartStorage } from "@/services/cart";
+import { useSession } from "next-auth/react";
+import { 
+  CartMode, 
+  CartEvent, 
+  CartStateMachine, 
+  CartState, 
+  CartOperationResult,
+  CartItem
+} from "@/types/cart";
+
+export { CartItem } from "@/types/cart";
+
+export interface CartItemInput extends Omit<CartItem, "quantity"> {
+  quantity?: number; // 可選的數量參數
+}
+
+interface CartContextType {
+  // 狀態
+  cartItems: CartItem[];
+  currentMode: CartMode;
+  isLoading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+  
+  // 操作
+  addToCart: (item: CartItemInput) => Promise<CartOperationResult>;
+  removeFromCart: (itemId: string) => Promise<CartOperationResult>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<CartOperationResult>;
+  clearCart: () => Promise<CartOperationResult>;
+  refreshCart: () => Promise<CartOperationResult>;
+  
+  // 狀態管理
+  transitionTo: (event: CartEvent) => boolean;
+  
+  // 計算屬性
+  totalAmount: number;
+  cartClickCount: number;
+  addCartClick: () => void;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export function useCart() {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart 必須在 CartProvider 內使用");
+  return ctx;
+}
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  // 狀態機實例
+  const stateMachine = useRef(new CartStateMachine()).current;
+  
+  // 狀態
+  const [cartState, setCartState] = useState<CartState>({
+    mode: CartMode.GUEST,
+    items: [],
+    isLoading: true,
+    error: null,
+    lastSyncTime: 0
+  });
+  
+  const [cartClickCount, setCartClickCount] = useState<number>(0);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  
+  // 防止重複操作的鎖
+  const operationLock = useRef(false);
+
+  // 刷新購物車資料
+  const refreshCart = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // 從 API 獲取購物車
+      const response = await cartApi.getCart();
+      if (response.success && response.data) {
+        setCartItems(response.data);
+      } else {
+        // API 失敗或未登入，從本地存儲加載
+        const savedCart = localStorage.getItem("cart");
+        if (savedCart) {
+          try {
+            setCartItems(JSON.parse(savedCart));
+          } catch {
+            setCartItems([]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('刷新購物車失敗:', error);
+      // 加載本地存儲作為後備
+      const savedCart = localStorage.getItem("cart");
+      if (savedCart) {
+        try {
+          setCartItems(JSON.parse(savedCart));
+        } catch {
+          setCartItems([]);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // 合併本地購物車到會員帳號 - 簡化邏輯
+  const mergeCartsOnLogin = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    // 等待一小段時間確保 session 完全載入
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 驗證 session 和 backendToken 是否存在
+    if (!session || !(session as any).backendToken) {
+      console.log('Session 或 backendToken 不存在，跳過購物車合併');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const localCart = localCartStorage.getCart();
+      
+      if (localCart.length > 0) {
+        // 有本地購物車，執行合併
+        console.log('合併本地購物車到服務器:', localCart.length);
+        
+        // 臨時解決方案：直接添加商品到服務器購物車，而不使用 merge API
+        try {
+          for (const item of localCart) {
+            await cartApi.addToCart({
+              productId: item.id,
+              quantity: item.quantity,
+              specs: item.specs
+            });
+          }
+          localCartStorage.saveCart([]); // 清空本地購物車
+          await refreshCart(); // 重新載入購物車
+          toast.success(`已合併 ${localCart.length} 項商品到您的帳號`);
+        } catch (addError) {
+          console.error('逐項添加商品失敗:', addError);
+          throw new Error('合併購物車失敗');
+        }
+      } else {
+        // 本地購物車為空，直接載入服務器購物車
+        console.log('本地購物車為空，載入服務器購物車');
+        await refreshCart();
+      }
+    } catch (error) {
+      console.error('合併購物車失敗:', error);
+      toast.error('購物車同步失敗，但商品仍在本地保存');
+      // 發生錯誤時保持本地購物車
+      const localCart = localCartStorage.getCart();
+      setCartItems(localCart);
+    } finally {
+      setIsLoading(false);
+      setIsInitialized(true);
+    }
+  }, [isAuthenticated, session, refreshCart]);
+
+  // 監聽會話狀態變更 - 簡化邏輯
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    if (status === 'authenticated') {
+      // 用戶登入：合併本地購物車到服務器
+      mergeCartsOnLogin();
+    } else if (status === 'unauthenticated') {
+      // 用戶登出：使用本地購物車
+      const localCart = localCartStorage.getCart();
+      setCartItems(localCart);
+      console.log('用戶登出，載入本地購物車:', localCart.length);
+    }
+  }, [status, isInitialized]);
+
+  // 初始化購物車
+  useEffect(() => {
+    if (!isInitialized) {
+      refreshCart().then(() => setIsInitialized(true));
+    }
+  }, [isInitialized, refreshCart]);
+
+  // 監聽 localStorage 變動（跨分頁/視窗）
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === "cart") {
+        setCartItems(e.newValue ? JSON.parse(e.newValue) : []);
+      }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
+
+  // 監聽 cartItems 變化，更新 localStorage 與總金額
+  useEffect(() => {
+    if (isInitialized) {
+      // 只在客戶端環境執行且購物車已初始化後
+      localCartStorage.saveCart(cartItems);
+    }
+  }, [cartItems, isInitialized]);
+
+  const addCartClick = () => {
+    setCartClickCount(prev => {
+      const next = prev + 1;
+      localStorage.setItem("cartClickCount", String(next));
+      return next;
+    });
+  };
+
+  // 初始化 cartClickCount
+  useEffect(() => {
+    const savedCount = localStorage.getItem("cartClickCount");
+    setCartClickCount(savedCount ? parseInt(savedCount, 10) : 0);
+  }, []);
+
+  const addToCart = async (item: CartItemInput) => {
+    setIsLoading(true);
+    const quantity = item.quantity || 1; // 如果沒有指定數量，預設為 1
+
+    try {
+      // 檢查是否已存在相同商品 (id相同)
+      const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
+
+      if (existingItem) {
+        // 如果已存在相同id的商品，則增加指定數量
+        await updateQuantity(item.id, existingItem.quantity + quantity);
+      } else {
+        // 否則新增商品到購物車，使用指定數量
+        // 先進行樂觀更新
+        const newItem = { ...item, quantity };
+        setCartItems(prev => [...prev, newItem]);
+
+        // 然後嘗試 API 調用
+        // 假設 id 格式為 "productId_specValue" 或空格字符
+        const productId = item.id.includes('_') 
+          ? item.id.split('_')[0] 
+          : item.id; // 暫時使用完整 ID 作為備用方案
+        const variantId = item.id;
+
+        const response = await cartApi.addToCart({
+          productId,
+          variantId,
+          quantity,
+          specs: item.specs
+        });
+
+        if (!response.success) {
+          throw new Error(response.message || '添加商品失敗');
+        }
+
+        // 如果 API 成功但返回的 ID 不同，則更新本地狀態
+        if (response.data && response.data.id !== item.id) {
+          setCartItems(prev => {
+            const newItems = [...prev];
+            const idx = newItems.findIndex(i => i.id === item.id);
+            if (idx >= 0 && response.data) {
+              // 確保 response.data 不為 undefined 且處理所有必要欄位
+              newItems[idx] = { 
+                id: response.data.id,
+                name: response.data.name || item.name, // 使用回傳資料或原資料
+                price: response.data.price || item.price,
+                quantity: response.data.quantity || 1,
+                cover: response.data.cover || item.cover,
+                specs: response.data.specs || item.specs
+              };
+            }
+            return newItems;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('添加商品到購物車失敗:', error);
+      // 錯誤已經通過樂觀更新處理，這裡只需顯示提示
+      toast.error('同步到服務器失敗，但已在本地添加');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeFromCart = async (itemId: string) => {
+    setIsLoading(true);
+
+    // 先進行樂觀更新
+    const removedItem = cartItems.find(item => item.id === itemId);
+    setCartItems(prev => prev.filter(item => item.id !== itemId));
+
+    try {
+      // 然後嘗試 API 調用
+      const response = await cartApi.removeFromCart(itemId);
+
+      if (response.success) {
+        toast.success('已從購物車移除');
+      } else {
+        throw new Error(response.message || '移除商品失敗');
+      }
+    } catch (error) {
+      console.error('從購物車移除商品失敗:', error);
+
+      // 如果 API 調用失敗，恢復原始狀態
+      if (removedItem) {
+        setCartItems(prev => [...prev, removedItem]);
+      }
+
+      toast.error('同步到服務器失敗，但已在本地移除');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateQuantity = async (itemId: string, quantity: number) => {
+    setIsLoading(true);
+
+    // 保存原始數量用於恢復
+    const originalItem = cartItems.find(item => item.id === itemId);
+    const originalQuantity = originalItem?.quantity || 1;
+
+    // 先進行樂觀更新
+    setCartItems(prev => {
+      const idx = prev.findIndex(i => i.id === itemId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], quantity };
+        return updated;
+      }
+      return prev;
+    });
+
+    try {
+      // 然後嘗試 API 調用
+      const response = await cartApi.updateQuantity(itemId, quantity);
+
+      if (response.success) {
+        toast.success('已更新購物車數量');
+      } else {
+        throw new Error(response.message || '更新數量失敗');
+      }
+    } catch (error) {
+      console.error('更新購物車數量失敗:', error);
+
+      // 如果 API 調用失敗，恢復原始狀態
+      setCartItems(prev => {
+        const idx = prev.findIndex(i => i.id === itemId);
+        if (idx >= 0 && originalItem) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], quantity: originalQuantity };
+          return updated;
+        }
+        return prev;
+      });
+
+      toast.error('同步到服務器失敗，但已在本地更新');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearCart = async () => {
+    setIsLoading(true);
+
+    // 保存原始購物車用於恢復
+    const originalCart = [...cartItems];
+
+    // 先進行樂觀更新
+    setCartItems([]);
+
+    try {
+      // 然後嘗試 API 調用
+      const response = await cartApi.clearCart();
+
+      if (response.success) {
+        toast.success('購物車已清空');
+      } else {
+        throw new Error(response.message || '清空購物車失敗');
+      }
+    } catch (error) {
+      console.error('清空購物車失敗:', error);
+
+      // 如果 API 調用失敗，恢復原始狀態
+      setCartItems(originalCart);
+
+      toast.error('同步到服務器失敗，但已在本地清空');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return (
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalAmount,
+        cartClickCount,
+        addCartClick,
+        isLoading,
+        refreshCart,
+        isAuthenticated,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+}

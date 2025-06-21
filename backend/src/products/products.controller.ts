@@ -1,5 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  NotFoundException,
+} from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/user.enum';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -19,10 +31,10 @@ export class ProductsController {
 
   /**
    * 取得單一產品詳情
-   * 
+   *
    * @param id 產品ID（UUID格式）
    * @returns 產品詳細資訊
-   * 
+   *
    * @example
    * GET /products/123e4567-e89b-12d3-a456-426614174000
    */
@@ -37,14 +49,15 @@ export class ProductsController {
     }
   }
 
-  // POST /products - 新增產品
-  @Public()
+  // POST /products - 新增產品 (僅管理員)
+  @Roles(UserRole.ADMIN)
   @Post()
   async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return this.productsService.create(createProductDto);
   }
 
-  // PATCH /products/:id - 更新產品
+  // PATCH /products/:id - 更新產品 (僅管理員)
+  @Roles(UserRole.ADMIN)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -53,7 +66,8 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
-  // DELETE /products/:id - 刪除產品
+  // DELETE /products/:id - 刪除產品 (僅管理員)
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     return this.productsService.remove(id);
@@ -61,10 +75,10 @@ export class ProductsController {
 
   /**
    * 獲取產品的關鍵特性
-   * 
+   *
    * @param id 產品ID（UUID格式）
    * @returns 產品關鍵特性列表
-   * 
+   *
    * @example
    * GET /products/123e4567-e89b-12d3-a456-426614174000/key-features
    */
@@ -72,11 +86,13 @@ export class ProductsController {
   @Get(':id/key-features')
   async getKeyFeatures(@Param('id') id: string) {
     const product = await this.productsService.findOne(id);
-    
+
     if (!product.keyFeatures || product.keyFeatures.length === 0) {
-      throw new NotFoundException(`No key features found for product with ID ${id}`);
+      throw new NotFoundException(
+        `No key features found for product with ID ${id}`,
+      );
     }
-    
+
     return product.keyFeatures;
   }
 }

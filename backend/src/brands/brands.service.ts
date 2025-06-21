@@ -13,7 +13,9 @@ export class BrandsService {
     private readonly brandsRepository: Repository<Brand>,
   ) {}
 
-  async findAll(queryParams: FindBrandsDto): Promise<{ items: Brand[]; total: number }> {
+  async findAll(
+    queryParams: FindBrandsDto,
+  ): Promise<{ items: Brand[]; total: number }> {
     const {
       skip = 0,
       take = 10,
@@ -25,7 +27,7 @@ export class BrandsService {
 
     // 構建查詢條件
     const whereConditions: any = {};
-    
+
     // 如果有狀態篩選
     if (isActive !== undefined) {
       whereConditions.isActive = isActive;
@@ -33,7 +35,9 @@ export class BrandsService {
 
     // 如果有關鍵字搜尋
     const searchFields = ['name', 'description'];
-    const searchOptions = search ? searchFields.map(field => ({ [field]: ILike(`%${search}%`) })) : [];
+    const searchOptions = search
+      ? searchFields.map((field) => ({ [field]: ILike(`%${search}%`) }))
+      : [];
 
     // 建立查詢
     const [items, total] = await this.brandsRepository.findAndCount({
@@ -48,11 +52,11 @@ export class BrandsService {
 
   async findOne(id: string): Promise<Brand> {
     const brand = await this.brandsRepository.findOne({ where: { id } });
-    
+
     if (!brand) {
       throw new NotFoundException(`品牌 ID: ${id} 不存在`);
     }
-    
+
     return brand;
   }
 
@@ -71,7 +75,7 @@ export class BrandsService {
     const brand = await this.findOne(id);
     await this.brandsRepository.remove(brand);
   }
-  
+
   async softRemove(id: string): Promise<Brand> {
     const brand = await this.findOne(id);
     brand.isActive = false;

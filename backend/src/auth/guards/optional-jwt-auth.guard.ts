@@ -21,13 +21,13 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
     // 如果有用戶，返回用戶；否則返回 null
     // 不拋出錯誤，允許請求繼續
     if (err || !user) {
-      console.log('JWT 驗證失敗或無令牌，繼續處理未認證請求:', { 
-        err: err?.message, 
-        info: info?.message 
+      console.log('JWT 驗證失敗或無令牌，繼續處理未認證請求:', {
+        err: err?.message,
+        info: info?.message,
       });
       return null;
     }
-    
+
     console.log('JWT 驗證成功，用戶:', { id: user.id, email: user.email });
     return user;
   }

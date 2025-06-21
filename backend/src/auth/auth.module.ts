@@ -19,7 +19,7 @@ import { UsersModule } from '../users/users.module';
       useFactory: async (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         const expiresIn = configService.get<string>('JWT_EXPIRATION_TIME');
-        
+
         if (!secret) {
           const logger = new Logger('AuthModule');
           logger.error('JWT_SECRET is not defined in environment variables');
@@ -28,8 +28,8 @@ import { UsersModule } from '../users/users.module';
 
         return {
           secret,
-          signOptions: { 
-            expiresIn: expiresIn || '1d' // Default to 1 day if not specified
+          signOptions: {
+            expiresIn: expiresIn || '1d', // Default to 1 day if not specified
           },
         };
       },

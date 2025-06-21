@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../users/user.entity';
 
 @Entity('carts')
@@ -16,9 +25,9 @@ export class Cart {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToMany('CartItem', 'cart', { 
-    cascade: ['insert', 'update'],  // 移除 'remove' 避免自動刪除衝突
-    eager: true 
+  @OneToMany('CartItem', 'cart', {
+    cascade: ['insert', 'update'], // 移除 'remove' 避免自動刪除衝突
+    eager: true,
   })
   items: any[];
 
@@ -34,7 +43,7 @@ export class Cart {
       return 0;
     }
     return this.items.reduce((sum, item) => {
-      return sum + (item.price * item.quantity);
+      return sum + item.price * item.quantity;
     }, 0);
   }
 

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useCart, CartItemInput } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
 import { toast } from "react-hot-toast";
-
+import { ProductStatus, InventoryType, canPurchaseVariant, getCurrentPrice } from "@/types/product";
+import ProductStatusBadge from "@/components/product/ProductStatusBadge";
+import PreorderInfo from "@/components/product/PreorderInfo";
 
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
 
@@ -19,6 +21,18 @@ export interface ProductVariant {
   originalPrice?: number;
   image: string;
   stockStatus: StockStatus;
+  // 新增增強功能支援
+  status?: ProductStatus;
+  inventoryType?: InventoryType;
+  stock?: number;
+  preorderLimit?: number;
+  preorderSold?: number;
+  preorderStartTime?: string;
+  preorderEndTime?: string;
+  expectedShipDate?: string;
+  preorderPrice?: number;
+  preorderDescription?: string;
+  isActive?: boolean; // 新增：變體是否啟用
 }
 
 export interface ProductPurchaseOptionsProps {
@@ -79,62 +93,128 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     return variant || variants[0];
   }, [variants, primarySpecOption, selectedSpecs]);
 
+  // 增強的狀態判斷邏輯
+  const canPurchase = currentVariant ? (() => {
+    // 如果沒有新的狀態系統欄位，使用舊的 stockStatus 判斷
+    if (!currentVariant.status && !currentVariant.inventoryType) {
+      return currentVariant.stockStatus === "in_stock" || currentVariant.stockStatus === "preorder";
+    }
+    
+    // 使用新的狀態系統
+    return canPurchaseVariant({
+      ...currentVariant,
+      isActive: currentVariant.isActive !== false, // 預設為 true
+      stock: currentVariant.stock || 1, // 預設庫存為 1
+      preorderLimit: currentVariant.preorderLimit || 999, // 預設預購限量
+      preorderSold: currentVariant.preorderSold || 0 // 預設已売為 0
+    });
+  })() : false;
+  
+  const currentPrice = currentVariant ? getCurrentPrice(currentVariant) : 0;
+  
+  // 調試信息
+  console.log('ProductPurchaseOptions Debug:', {
+    currentVariant,
+    canPurchase,
+    isAddingToCart
+  });
+  
   // 狀態與按鈕文案
   let statusLabel = "現貨";
   let actionButtons: React.ReactNode = null;
+  
   if (!currentVariant) {
     statusLabel = "無此規格";
     actionButtons = <button disabled className="w-full py-3 rounded-lg bg-gray-200 text-gray-400 font-bold mt-4">無法購買</button>;
-  } else if (currentVariant.stockStatus === "in_stock") {
-    statusLabel = "現貨";
-    actionButtons = (
+  } else {
+    // 使用新的狀態系統
+    const isInStock = currentVariant.stockStatus === "in_stock" || 
+      (currentVariant.status === ProductStatus.IN_STOCK && canPurchase);
+    const isPreorder = currentVariant.stockStatus === "preorder" || 
+      (currentVariant.status === ProductStatus.PREORDER && canPurchase);
+    const isOutOfStock = currentVariant.stockStatus === "out_of_stock" || 
+      currentVariant.status === ProductStatus.OUT_OF_STOCK || 
+      !canPurchase;
+    
+    if (isInStock) {
+      statusLabel = "現貨";
+      actionButtons = (
         <button
-          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={currentVariant?.stockStatus !== "in_stock" || isAddingToCart}
-          onClick={() => {
+          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black"
+          disabled={!canPurchase || isAddingToCart}
+          onClick={async () => {
             if (!currentVariant) return;
             
             setIsAddingToCart(true);
             
-            // 直接更新前端購物車狀態，不調用 API
-            // 一次性添加指定數量，而不是循環多次添加
-            addToCart({
-              id: currentVariant.id,
-              name: currentVariant.variantTitle || title,
-              price: currentVariant.price,
-              cover: currentVariant.image,
-              specs: selectedSpecs, // 帶入目前選擇的規格
-              quantity: quantity // 直接添加數量參數
-            });
-            addCartClick();
-            toast.success('已成功加入購物車');
-            setIsAddingToCart(false);
+            try {
+              await addToCart({
+                id: currentVariant.id,
+                name: currentVariant.variantTitle || title,
+                price: currentPrice,
+                cover: currentVariant.image,
+                specs: selectedSpecs,
+                quantity: quantity
+              });
+              
+              addCartClick();
+              toast.success('已成功加入購物車');
+            } catch (error) {
+              console.error('加入購物車失敗:', error);
+              toast.error('加入購物車失敗，請稍後再試');
+            } finally {
+              setIsAddingToCart(false);
+            }
           }}
         >
           {isAddingToCart ? '處理中...' : '加入購物車'}
         </button>
-    );
-  } else if (currentVariant.stockStatus === "preorder") {
-    statusLabel = "預購";
-    actionButtons = (
-      <button
-        className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={currentVariant?.stockStatus !== "preorder"}
-        onClick={() => { /* 預購功能尚未開放 */ }}
-      >
-        立即預購
-      </button>
-    );
-  } else if (currentVariant.stockStatus === "out_of_stock") {
-    statusLabel = "缺貨";
-    actionButtons = (
-      <button
-        className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-orange-500 bg-white hover:bg-orange-50 transition"
-        onClick={() => setNotifyOpen(true)}
-      >
-        貨到通知
-      </button>
-    );
+      );
+    } else if (isPreorder) {
+      statusLabel = "預購";
+      actionButtons = (
+        <button
+          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-blue-600 rounded-[20px] text-xl font-bold text-blue-600 bg-white hover:bg-blue-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-blue-600"
+          disabled={!canPurchase || isAddingToCart}
+          onClick={async () => {
+            if (!currentVariant) return;
+            
+            setIsAddingToCart(true);
+            
+            try {
+              await addToCart({
+                id: currentVariant.id,
+                name: currentVariant.variantTitle || title,
+                price: currentPrice,
+                cover: currentVariant.image,
+                specs: selectedSpecs,
+                quantity: quantity
+              });
+              
+              addCartClick();
+              toast.success('已成功加入預購!');
+            } catch (error) {
+              console.error('預購失敗:', error);
+              toast.error('預購失敗，請稍後再試');
+            } finally {
+              setIsAddingToCart(false);
+            }
+          }}
+        >
+          {isAddingToCart ? '處理中...' : '立即預購'}
+        </button>
+      );
+    } else {
+      statusLabel = "缺貨";
+      actionButtons = (
+        <button
+          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-orange-500 rounded-[20px] text-xl font-bold text-orange-500 bg-white hover:bg-orange-50 transition"
+          onClick={() => setNotifyOpen(true)}
+        >
+          貨到通知
+        </button>
+      );
+    }
   }
 
   // 顯示加載狀態
@@ -171,15 +251,17 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     <div className="w-full max-w-5xl mx-auto my-10">
       <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
       <div className="flex flex-col items-center w-full">
-        {/* 商品圖+名稱+價格 */}
+        {/* 商品圖+名稱+價格+狀態 */}
         <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
           <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-            {/* 圖片容器 */}
             <img src={variants[0].image} alt="商品圖" className="w-full h-full object-cover rounded-md" />
           </div>
           <div className="flex flex-col items-start justify-center ml-2">
             <div className="text-base font-semibold text-gray-800 mb-1">{variants[0].variantTitle || title}</div>
-            <div className="text-lg font-bold text-gray-800 mb-1">${variants[0].price}</div>
+            <div className="text-lg font-bold text-gray-800 mb-1">${currentPrice || variants[0].price}</div>
+            {currentVariant?.status && (
+              <ProductStatusBadge status={currentVariant.status} size="sm" />
+            )}
           </div>
         </div>
         {/* 規格選單區塊 - 只顯示第一個規格 */}
@@ -228,19 +310,26 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             </button>
           </div>
         </div>
+        {/* 預購信息顯示 */}
+        {currentVariant && currentVariant.inventoryType && currentVariant.inventoryType !== InventoryType.PHYSICAL && (
+          <div className="w-full max-w-md mx-auto mb-6">
+            <PreorderInfo variant={currentVariant} />
+          </div>
+        )}
+        
         {/* 行動按鈕（加入購物車/預購/貨到通知） */}
         <div className="w-full max-w-xs mx-auto min-h-[64px] flex items-center">
-      <div className="w-full">
-        {actionButtons}
-        <RestockNotifyModal
-          open={notifyOpen}
-          onClose={() => setNotifyOpen(false)}
-          onSubmit={() => {
-            setNotifyOpen(false);
-          }}
-        />
-      </div>
-</div>
+          <div className="w-full">
+            {actionButtons}
+            <RestockNotifyModal
+              open={notifyOpen}
+              onClose={() => setNotifyOpen(false)}
+              onSubmit={() => {
+                setNotifyOpen(false);
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

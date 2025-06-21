@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新購物車系統測試</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .button:hover { background: #0056b3; }
+        .button.secondary { background: #6c757d; }
+        .button.danger { background: #dc3545; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0; font-family: monospace; max-height: 300px; overflow-y: auto; }
+        .status { padding: 5px 10px; border-radius: 4px; margin: 5px; font-weight: bold; }
+        .status.guest { background: #e7f3ff; color: #0066cc; }
+        .status.member { background: #e7ffe7; color: #006600; }
+        .status.syncing { background: #fff3cd; color: #856404; }
+        .status.offline { background: #f8d7da; color: #721c24; }
+        .cart-item { padding: 10px; border: 1px solid #eee; margin: 5px 0; border-radius: 4px; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>新購物車系統測試</h1>
+        
+        <!-- 系統狀態 -->
+        <div class="section">
+            <h2>系統狀態</h2>
+            <div>
+                <span>模式：</span>
+                <span id="current-mode" class="status">載入中...</span>
+            </div>
+            <div>
+                <span>認證狀態：</span>
+                <span id="auth-status">載入中...</span>
+            </div>
+            <div>
+                <span>購物車項目：</span>
+                <span id="cart-count">載入中...</span>
+            </div>
+            <div>
+                <span>總金額：</span>
+                <span id="total-amount">載入中...</span>
+            </div>
+            <div>
+                <span>載入中：</span>
+                <span id="loading-status">載入中...</span>
+            </div>
+            <button class="button" onclick="refreshStatus()">刷新狀態</button>
+        </div>
+
+        <!-- 購物車操作 -->
+        <div class="section">
+            <h2>購物車操作</h2>
+            
+            <h3>添加商品</h3>
+            <div>
+                <input type="text" id="product-id" placeholder="商品 ID" value="test-product-1">
+                <input type="text" id="product-name" placeholder="商品名稱" value="測試商品">
+                <input type="number" id="product-price" placeholder="價格" value="1000">
+                <input type="number" id="product-quantity" placeholder="數量" value="1" min="1">
+                <button class="button" onclick="addToCart()">添加到購物車</button>
+            </div>
+
+            <h3>快速操作</h3>
+            <button class="button" onclick="clearCart()">清空購物車</button>
+            <button class="button secondary" onclick="refreshCart()">刷新購物車</button>
+            
+            <h3>狀態轉換測試</h3>
+            <select id="event-select">
+                <option value="LOGIN_START">開始登入</option>
+                <option value="LOGIN_SUCCESS">登入成功</option>
+                <option value="LOGIN_FAILURE">登入失敗</option>
+                <option value="LOGOUT_START">開始登出</option>
+                <option value="LOGOUT_SUCCESS">登出成功</option>
+                <option value="API_FAILURE">API 失敗</option>
+                <option value="API_RECOVERY">API 恢復</option>
+            </select>
+            <button class="button" onclick="triggerStateTransition()">觸發狀態轉換</button>
+        </div>
+
+        <!-- 購物車內容 -->
+        <div class="section">
+            <h2>購物車內容</h2>
+            <div id="cart-items">載入中...</div>
+        </div>
+
+        <!-- API 測試 -->
+        <div class="section">
+            <h2>API 測試</h2>
+            <button class="button" onclick="testHealthCheck()">健康檢查</button>
+            <button class="button" onclick="testSessionInfo()">會話信息</button>
+            <button class="button" onclick="testApiCart()">測試 API 購物車</button>
+        </div>
+
+        <!-- 日誌 -->
+        <div class="section">
+            <h2>操作日誌</h2>
+            <button class="button danger" onclick="clearLog()">清除日誌</button>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變數
+        let cartContext = null;
+        let isInitialized = false;
+
+        // 日誌函數
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#333';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // 初始化
+        async function init() {
+            try {
+                log('開始初始化測試頁面...');
+                
+                // 檢查是否在 Next.js 環境中
+                if (typeof window === 'undefined') {
+                    throw new Error('需要在瀏覽器環境中運行');
+                }
+
+                // 測試基本 API
+                await testHealthCheck();
+                
+                log('測試頁面初始化完成', 'success');
+                isInitialized = true;
+                
+                // 開始定期更新狀態
+                setInterval(refreshStatus, 2000);
+                refreshStatus();
+                
+            } catch (error) {
+                log(`初始化失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 刷新狀態
+        function refreshStatus() {
+            if (!isInitialized) return;
+            
+            try {
+                // 模擬獲取購物車狀態
+                const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+                const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                document.getElementById('current-mode').textContent = 'GUEST';
+                document.getElementById('current-mode').className = 'status guest';
+                document.getElementById('auth-status').textContent = '未登入';
+                document.getElementById('cart-count').textContent = cartItems.length;
+                document.getElementById('total-amount').textContent = `$${totalAmount}`;
+                document.getElementById('loading-status').textContent = '空閒';
+                
+                // 更新購物車內容
+                updateCartDisplay(cartItems);
+                
+            } catch (error) {
+                log(`刷新狀態失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新購物車顯示
+        function updateCartDisplay(items) {
+            const container = document.getElementById('cart-items');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p>購物車是空的</p>';
+                return;
+            }
+            
+            let html = '';
+            items.forEach((item, index) => {
+                html += `
+                    <div class="cart-item">
+                        <strong>${item.name}</strong> - $${item.price} x ${item.quantity}
+                        <button class="button" onclick="updateItemQuantity('${item.id}', ${item.quantity + 1})">+</button>
+                        <button class="button" onclick="updateItemQuantity('${item.id}', ${item.quantity - 1})">-</button>
+                        <button class="button danger" onclick="removeItem('${item.id}')">移除</button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 購物車操作
+        async function addToCart() {
+            try {
+                const productId = document.getElementById('product-id').value;
+                const productName = document.getElementById('product-name').value;
+                const productPrice = parseInt(document.getElementById('product-price').value);
+                const productQuantity = parseInt(document.getElementById('product-quantity').value);
+                
+                if (!productId || !productName || !productPrice || !productQuantity) {
+                    throw new Error('請填寫所有欄位');
+                }
+                
+                const newItem = {
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    quantity: productQuantity,
+                    cover: '',
+                    specs: {}
+                };
+                
+                // 獲取現有購物車
+                const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+                
+                // 檢查是否已存在
+                const existingIndex = cartItems.findIndex(item => item.id === productId);
+                if (existingIndex >= 0) {
+                    cartItems[existingIndex].quantity += productQuantity;
+                    log(`更新商品數量: ${productName} (${cartItems[existingIndex].quantity})`, 'success');
+                } else {
+                    cartItems.push(newItem);
+                    log(`添加新商品: ${productName}`, 'success');
+                }
+                
+                // 保存到 localStorage
+                localStorage.setItem('cart', JSON.stringify(cartItems));
+                refreshStatus();
+                
+            } catch (error) {
+                log(`添加商品失敗: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearCart() {
+            try {
+                localStorage.removeItem('cart');
+                log('購物車已清空', 'success');
+                refreshStatus();
+            } catch (error) {
+                log(`清空購物車失敗: ${error.message}`, 'error');
+            }
+        }
+
+        async function refreshCart() {
+            try {
+                log('刷新購物車...');
+                refreshStatus();
+                log('購物車已刷新', 'success');
+            } catch (error) {
+                log(`刷新購物車失敗: ${error.message}`, 'error');
+            }
+        }
+
+        function updateItemQuantity(itemId, newQuantity) {
+            try {
+                if (newQuantity <= 0) {
+                    removeItem(itemId);
+                    return;
+                }
+                
+                const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+                const itemIndex = cartItems.findIndex(item => item.id === itemId);
+                
+                if (itemIndex >= 0) {
+                    cartItems[itemIndex].quantity = newQuantity;
+                    localStorage.setItem('cart', JSON.stringify(cartItems));
+                    log(`更新商品數量: ${itemId} -> ${newQuantity}`, 'success');
+                    refreshStatus();
+                }
+            } catch (error) {
+                log(`更新數量失敗: ${error.message}`, 'error');
+            }
+        }
+
+        function removeItem(itemId) {
+            try {
+                const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+                const filteredItems = cartItems.filter(item => item.id !== itemId);
+                localStorage.setItem('cart', JSON.stringify(filteredItems));
+                log(`移除商品: ${itemId}`, 'success');
+                refreshStatus();
+            } catch (error) {
+                log(`移除商品失敗: ${error.message}`, 'error');
+            }
+        }
+
+        function triggerStateTransition() {
+            const event = document.getElementById('event-select').value;
+            log(`觸發狀態轉換: ${event}`, 'info');
+            // 這裡可以實際調用新的狀態機邏輯
+        }
+
+        // API 測試
+        async function testHealthCheck() {
+            try {
+                log('測試健康檢查 API...');
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`健康檢查成功: ${data.status}`, 'success');
+                } else {
+                    log(`健康檢查失敗: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                log(`健康檢查異常: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSessionInfo() {
+            try {
+                log('測試會話信息 API...');
+                const response = await fetch('/api/auth/session');
+                const data = await response.json();
+                
+                log(`會話信息: ${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                log(`獲取會話信息失敗: ${error.message}`, 'error');
+            }
+        }
+
+        async function testApiCart() {
+            try {
+                log('測試購物車 API...');
+                const response = await fetch('/api/cart');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`API 購物車獲取成功: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    log(`API 購物車獲取失敗: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`API 購物車測試異常: ${error.message}`, 'error');
+            }
+        }
+
+        // 頁面載入時初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

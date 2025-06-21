@@ -31,7 +31,7 @@ export class FindProductsDto {
   @IsOptional()
   @IsString()
   category?: string;
-  
+
   @IsOptional()
   @IsString()
   brandId?: string;

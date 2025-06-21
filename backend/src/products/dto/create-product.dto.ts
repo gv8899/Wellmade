@@ -1,6 +1,19 @@
-import { IsString, IsNumber, IsArray, IsBoolean, IsOptional, IsNotEmpty, Min, ValidateNested, IsObject, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsNotEmpty,
+  Min,
+  ValidateNested,
+  IsObject,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { KeyFeature, FeatureDetail, FAQItem } from '../product.entity';
+import { CreateVariantDto } from './create-variant.dto';
+import { ProductStatus } from '../enums/product-status.enum';
 
 export class CreateProductDto {
   @IsString()
@@ -20,9 +33,13 @@ export class CreateProductDto {
   stock: number;
 
   @IsString()
-  @IsNotEmpty()
-  category: string;
-  
+  @IsOptional()
+  category?: string; // 保留以支援舊API，但設為可選
+
+  @IsString()
+  @IsOptional()
+  categoryId?: string; // 新的分類ID欄位
+
   @IsString()
   @IsOptional()
   brandId?: string;
@@ -38,6 +55,10 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsEnum(ProductStatus)
+  @IsOptional()
+  status?: ProductStatus;
 
   @IsArray()
   @IsOptional()
@@ -56,6 +77,12 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => FAQItemDto)
   faqs?: FAQItem[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateVariantDto)
+  variants?: CreateVariantDto[];
 }
 
 // 關鍵特性 DTO

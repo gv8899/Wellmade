@@ -2,8 +2,16 @@ import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class RemoveOldBrandColumn1749546200000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 移除舊的 brand 文字欄位
-    await queryRunner.dropColumn("products", "brand");
+    // 檢查 brand 欄位是否存在
+    const columns = await queryRunner.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'brand'
+    `);
+    
+    // 如果 brand 欄位存在，則移除
+    if (columns && columns.length > 0) {
+      await queryRunner.dropColumn("products", "brand");
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

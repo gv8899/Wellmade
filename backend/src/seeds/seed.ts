@@ -24,14 +24,14 @@ const runSeeds = async () => {
     // 初始化資料庫連接
     await AppDataSource.initialize();
     console.log('資料庫連接已建立');
-    
+
     // 執行各項填充腳本
     // 先填充品牌資料
     const brands = await seedBrands(AppDataSource);
-    
+
     // 再填充產品資料
     await seedProducts(AppDataSource, brands);
-    
+
     console.log('所有填充腳本已執行完畢');
     process.exit(0);
   } catch (error) {

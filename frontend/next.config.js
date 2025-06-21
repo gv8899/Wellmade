@@ -20,6 +20,12 @@ const nextConfig = {
         port: '',
         pathname: '**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3003',
+        pathname: '/uploads/**',
+      },
     ],
   },
   async rewrites() {

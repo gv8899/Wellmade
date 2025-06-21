@@ -1,4 +1,15 @@
-import { Controller, Post, Get, UseGuards, Body, Logger, HttpCode, HttpStatus, ConflictException, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UseGuards,
+  Body,
+  Logger,
+  HttpCode,
+  HttpStatus,
+  ConflictException,
+  Req,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -38,11 +49,14 @@ export class AuthController {
       return {
         success: true,
         message: '註冊成功',
-        user
+        user,
       };
     } catch (error) {
-      this.logger.error(`Registration failed for ${registerDto.email}: ${error.message}`);
-      if (error.code === '23505') { // PostgreSQL unique constraint violation
+      this.logger.error(
+        `Registration failed for ${registerDto.email}: ${error.message}`,
+      );
+      if (error.code === '23505') {
+        // PostgreSQL unique constraint violation
         throw new ConflictException('此電子郵件已被註冊');
       }
       throw error; // Re-throw to let NestJS handle the HTTP response
@@ -68,13 +82,21 @@ export class AuthController {
   @Public()
   @Post('oauth-sync')
   @HttpCode(HttpStatus.OK)
-  async oauthSync(@Body() oauthData: { email: string; name: string; picture: string; provider: string }) {
+  async oauthSync(
+    @Body()
+    oauthData: {
+      email: string;
+      name: string;
+      picture: string;
+      provider: string;
+    },
+  ) {
     this.logger.log(`OAuth 同步請求收到：`, JSON.stringify(oauthData));
     try {
       // 構建 profile 對象，以便重用現有的 validateOAuthLogin 方法
       let firstName = '';
       let lastName = '';
-      
+
       if (oauthData.name) {
         const nameParts = oauthData.name.split(' ');
         if (nameParts.length >= 2) {
@@ -86,27 +108,30 @@ export class AuthController {
           firstName = nameParts[0];
         }
       }
-      
+
       const profile = {
         email: oauthData.email,
         firstName,
         lastName,
         picture: oauthData.picture || null,
-        provider: oauthData.provider
+        provider: oauthData.provider,
       };
-      
+
       this.logger.log(`處理後的資料：`, JSON.stringify(profile));
-      
+
       // 驗證或創建用戶
       const user = await this.authService.validateOAuthLogin(profile);
-      
-      this.logger.log(`用戶已存入/更新到數據庫，回傳結果：`, JSON.stringify(user));
-      
+
+      this.logger.log(
+        `用戶已存入/更新到數據庫，回傳結果：`,
+        JSON.stringify(user),
+      );
+
       // 返回用戶資料和訪問令牌
       return {
         user,
         accessToken: (user as any).access_token,
-        message: '用戶資料同步成功'
+        message: '用戶資料同步成功',
       };
     } catch (error) {
       this.logger.error(`OAuth 同步失敗，用戶： ${oauthData.email}`, error);

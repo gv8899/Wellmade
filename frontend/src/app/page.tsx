@@ -5,6 +5,9 @@ import React, { useState, useEffect } from "react";
 
 // 從 API 服務引入類型和方法
 import { Product, getProducts, ProductQueryParams } from "@/services/api";
+import { EnhancedProduct, formatPriceRange } from "@/types/product";
+import ProductStatusBadge from "@/components/product/ProductStatusBadge";
+import ProductPriceDisplay from "@/components/product/ProductPriceDisplay";
 
 // 前端顯示用的產品類型 (與 API 格式可能略有不同)
 interface DisplayProduct {
@@ -26,6 +29,7 @@ export default function Home() {
   const [price, setPrice] = useState("");
   const [style, setStyle] = useState("");
   const [products, setProducts] = useState<DisplayProduct[]>([]);
+  const [enhancedProducts, setEnhancedProducts] = useState<EnhancedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalProducts, setTotalProducts] = useState(0);
@@ -71,6 +75,15 @@ export default function Home() {
           cover: item.imageUrl, // 使用 imageUrl 作為主圖
           category: item.category,
         }));
+        
+        // 嘗試獲取增強的產品信息，如果失敗則使用基本信息
+        try {
+          // 這裡應該調用新的 API 來獲取包含狀態信息的產品
+          // 暫時使用基本產品信息，待後端 API 更新後再調整
+          setEnhancedProducts([]);
+        } catch (enhancedError) {
+          console.warn('無法獲取增強產品信息，使用基本顯示:', enhancedError);
+        }
         
         setProducts(displayProducts);
         setTotalProducts(response.total);
@@ -158,30 +171,60 @@ export default function Home() {
               {products.length === 0 && (
                 <div className="col-span-full text-center text-gray-400 py-12 text-lg">查無符合條件的商品</div>
               )}
-              {products.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/product/${p.id}`}
-                  className="block group rounded-2xl shadow-sm bg-white border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
-                  style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
-                >
-                  <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
-                    <Image
-                      src={p.cover}
-                      alt={p.name}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="transition group-hover:scale-105 duration-300"
-                    />
-                  </div>
-                  <div className="p-6 flex flex-col gap-2 items-center">
-                    <div className="font-bold text-lg text-gray-900 line-clamp-1 text-center">{p.name}</div>
-                    <div className="font-bold text-xl text-gray-900 text-center">${p.price}</div>
-                    <div className="text-sm text-gray-500">{p.category}</div>
-                  </div>
-                </Link>
-              ))}
+              {products.map((p) => {
+                // 尋找對應的增強產品信息
+                const enhancedProduct = enhancedProducts.find(ep => ep.id === p.id);
+                
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/product/${p.id}`}
+                    className="block group rounded-2xl shadow-sm bg-white border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
+                    style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
+                  >
+                    <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
+                      <Image
+                        src={p.cover}
+                        alt={p.name}
+                        fill
+                        style={{ objectFit: "cover" }}
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="transition group-hover:scale-105 duration-300"
+                      />
+                      {/* 產品狀態徽章 */}
+                      {enhancedProduct && (
+                        <div className="absolute top-2 left-2">
+                          <ProductStatusBadge 
+                            status={enhancedProduct.status} 
+                            size="sm" 
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-6 flex flex-col gap-2 items-center">
+                      <div className="font-bold text-lg text-gray-900 line-clamp-1 text-center">{p.name}</div>
+                      
+                      {/* 價格顯示 - 使用增強信息或基本價格 */}
+                      {enhancedProduct ? (
+                        <ProductPriceDisplay 
+                          priceRange={enhancedProduct.priceRange}
+                          size="lg"
+                          className="text-center"
+                        />
+                      ) : (
+                        <div className="font-bold text-xl text-gray-900 text-center">${p.price}</div>
+                      )}
+                      
+                      <div className="text-sm text-gray-500">{p.category}</div>
+                      
+                      {/* 庫存狀態提示 */}
+                      {enhancedProduct && enhancedProduct.availableVariants === 0 && (
+                        <div className="text-xs text-red-500 font-medium">暫時缺貨</div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </section>
             
             {/* 分頁控制 */}

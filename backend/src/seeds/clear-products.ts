@@ -23,12 +23,12 @@ const clearProducts = async () => {
     // 初始化資料庫連接
     await AppDataSource.initialize();
     console.log('資料庫連接已建立');
-    
+
     // 清空產品表
     const productRepository = AppDataSource.getRepository(Product);
     await productRepository.clear();
     console.log('產品表已清空');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('清空產品表時發生錯誤：', error);

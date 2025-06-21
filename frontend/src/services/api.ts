@@ -14,8 +14,27 @@ const api = axios.create({
 // 添加請求攜帶與響應攔截
 // 請求攔截
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     console.log('發送請求:', config.url, config.params);
+    
+    // 在瀏覽器環境中添加 JWT token
+    if (typeof window !== 'undefined') {
+      // 嘗試從 NextAuth 獲取 token
+      try {
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
+        if (session?.backendToken) {
+          config.headers.Authorization = `Bearer ${session.backendToken}`;
+          console.log('已添加 JWT token 到請求頭');
+        } else {
+          console.warn('沒有找到有效的 JWT token');
+        }
+      } catch (error) {
+        console.error('獲取 session 失敗:', error);
+      }
+    }
+    
     return config;
   },
   (error) => {
@@ -211,3 +230,6 @@ export const getBrandById = async (id: string): Promise<Brand> => {
   const response = await api.get(`/brands/${id}`);
   return response.data;
 };
+
+// 導出默認的 api 實例
+export default api;

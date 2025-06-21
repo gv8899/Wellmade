@@ -2,35 +2,70 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
-
-export interface User {
-  name: string;
-  email: string;
-  token?: string; // JWT token
-}
+import { User, UserRole } from "@/types/auth";
+import { parseJWT, hasRole, isAdmin, canEdit } from "@/utils/auth";
 
 interface UserContextType {
   user: User | null;
+  isLoading: boolean;
   login: (user: User) => void;
   logout: () => void;
+  // 權限檢查函數
+  hasRole: (requiredRoles: UserRole[]) => boolean;
+  isAdmin: () => boolean;
+  canEdit: () => boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
 
   // 當 NextAuth 會話變化時，同步更新我們的 UserContext
   useEffect(() => {
+    console.log('UserContext: Session status:', status, 'Session:', !!session);
+    
+    // 處理載入狀態
+    if (status === 'loading') {
+      setIsLoading(true);
+      return;
+    }
+
+    // Session 載入完成，更新載入狀態
+    setIsLoading(false);
+
     if (status === 'authenticated' && session?.user) {
+      const backendToken = (session as any).backendToken;
+      let userRoles: UserRole[] = [UserRole.USER]; // 預設角色
+      
+      // 如果有 JWT token，解析獲取角色資訊
+      if (backendToken) {
+        try {
+          const payload = parseJWT(backendToken);
+          if (payload && payload.roles) {
+            userRoles = payload.roles;
+          }
+        } catch (error) {
+          console.error('Failed to parse JWT token:', error);
+        }
+      }
+      
       // 從 NextAuth 會話中獲取用戶資訊
-      setUser({
+      const userData = {
+        id: (session as any).userId,
         name: session.user.name || 'User',
         email: session.user.email || '',
-        // 如果你有將 token 添加到 NextAuth session，可以從這裡獲取
-        token: (session as any).token || undefined
-      });
+        roles: userRoles,
+        token: backendToken,
+        firstName: (session as any).firstName,
+        lastName: (session as any).lastName,
+        picture: session.user.image || undefined,
+      };
+      
+      console.log('UserContext: Setting user data:', userData);
+      setUser(userData);
       
       // 檢查是否是新登入的會話（透過localStorage標記來判斷）
       const hasShownLoginToast = localStorage.getItem('hasShownLoginToast');
@@ -44,7 +79,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }, 3000); // 3秒後清除，確保不會重複顯示
       }
     } else if (status === 'unauthenticated') {
-      // 如果沒有會話，則用戶未登入
+      // 只有在確認未認證時才清除用戶資料
+      console.log('UserContext: Clearing user data - unauthenticated');
       setUser(null);
       localStorage.removeItem('hasShownLoginToast');
     }
@@ -65,8 +101,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // 權限檢查函數
+  const checkRole = (requiredRoles: UserRole[]) => {
+    if (!user) return false;
+    return hasRole(user.roles, requiredRoles);
+  };
+
+  const checkIsAdmin = () => {
+    if (!user) return false;
+    return isAdmin(user.roles);
+  };
+
+  const checkCanEdit = () => {
+    if (!user) return false;
+    return canEdit(user.roles);
+  };
+
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider value={{ 
+      user,
+      isLoading,
+      login, 
+      logout,
+      hasRole: checkRole,
+      isAdmin: checkIsAdmin,
+      canEdit: checkCanEdit
+    }}>
       {children}
     </UserContext.Provider>
   );

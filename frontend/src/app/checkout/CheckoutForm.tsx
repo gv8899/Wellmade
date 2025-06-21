@@ -44,7 +44,7 @@ const CheckoutForm: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // 清空購物車
-      clearCart();
+      await clearCart();
       
       // 跳轉到訂單完成頁面
       router.push('/checkout/success');

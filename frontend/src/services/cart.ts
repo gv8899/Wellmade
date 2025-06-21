@@ -1,182 +1,256 @@
-import axios from 'axios';
-import { CartItem } from '@/CartContext';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { CartItem } from '@/types/cart';
 
-// 定義一個相容的介面，不將其繼承自 CartItem
-export interface CartItemType {
-  id: string;
-  quantity: number;
-  specs: { [key: string]: string };
-  // 可能需要的其他屬性
-  product?: any;
-  variant?: any;
+// 重試配置
+interface RetryConfig {
+  maxRetries: number;
+  retryDelay: number;
+  retryCondition?: (error: AxiosError) => boolean;
 }
-import { getSession } from 'next-auth/react';
 
-// 統一的 API 基礎 URL - 使用 Next.js API 路由作為代理
-// 這樣可以避免 CORS 和認證問題
+// 預設重試配置
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  retryDelay: 1000,
+  retryCondition: (error: AxiosError) => {
+    // 只對網路錯誤和5xx服務器錯誤重試
+    return !error.response || (error.response.status >= 500 && error.response.status < 600);
+  }
+};
+
+// 統一的 API 基礎 URL
 const API_BASE_URL = '/api';
 
-// 檢查是否處於開發模式 - 在開發模式下我們會提供模擬 API 作為回退
-const isDevelopment = false; // process.env.NODE_ENV === 'development';
-
-// 直接呼叫後端 API，不經過 Next.js API 路由
-const CART_API = {
-  GET_CART: '/cart',                     // 獲取當前用戶的購物車
-  ADD_ITEM: '/cart/items',               // 添加商品到購物車
-  UPDATE_ITEM: '/cart/items',            // 更新購物車商品數量
-  REMOVE_ITEM: '/cart/items',            // 從購物車中移除商品
-  CLEAR_CART: '/cart',                   // 清空購物車
-  MERGE_CART: '/cart/merge'              // 合併本地購物車到用戶帳號
-};
-
-// 模擬檢索購物車函数 - 先定義以供后續使用
-const mockGetCart = (): ApiResponse<CartItem[]> => {
-  try {
-    if (typeof window === 'undefined') return { success: true, data: [] };
-    
-    const localCart = localStorage.getItem('cart');
-    if (localCart) {
-      const parsedCart = JSON.parse(localCart);
-      if (Array.isArray(parsedCart)) {
-        return { success: true, data: parsedCart };
-      }
+// API 狀態追蹤
+class ApiHealthChecker {
+  private isHealthy = true;
+  private lastCheckTime = 0;
+  private readonly checkInterval = 30000; // 30秒
+  
+  async checkHealth(): Promise<boolean> {
+    const now = Date.now();
+    if (now - this.lastCheckTime < this.checkInterval) {
+      return this.isHealthy;
     }
     
-    return { success: true, data: [] };
-  } catch (e) {
-    console.error('讀取本地購物車失敗:', e);
-    return { success: true, data: [] };
-  }
-};
-
-// 模擬添加商品到購物車
-// 生成唯一的購物車項目 ID
-const generateCartItemId = (productId: string, specs: Record<string, string> = {}) => {
-  // 如果有規格，則將規格排序後轉換為字符串作為 ID 的一部分
-  const specString = Object.entries(specs)
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .map(([key, value]) => `${key}:${value}`)
-    .join('_');
-  
-  // 使用產品ID和規格生成唯一ID
-  return specString ? `${productId}_${specString}` : productId;
-};
-
-const mockAddToCart = (item: any): ApiResponse<CartItem> => {
-  // 從本地緩存獲取產品信息（如果有）
-  const productId = item.productId;
-  const id = generateCartItemId(productId, item.specs);
-  
-  return { 
-    success: true, 
-    data: { 
-      id,
-      name: '商品',
-      price: 1000,
-      quantity: item.quantity,
-      cover: '',
-      specs: item.specs || {},
+    try {
+      // 簡單的健康檢查
+      await axios.get('/api/health', { timeout: 5000 });
+      this.isHealthy = true;
+    } catch (error) {
+      console.warn('API 健康檢查失敗:', error);
+      this.isHealthy = false;
     }
-  };
-};
-
-// 模擬更新購物車商品數量
-const mockUpdateQuantity = (itemId: string, quantity: number): ApiResponse<CartItem> => {
-  // 從本地存儲讀取當前購物車
-  if (typeof window === 'undefined') {
-    return { success: true, data: { id: itemId, name: '商品', price: 1000, quantity, cover: '', specs: {} } };
+    
+    this.lastCheckTime = now;
+    return this.isHealthy;
   }
   
-  try {
-    const localCart = localStorage.getItem('cart');
-    if (localCart) {
-      const items = JSON.parse(localCart);
-      const item = items.find((i: CartItem) => i.id === itemId);
-      if (item) {
-        return { success: true, data: { ...item, quantity } as CartItem };
+  markUnhealthy(): void {
+    this.isHealthy = false;
+    this.lastCheckTime = Date.now();
+  }
+}
+
+const apiHealth = new ApiHealthChecker();
+
+// Session 緩存機制
+class SessionManager {
+  private cachedSession: any = null;
+  private cacheTime = 0;
+  private readonly cacheExpiry = 5000; // 5秒緩存
+  
+  async getSession(): Promise<any> {
+    const now = Date.now();
+    
+    // 使用緩存的 session 如果仍然有效
+    if (this.cachedSession && (now - this.cacheTime < this.cacheExpiry)) {
+      return this.cachedSession;
+    }
+    
+    try {
+      // 使用 fetch 而不是 getSession() 避免 SSR 問題
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (response.ok) {
+        const session = await response.json();
+        this.cachedSession = session;
+        this.cacheTime = now;
+        return session;
       }
+    } catch (error) {
+      console.warn('獲取 session 失敗:', error);
     }
-  } catch (e) {
-    console.error('讀取本地購物車失敗:', e);
+    
+    return null;
   }
   
-  return { 
-    success: true, 
-    data: { id: itemId, name: '商品', price: 1000, quantity, cover: '', specs: {} }
-  };
-};
+  clearCache(): void {
+    this.cachedSession = null;
+    this.cacheTime = 0;
+  }
+}
+
+const sessionManager = new SessionManager();
+
+// 重試函數
+async function retryRequest<T>(
+  requestFn: () => Promise<T>,
+  config: RetryConfig = DEFAULT_RETRY_CONFIG
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      // 最後一次嘗試，不再重試
+      if (attempt === config.maxRetries) {
+        break;
+      }
+      
+      // 檢查是否應該重試
+      if (config.retryCondition && !config.retryCondition(error as AxiosError)) {
+        break;
+      }
+      
+      // 等待後重試
+      const delay = config.retryDelay * Math.pow(2, attempt); // 指數退避
+      console.log(`請求失敗，${delay}ms 後重試 (${attempt + 1}/${config.maxRetries}):`, error);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
 
 // 創建 axios 實例
 const api = axios.create({
-  baseURL: API_BASE_URL,  // 使用基礎 URL 對應到前端服務器
-  withCredentials: true, // 允許攜帶 cookies 等認證信息
+  baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  // 設定適當的超時時間
-  timeout: 10000,
+  timeout: 15000, // 增加超時時間
 });
 
-// 添加更詳細的請求記錄和連続狀態追蹤
-
-// 請求攝截器 - 添加授權標頭和詳細日誌
+// 請求攔截器 - 改進版本
 api.interceptors.request.use(async (config) => {
-  console.log(`準備發送請求到: ${config.url}`, { 
-    method: config.method, 
-    headers: config.headers,
-    data: config.data
-  });
+  console.log(`[API] 準備發送請求: ${config.method?.toUpperCase()} ${config.url}`);
   
   try {
-    // 添加授權標頭
-    const session = await getSession();
-    if (session && (session as any).backendToken) {
-      config.headers.Authorization = `Bearer ${(session as any).backendToken}`;
-      console.log('添加授權標頭到請求');
+    // 檢查 API 健康狀態
+    const isHealthy = await apiHealth.checkHealth();
+    if (!isHealthy) {
+      console.warn('[API] API 健康檢查失敗，但繼續嘗試請求');
     }
     
-    console.log('當前用戶會話詳細信息:', { 
-      hasSession: !!session, 
-      hasBackendToken: !!(session && (session as any).backendToken),
-      provider: (session as any)?.provider,
-      email: session?.user?.email,
-      sessionKeys: session ? Object.keys(session) : [],
-      backendTokenLength: (session as any)?.backendToken?.length || 0
-    });
+    // 添加授權標頭
+    const session = await sessionManager.getSession();
+    if (session?.backendToken) {
+      config.headers.Authorization = `Bearer ${session.backendToken}`;
+      console.log('[API] 已添加 JWT 授權標頭');
+    } else {
+      console.log('[API] 未找到有效的 backendToken');
+    }
+    
+    // 添加請求 ID 用於追蹤
+    config.headers['X-Request-ID'] = Math.random().toString(36).substr(2, 9);
+    
   } catch (error) {
-    console.error('獲取會話時發生錯誤:', error);
+    console.error('[API] 請求預處理失敗:', error);
   }
+  
   return config;
 });
 
-// 響應攝截器 - 改善錯誤處理和記錄
+// 響應攔截器 - 改進版本
 api.interceptors.response.use(
   (response) => {
-    console.log(`請求成功: ${response.config.url}`, {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data
-    });
+    const requestId = response.config.headers['X-Request-ID'];
+    console.log(`[API] ${requestId} 請求成功: ${response.status} ${response.config.url}`);
     return response;
   },
-  (error) => {
-    const url = error.config?.url || '未知路徑';
-    console.error(`請求失敗: ${url}`, {
-      message: error.message,
+  (error: AxiosError) => {
+    const requestId = error.config?.headers['X-Request-ID'];
+    const url = error.config?.url || '未知';
+    
+    // 分類錯誤類型
+    let errorType = 'UNKNOWN';
+    if (error.code === 'ECONNABORTED') {
+      errorType = 'TIMEOUT';
+    } else if (!error.response) {
+      errorType = 'NETWORK';
+      apiHealth.markUnhealthy();
+    } else if (error.response.status >= 500) {
+      errorType = 'SERVER_ERROR';
+      apiHealth.markUnhealthy();
+    } else if (error.response.status === 401) {
+      errorType = 'UNAUTHORIZED';
+      sessionManager.clearCache();
+    } else if (error.response.status >= 400) {
+      errorType = 'CLIENT_ERROR';
+    }
+    
+    console.error(`[API] ${requestId} 請求失敗 [${errorType}]: ${url}`, {
       status: error.response?.status,
-      statusText: error.response?.statusText,
+      message: error.message,
       data: error.response?.data
     });
     
-    // 加強錯誤訊息以便於調試
-    const enhancedError = error;
-    enhancedError.friendlyMessage = `請求失敗: ${url} ${error.message}`;
+    // 增強錯誤對象
+    const enhancedError = error as any;
+    enhancedError.errorType = errorType;
+    enhancedError.requestId = requestId;
+    enhancedError.friendlyMessage = getErrorMessage(error, errorType);
+    
     return Promise.reject(enhancedError);
   }
 );
 
-// API 請求和響應類型定義
+// 錯誤訊息生成器
+function getErrorMessage(error: AxiosError, errorType: string): string {
+  switch (errorType) {
+    case 'TIMEOUT':
+      return '請求超時，請檢查網路連線';
+    case 'NETWORK':
+      return '網路連線失敗，請檢查網路設定';
+    case 'SERVER_ERROR':
+      return '服務器暫時無法使用，請稍後再試';
+    case 'UNAUTHORIZED':
+      return '認證失效，請重新登入';
+    case 'CLIENT_ERROR':
+      return error.response?.data?.message || '請求參數錯誤';
+    default:
+      return '未知錯誤，請聯絡客服';
+  }
+}
+
+// API 路由定義
+const CART_API = {
+  GET_CART: '/cart',
+  ADD_ITEM: '/cart/items',
+  UPDATE_ITEM: '/cart/items',
+  REMOVE_ITEM: '/cart/items',
+  CLEAR_CART: '/cart',
+  MERGE_CART: '/cart/merge'
+};
+
+// API 響應類型
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+// 購物車項目 API 介面
 export interface CartApiItem {
   id?: string;
   productId: string;
@@ -185,179 +259,360 @@ export interface CartApiItem {
   specs?: { [key: string]: string };
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
+// 生成唯一的購物車項目 ID（改進版本）
+const generateCartItemId = (productId: string, specs: Record<string, string> = {}): string => {
+  if (!productId || typeof productId !== 'string') {
+    console.error('[CART] 無效的 productId:', productId);
+    return `invalid_${Date.now()}`;
+  }
+  
+  // 清理並排序規格
+  const cleanSpecs = Object.entries(specs)
+    .filter(([key, value]) => key && value && typeof key === 'string' && typeof value === 'string')
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .map(([key, value]) => `${key.trim()}:${value.trim()}`)
+    .join('_');
+  
+  return cleanSpecs ? `${productId}_${cleanSpecs}` : productId;
+};
 
-// 購物車響應類型
-export interface CartResponse {
-  items: CartItem[];
-  total: number;
-  count: number;
-}
+// 模擬檢索購物車函數（改進版本）
+const mockGetCart = (): ApiResponse<CartItem[]> => {
+  console.log('[MOCK] 使用本地購物車作為降級方案');
+  const localItems = localCartStorage.getCart();
+  return { success: true, data: localItems };
+};
 
-// 購物車 API 服務
+const mockAddToCart = (item: any): ApiResponse<CartItem> => {
+  console.log('[MOCK] 模擬添加商品到本地購物車');
+  const productId = item.productId;
+  const id = generateCartItemId(productId, item.specs);
+  
+  // 嘗試從本地存儲的購物車中找到匹配的商品信息
+  const localCart = localCartStorage.getCart();
+  const existingItem = localCart.find(cartItem => cartItem.id === id);
+  
+  const newItem: CartItem = {
+    id,
+    name: existingItem?.name || `商品 ${productId}`,
+    price: existingItem?.price || 1000,
+    quantity: item.quantity,
+    cover: existingItem?.cover || '',
+    specs: item.specs || {},
+  };
+  
+  return { success: true, data: newItem };
+};
+
+const mockUpdateQuantity = (itemId: string, quantity: number): ApiResponse<CartItem> => {
+  console.log(`[MOCK] 模擬更新商品數量: ${itemId} -> ${quantity}`);
+  
+  if (typeof window === 'undefined') {
+    return { 
+      success: true, 
+      data: { id: itemId, name: '商品', price: 1000, quantity, cover: '', specs: {} } 
+    };
+  }
+  
+  const localCart = localCartStorage.getCart();
+  const item = localCart.find(i => i.id === itemId);
+  
+  if (item) {
+    return { success: true, data: { ...item, quantity } };
+  }
+  
+  return { 
+    success: true, 
+    data: { id: itemId, name: '未知商品', price: 1000, quantity, cover: '', specs: {} }
+  };
+};
+
+// 購物車 API 服務 - 改進版本
 export const cartApi = {
   /**
    * 獲取購物車
    */
   getCart: async (): Promise<ApiResponse<CartItem[]>> => {
-    try {
-      console.log('發送獲取購物車請求到後端:', CART_API.GET_CART);
+    return retryRequest(async () => {
+      console.log('[CART] 獲取購物車');
       const response = await api.get(CART_API.GET_CART);
-      console.log('獲取購物車成功:', response.data);
       
-      // 處理後端返回的購物車數據
+      console.log('[CART] 後端原始響應:', response.data);
+      
       const cartItems = response.data.items || [];
+      console.log(`[CART] 成功獲取 ${cartItems.length} 項商品`);
+      console.log('[CART] 商品詳情:', cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      })));
+      
       return { success: true, data: cartItems };
-    } catch (error) {
-      console.error('獲取購物車失敗:', error);
-      // 發生錯誤時降級到本地購物車
-      console.log('降級使用本地購物車');
-      return mockGetCart();
-    }
+    }).catch((error) => {
+      console.error('[CART] 獲取購物車失敗:', error.friendlyMessage || error.message);
+      
+      // 根據錯誤類型決定是否降級
+      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
+        console.log('[CART] 降級使用本地購物車');
+        return mockGetCart();
+      }
+      
+      return {
+        success: false,
+        error: error.friendlyMessage || '獲取購物車失敗'
+      };
+    });
   },
-  
+
   /**
    * 添加商品到購物車
    */
   addToCart: async (item: Omit<CartApiItem, 'id'>): Promise<ApiResponse<CartItem>> => {
-    try {
-      console.log('發送添加購物車請求到後端 API:', {
-        url: CART_API.ADD_ITEM,
-        item
-      });
+    return retryRequest(async () => {
+      console.log(`[CART] 添加商品: ${item.productId} x${item.quantity}`);
       
-      const response = await api.post(CART_API.ADD_ITEM, item);
-      console.log('API 添加購物車響應:', response.data);
+      // 只傳遞後端需要的字段
+      const requestData = {
+        productId: item.productId,
+        quantity: item.quantity,
+        ...(item.variantId && { variantId: item.variantId }),
+        ...(item.specs && { specs: item.specs })
+      };
       
-      // 處理後端返回的購物車數據
+      const response = await api.post(CART_API.ADD_ITEM, requestData);
+      
       const cartData = response.data;
       const addedItem = cartData.items?.[cartData.items.length - 1] || cartData;
       
+      console.log(`[CART] 成功添加商品: ${addedItem.id}`);
       return { success: true, data: addedItem };
-    } catch (error) {
-      console.error('添加商品到購物車失敗:', error);
-      // API 調用失敗，使用模擬響應
-      console.log('降級為使用本地儲存');
-      return mockAddToCart(item);
-    }
+    }, {
+      ...DEFAULT_RETRY_CONFIG,
+      maxRetries: 2 // 添加操作減少重試次數
+    }).catch((error) => {
+      console.error('[CART] 添加商品失敗:', error.friendlyMessage || error.message);
+      
+      // 根據錯誤類型決定是否降級
+      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
+        console.log('[CART] 降級使用本地存儲');
+        return mockAddToCart(item);
+      }
+      
+      return {
+        success: false,
+        error: error.friendlyMessage || '添加商品失敗'
+      };
+    });
   },
-  
+
   /**
    * 更新購物車商品數量
    */
   updateQuantity: async (itemId: string, quantity: number): Promise<ApiResponse<CartItem>> => {
-    try {
-      const session = await getSession();
-      if (isDevelopment || !session) {
+    return retryRequest(async () => {
+      console.log(`[CART] 更新商品數量: ${itemId} -> ${quantity}`);
+      const response = await api.patch(`${CART_API.UPDATE_ITEM}/${itemId}`, { quantity });
+      
+      console.log(`[CART] 成功更新商品數量: ${itemId}`);
+      return { success: true, data: response.data };
+    }).catch((error) => {
+      console.error('[CART] 更新數量失敗:', error.friendlyMessage || error.message);
+      
+      // 根據錯誤類型決定是否降級
+      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
+        console.log('[CART] 降級使用本地存儲');
         return mockUpdateQuantity(itemId, quantity);
       }
       
-      const response = await api.patch(`${CART_API.UPDATE_ITEM}/${itemId}`, { quantity });
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('更新購物車商品數量失敗:', error);
-      
-      // API 調用失敗，使用模擬響應
-      return mockUpdateQuantity(itemId, quantity);
-    }
+      return {
+        success: false,
+        error: error.friendlyMessage || '更新數量失敗'
+      };
+    });
   },
-  
+
   /**
    * 從購物車移除商品
    */
   removeFromCart: async (itemId: string): Promise<ApiResponse<void>> => {
-    try {
-      const session = await getSession();
-      if (isDevelopment || !session) {
+    return retryRequest(async () => {
+      console.log(`[CART] 移除商品: ${itemId}`);
+      await api.delete(`${CART_API.REMOVE_ITEM}/${itemId}`);
+      
+      console.log(`[CART] 成功移除商品: ${itemId}`);
+      return { success: true };
+    }).catch((error) => {
+      console.error('[CART] 移除商品失敗:', error.friendlyMessage || error.message);
+      
+      // 對於移除操作，即使 API 失敗也返回成功（樂觀更新）
+      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
+        console.log('[CART] API 失敗但本地已移除');
         return { success: true };
       }
       
-      await api.delete(`${CART_API.REMOVE_ITEM}/${itemId}`);
-      return { success: true };
-    } catch (error) {
-      console.error('從購物車移除商品失敗:', error);
-      return { success: true }; // 即使 API 失敗也返回成功，前端已進行樂觀更新
-    }
+      return {
+        success: false,
+        error: error.friendlyMessage || '移除商品失敗'
+      };
+    });
   },
-  
+
   /**
    * 清空購物車
    */
   clearCart: async (): Promise<ApiResponse<void>> => {
-    try {
-      const session = await getSession();
-      if (isDevelopment || !session) {
+    return retryRequest(async () => {
+      console.log('[CART] 清空購物車');
+      await api.delete(CART_API.CLEAR_CART);
+      
+      console.log('[CART] 成功清空購物車');
+      return { success: true };
+    }).catch((error) => {
+      console.error('[CART] 清空購物車失敗:', error.friendlyMessage || error.message);
+      
+      // 對於清空操作，即使 API 失敗也返回成功（樂觀更新）
+      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
+        console.log('[CART] API 失敗但本地已清空');
         return { success: true };
       }
       
-      await api.delete(CART_API.CLEAR_CART);
-      return { success: true };
-    } catch (error) {
-      console.error('清空購物車失敗:', error);
-      return { success: true }; // 即使 API 失敗也返回成功，前端已進行樂觀更新
-    }
+      return {
+        success: false,
+        error: error.friendlyMessage || '清空購物車失敗'
+      };
+    });
   },
-  
+
   /**
    * 合併本地購物車到用戶帳戶
    */
   mergeCart: async (localCart: CartItem[]): Promise<ApiResponse<CartItem[]>> => {
-    try {
-      // 如果本地購物車為空，則直接獲取用戶的購物車
-      if (localCart.length === 0) {
-        console.log('本地購物車為空，直接獲取後端購物車');
-        const cartResponse = await api.get(CART_API.GET_CART);
-        return { success: true, data: cartResponse.data.items || [] };
-      }
-
-      // 發送合併請求到後端 API
-      console.log('發送合併購物車請求:', {
-        url: CART_API.MERGE_CART,
-        itemCount: localCart.length,
-        items: localCart.map(item => ({
-          productId: item.id, // 使用 CartItem 的 id 作為 productId
-          quantity: item.quantity,
-          specs: item.specs
-        }))
-      });
-      
-      const response = await api.post(CART_API.MERGE_CART, { 
-        items: localCart.map(item => ({
-          productId: item.id, // 使用 CartItem 的 id 作為 productId
-          quantity: item.quantity,
-          specs: item.specs
-        }))
-      });
-      
-      console.log('合併購物車成功:', response.data);
-      return { success: true, data: response.data.items || [] };
-    } catch (error) {
-      console.error('合併購物車失敗:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : '合併購物車失敗' 
-      };
+    if (localCart.length === 0) {
+      console.log('[CART] 本地購物車為空，獲取後端購物車');
+      return cartApi.getCart();
     }
+
+    return retryRequest(async () => {
+      console.log(`[CART] 合併 ${localCart.length} 項本地商品`);
+      
+      const mergeItems = localCart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        specs: item.specs
+      }));
+      
+      const response = await api.post(CART_API.MERGE_CART, { items: mergeItems });
+      
+      const mergedItems = response.data.items || [];
+      console.log(`[CART] 成功合併購物車，共 ${mergedItems.length} 項商品`);
+      
+      return { success: true, data: mergedItems };
+    }, {
+      ...DEFAULT_RETRY_CONFIG,
+      maxRetries: 2 // 合併操作減少重試次數
+    }).catch((error) => {
+      console.error('[CART] 合併購物車失敗:', error.friendlyMessage || error.message);
+      
+      return {
+        success: false,
+        error: error.friendlyMessage || '合併購物車失敗'
+      };
+    });
   },
 };
 
-// 提供本地存儲的購物車功能 (用於離線使用或 API 失敗時的回退)
+// 提供本地存儲的購物車功能（改進版本）
 export const localCartStorage = {
   getCart: (): CartItem[] => {
     if (typeof window === 'undefined') return [];
     
-    const cartData = localStorage.getItem('cart');
-    return cartData ? JSON.parse(cartData) : [];
+    try {
+      const cartData = localStorage.getItem('cart');
+      if (!cartData) return [];
+      
+      const parsed = JSON.parse(cartData);
+      if (!Array.isArray(parsed)) {
+        console.warn('[LOCAL] 本地購物車格式不正確，重置為空');
+        localStorage.removeItem('cart');
+        return [];
+      }
+      
+      // 驗證每個項目的基本結構
+      const validItems = parsed.filter(item => 
+        item && 
+        typeof item.id === 'string' &&
+        typeof item.quantity === 'number' &&
+        item.quantity > 0
+      );
+      
+      if (validItems.length !== parsed.length) {
+        console.warn(`[LOCAL] 清理了 ${parsed.length - validItems.length} 項無效商品`);
+        localCartStorage.saveCart(validItems);
+      }
+      
+      return validItems;
+    } catch (error) {
+      console.error('[LOCAL] 讀取本地購物車失敗:', error);
+      localStorage.removeItem('cart');
+      return [];
+    }
   },
   
   saveCart: (items: CartItem[]): void => {
     if (typeof window === 'undefined') return;
     
-    localStorage.setItem('cart', JSON.stringify(items));
+    try {
+      if (!Array.isArray(items)) {
+        console.error('[LOCAL] 嘗試保存非陣列數據到購物車');
+        return;
+      }
+      
+      // 過濾並清理數據
+      const cleanItems = items
+        .filter(item => item && item.id && item.quantity > 0)
+        .map(item => ({
+          id: item.id,
+          name: item.name || '',
+          price: Number(item.price) || 0,
+          quantity: Number(item.quantity) || 1,
+          cover: item.cover || '',
+          specs: item.specs || {}
+        }));
+      
+      localStorage.setItem('cart', JSON.stringify(cleanItems));
+      console.log(`[LOCAL] 已保存 ${cleanItems.length} 項商品到本地`);
+    } catch (error) {
+      console.error('[LOCAL] 保存本地購物車失敗:', error);
+    }
+  },
+  
+  clearCart: (): void => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      localStorage.removeItem('cart');
+      console.log('[LOCAL] 已清空本地購物車');
+    } catch (error) {
+      console.error('[LOCAL] 清空本地購物車失敗:', error);
+    }
   }
 };
+
+// 健康檢查端點（需要在後端實現）
+export const healthCheck = async (): Promise<boolean> => {
+  try {
+    const response = await fetch('/api/health', { 
+      method: 'GET',
+      timeout: 3000,
+      headers: { 'Accept': 'application/json' }
+    } as any);
+    return response.ok;
+  } catch (error) {
+    console.warn('[HEALTH] 健康檢查失敗:', error);
+    return false;
+  }
+};
+
+// 匯出工具函數
+export { sessionManager, apiHealth };

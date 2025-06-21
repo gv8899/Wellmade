@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { UserRole } from './user.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-
 
 @Injectable()
 export class UsersService {
@@ -26,7 +29,9 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUserByUsername = await this.findOneByUsername(createUserDto.username);
+    const existingUserByUsername = await this.findOneByUsername(
+      createUserDto.username,
+    );
     if (existingUserByUsername) {
       throw new ConflictException('已經有註冊過囉！');
     }
@@ -43,7 +48,7 @@ export class UsersService {
 
     return this.usersRepository.save(user);
   }
-  
+
   async save(user: User): Promise<User> {
     return this.usersRepository.save(user);
   }

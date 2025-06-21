@@ -2,61 +2,50 @@ import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey } from "t
 
 export class ProductBrandRelation1749546100000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. åå¾ç¢åè¡¨ä¸­ç²åææç¾æçåçåç¨±
-    const brands = await queryRunner.query(`
-      SELECT DISTINCT brand 
-      FROM products 
-      WHERE brand IS NOT NULL AND brand != ''
+    // 檢查 brandId 欄位是否已存在
+    const columns = await queryRunner.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'brandId'
     `);
-
-    // 2. å°éäºåçåç¨±æå¥å°åçè¡¨ä¸­
-    if (brands && brands.length > 0) {
-      for (const brandObj of brands) {
-        const brandName = brandObj.brand;
-        // æª¢æ¥åçæ¯å¦å·²å­å¨
-        const existingBrand = await queryRunner.query(`
-          SELECT id FROM brands WHERE name = $1
-        `, [brandName]);
-
-        if (!existingBrand || existingBrand.length === 0) {
-          await queryRunner.query(`
-            INSERT INTO brands (name) VALUES ($1)
-          `, [brandName]);
-        }
-      }
+    
+    // 如果 brandId 欄位不存在，則添加
+    if (!columns || columns.length === 0) {
+      await queryRunner.addColumn(
+        "products",
+        new TableColumn({
+          name: "brandId",
+          type: "uuid",
+          isNullable: true,
+        })
+      );
     }
 
-    // 3. å¨ç¢åè¡¨ä¸­æ·»å  brandId æ¬ä½
-    await queryRunner.addColumn(
-      "products",
-      new TableColumn({
-        name: "brandId",
-        type: "uuid",
-        isNullable: true,
-      })
-    );
-
-    // 4. çºæ¯åç¢åè¨­ç½®æ­£ç¢ºç brandId
-    await queryRunner.query(`
-      UPDATE products p
-      SET "brandId" = (SELECT b.id FROM brands b WHERE b.name = p.brand)
-      WHERE p.brand IS NOT NULL AND p.brand != ''
+    // 檢查外鍵是否已存在
+    const foreignKeys = await queryRunner.query(`
+      SELECT constraint_name FROM information_schema.constraint_column_usage 
+      WHERE table_name = 'brands' AND column_name = 'id'
+      AND constraint_name IN (
+        SELECT constraint_name FROM information_schema.constraint_column_usage 
+        WHERE table_name = 'products' AND column_name = 'brandId'
+      )
     `);
-
-    // 5. æ·»å å¤éµç´æ
-    await queryRunner.createForeignKey(
-      "products",
-      new TableForeignKey({
-        columnNames: ["brandId"],
-        referencedColumnNames: ["id"],
-        referencedTableName: "brands",
-        onDelete: "SET NULL", // å¦æåªé¤åçï¼ç¢åç brandId è¨­çº null
-      })
-    );
+    
+    // 如果外鍵不存在，則添加
+    if (!foreignKeys || foreignKeys.length === 0) {
+      await queryRunner.createForeignKey(
+        "products",
+        new TableForeignKey({
+          columnNames: ["brandId"],
+          referencedColumnNames: ["id"],
+          referencedTableName: "brands",
+          onDelete: "SET NULL",
+        })
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // 1. åªé¤å¤éµç´æ
+    // 1. 刪除外鍵約束
     const table = await queryRunner.getTable("products");
     const foreignKey = table.foreignKeys.find(
       (fk) => fk.columnNames.indexOf("brandId") !== -1
@@ -65,7 +54,7 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
       await queryRunner.dropForeignKey("products", foreignKey);
     }
 
-    // 2. åªé¤ brandId æ¬ä½
+    // 2. 刪除 brandId 欄位
     await queryRunner.dropColumn("products", "brandId");
   }
 }

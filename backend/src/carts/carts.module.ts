@@ -19,11 +19,11 @@ import { UsersModule } from '../users/users.module';
       useFactory: async (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         const expiresIn = configService.get<string>('JWT_EXPIRATION_TIME');
-        
+
         return {
           secret,
-          signOptions: { 
-            expiresIn: expiresIn || '1d'
+          signOptions: {
+            expiresIn: expiresIn || '1d',
           },
         };
       },

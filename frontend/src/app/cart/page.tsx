@@ -1,18 +1,11 @@
 'use client';
 import React, { useState } from 'react';
 import { useCart } from '@/CartContext';
+import { CartItem } from '@/types/cart';
 import Image from 'next/image';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  cover: string;
-}
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, totalAmount, isLoading, refreshCart, isAuthenticated } = useCart();
@@ -57,6 +50,11 @@ export default function CartPage() {
 
   // 商品總數量
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // 預購商品統計
+  const preorderItems = cartItems.filter(item => item.isPreorder);
+  const regularItems = cartItems.filter(item => !item.isPreorder);
+  const hasPreorderItems = preorderItems.length > 0;
   // 當 cartItems 變動時自動同步勾選的邏輯已移至上方
   // 切換勾選
   const toggleSelect = (id: string) => {
@@ -171,12 +169,32 @@ export default function CartPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="font-semibold text-base text-gray-900 leading-tight mb-1">{item.name}</div>
+                      
+                      {/* 預購狀態顯示 */}
+                      {item.isPreorder && (
+                        <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-2">
+                          📅 預購商品
+                        </div>
+                      )}
+                      
                       {/* 商品規格顯示 */}
                       <div className="text-xs text-gray-500 mb-2">
                         {item.specs && Object.keys(item.specs).length > 0
                           ? Object.values(item.specs).join('・')
                           : '—'}
                       </div>
+                      
+                      {/* 預購信息顯示 */}
+                      {item.isPreorder && item.preorderInfo && (
+                        <div className="text-xs text-gray-600 space-y-1">
+                          {item.preorderInfo.expectedShipDate && (
+                            <div>預計出貨: {new Date(item.preorderInfo.expectedShipDate).toLocaleDateString('zh-TW')}</div>
+                          )}
+                          {item.preorderInfo.preorderDescription && (
+                            <div className="text-blue-700">{item.preorderInfo.preorderDescription}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                   </div>
@@ -184,7 +202,14 @@ export default function CartPage() {
                   <div className="flex items-center gap-4 mt-2">
                     <button
                       className="w-8 h-8 flex items-center justify-center text-lg text-gray-700 disabled:text-gray-300"
-                      onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                      onClick={async () => {
+                        try {
+                          await updateQuantity(item.id, Math.max(1, item.quantity - 1));
+                        } catch (error) {
+                          console.error('更新數量失敗:', error);
+                          toast.error('更新數量失敗，請稍後再試');
+                        }
+                      }}
                       disabled={item.quantity <= 1}
                       aria-label="減少數量"
                     >
@@ -193,7 +218,14 @@ export default function CartPage() {
                     <span className="w-8 text-center font-semibold text-base text-gray-900 select-none mx-2" style={{lineHeight:'2rem'}}>{item.quantity}</span>
                     <button
                       className="w-8 h-8 flex items-center justify-center text-lg text-gray-700"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={async () => {
+                        try {
+                          await updateQuantity(item.id, item.quantity + 1);
+                        } catch (error) {
+                          console.error('更新數量失敗:', error);
+                          toast.error('更新數量失敗，請稍後再試');
+                        }
+                      }}
                       aria-label="增加數量"
                     >
                       +
@@ -203,7 +235,14 @@ export default function CartPage() {
                 </div>
                 {/* 垃圾桶 icon（最右側，垂直置中） */}
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={async () => {
+                    try {
+                      await removeFromCart(item.id);
+                    } catch (error) {
+                      console.error('移除商品失敗:', error);
+                      toast.error('移除商品失敗，請稍後再試');
+                    }
+                  }}
                   className="text-gray-400 hover:text-red-600 transition p-2 flex items-center justify-center self-center ml-4"
                   title="移除"
                 >
@@ -216,9 +255,26 @@ export default function CartPage() {
 
 
           {/* 勾選商品總計區塊 */}
-          <div className="w-full px-2 py-4 mb-2 flex justify-between items-center">
-            <span className="text-lg font-bold text-black">總計</span>
-            <span className="text-2xl font-extrabold text-black">NT$ {subtotal.toFixed(0)}</span>
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            {/* 基本總計 */}
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-lg font-bold text-black">總計</span>
+              <span className="text-2xl font-extrabold text-black">NT$ {subtotal.toFixed(0)}</span>
+            </div>
+            
+            {/* 預購商品提示 */}
+            {hasPreorderItems && (
+              <div className="border-t pt-2 mt-2">
+                <div className="text-sm text-blue-700 bg-blue-50 p-2 rounded">
+                  📅 您的購物車包含 {preorderItems.length} 件預購商品，將按預計時間分批出貨。
+                </div>
+                {regularItems.length > 0 && (
+                  <div className="text-xs text-gray-600 mt-1">
+                    現貨商品 {regularItems.length} 件將優先出貨
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 結帳按鈕 */}
@@ -226,12 +282,24 @@ export default function CartPage() {
             {!isAuthenticated && checkedItems.length > 0 && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
                 建議您 <button onClick={handleSignIn} className="font-medium underline">登入會員</button> 後再進行結帳，以便紀錄訂單並累積點數。
+                {hasPreorderItems && (
+                  <div className="mt-2 text-blue-700">
+                    預購商品需要會員身份才能結帳。
+                  </div>
+                )}
               </div>
             )}
             <button
               className="w-full bg-gray-900 text-white text-lg font-bold py-4 mt-6 mb-2 transition hover:bg-gray-700 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
-              disabled={checkedItems.length === 0}
+              disabled={checkedItems.length === 0 || (!isAuthenticated && hasPreorderItems)}
               onClick={() => {
+                // 如果有預購商品但未登入，強制要求登入
+                if (!isAuthenticated && hasPreorderItems) {
+                  toast.error('預購商品需要會員身份，請先登入。');
+                  handleSignIn();
+                  return;
+                }
+                
                 if (!isAuthenticated && checkedItems.length > 0) {
                   if (confirm('是否要先登入會員再結帳？\n\n登入會員可以累積點數、查詢訂單記錄。')) {
                     handleSignIn();
@@ -241,7 +309,12 @@ export default function CartPage() {
                 // 在這裡可以直接導向結帳頁面或處理結帳流程
               }}
             >
-              {checkedItems.length === 0 ? '還沒選擇要結帳的產品' : '前往結帳'}
+              {checkedItems.length === 0 
+                ? '還沒選擇要結帳的產品' 
+                : (!isAuthenticated && hasPreorderItems)
+                  ? '預購商品需要會員身份'
+                  : '前往結帳'
+              }
             </button>
           </div>
         </>

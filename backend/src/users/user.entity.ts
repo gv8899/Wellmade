@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './user.enum';
@@ -22,13 +30,13 @@ export class User {
   @IsEmail({}, { message: '請輸入有效的電子郵件地址' })
   @IsNotEmpty({ message: '電子郵件不能為空' })
   email: string;
-  
+
   @Column({ type: 'varchar', length: 100, nullable: true })
   firstName: string;
-  
+
   @Column({ type: 'varchar', length: 100, nullable: true })
   lastName: string;
-  
+
   @Column({ type: 'varchar', length: 500, nullable: true })
   picture: string;
 
