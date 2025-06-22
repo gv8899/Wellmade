@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Brand, Product, KeyFeature, FAQ, Category, ProductStatus, adminApi } from "@/services/admin";
+import { Brand, Product, KeyFeature, FeatureDetail, FAQ, Category, ProductStatus, adminApi } from "@/services/admin";
 import { ProductVariant } from "@/types/product";
 import ImageUploader from "./ImageUploader";
 import KeyFeaturesEditor from "./KeyFeaturesEditor";
+import FeatureDetailsEditor from "./FeatureDetailsEditor";
 import FAQEditor from "./FAQEditor";
 import ProductVariantEditor from "./ProductVariantEditor";
 import { FaSave, FaTimes } from "react-icons/fa";
@@ -20,6 +21,7 @@ interface ProductFormData {
   imageUrl?: string;
   images?: string[];
   keyFeatures?: KeyFeature[];
+  featureDetails?: FeatureDetail[];
   faqs?: FAQ[];
   variants?: ProductVariant[];
   isActive: boolean;
@@ -63,6 +65,7 @@ export default function ProductForm({
   
   // 進階內容
   const [keyFeatures, setKeyFeatures] = useState<KeyFeature[]>(product?.keyFeatures || []);
+  const [featureDetails, setFeatureDetails] = useState<FeatureDetail[]>(product?.featureDetails || []);
   const [faqs, setFaqs] = useState<FAQ[]>(product?.faqs || []);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
 
@@ -154,6 +157,7 @@ export default function ProductForm({
       imageUrl: imageUrl || undefined,
       images: images.length > 0 ? images : undefined,
       keyFeatures: keyFeatures.length > 0 ? keyFeatures : undefined,
+      featureDetails: featureDetails.length > 0 ? featureDetails : undefined,
       faqs: faqs.length > 0 ? faqs : undefined,
       // 目前先不傳送變體資料，因為後端還未完全支援
       // variants: variants.length > 0 ? variants : undefined,
@@ -320,6 +324,15 @@ export default function ProductForm({
         <KeyFeaturesEditor
           features={keyFeatures}
           onChange={setKeyFeatures}
+        />
+      </div>
+
+      {/* 功能詳細說明 */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">功能詳細說明</h3>
+        <FeatureDetailsEditor
+          featureDetails={featureDetails}
+          onChange={setFeatureDetails}
         />
       </div>
 

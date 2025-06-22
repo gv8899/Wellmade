@@ -62,6 +62,8 @@ async function bootstrap() {
       whitelist: true, // 過濾掉不在 DTO 中的屬性
       forbidNonWhitelisted: true, // 如果提供了不在 DTO 中的屬性，則拋出錯誤
       transform: true, // 自動轉換類型，例如將字符串轉換為數字
+      disableErrorMessages: false, // 確保錯誤信息被返回
+      validationError: { target: false },
     }),
   );
 

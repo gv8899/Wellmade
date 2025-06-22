@@ -47,8 +47,19 @@ export class AdminService {
 
     const whereConditions: any = {};
 
+    // 處理分類篩選，支援新舊兩種方式
     if (category) {
-      whereConditions.category = category;
+      // 先嘗試用slug查詢分類
+      const categoryEntity = await this.categoryRepository.findOne({
+        where: { slug: category }
+      });
+      
+      if (categoryEntity) {
+        whereConditions.categoryId = categoryEntity.id;
+      } else {
+        // 向後相容：如果找不到對應的分類，使用舊的category欄位
+        whereConditions.category = category;
+      }
     }
 
     if (brandId) {
@@ -61,7 +72,7 @@ export class AdminService {
 
     const [items, total] = await this.productRepository.findAndCount({
       where: whereConditions,
-      relations: ['brand'],
+      relations: ['brand', 'categoryRelation'], // 添加分類關聯
       order: { [sortBy]: order },
       skip,
       take,
@@ -73,7 +84,7 @@ export class AdminService {
   async getProductById(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['brand'],
+      relations: ['brand', 'categoryRelation'], // 確保分類關聯一致
     });
 
     if (!product) {
@@ -96,22 +107,51 @@ export class AdminService {
       }
     }
 
+    // 檢查分類是否存在
+    if (createProductDto.categoryId) {
+      const category = await this.categoryRepository.findOne({
+        where: { id: createProductDto.categoryId },
+      });
+      if (!category) {
+        throw new NotFoundException(
+          `Category with ID ${createProductDto.categoryId} not found`,
+        );
+      }
+    }
+
     const product = this.productRepository.create(createProductDto);
-    return this.productRepository.save(product);
+    const savedProduct = await this.productRepository.save(product);
+    
+    // 重新載入關聯資料以確保返回完整的產品資訊
+    return this.productRepository.findOne({
+      where: { id: savedProduct.id },
+      relations: ['brand', 'categoryRelation'],
+    });
   }
 
   async updateProduct(
     id: string,
     updateProductDto: UpdateProductDto,
   ): Promise<Product> {
-    const product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['brand', 'categoryRelation'],
+    console.log(`Admin Service - Updating product ${id}:`, {
+      updateData: updateProductDto,
+      categoryId: updateProductDto.categoryId
     });
 
-    if (!product) {
+    // 檢查產品是否存在
+    const existingProduct = await this.productRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingProduct) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
+
+    console.log(`Admin Service - Original product:`, {
+      id: existingProduct.id,
+      name: existingProduct.name,
+      originalCategoryId: existingProduct.categoryId
+    });
 
     // 如果更新品牌ID，檢查品牌是否存在
     if (updateProductDto.brandId) {
@@ -126,19 +166,54 @@ export class AdminService {
     }
 
     // 如果更新分類ID，檢查分類是否存在
-    if (updateProductDto.categoryId) {
-      const category = await this.categoryRepository.findOne({
-        where: { id: updateProductDto.categoryId },
-      });
-      if (!category) {
-        throw new NotFoundException(
-          `Category with ID ${updateProductDto.categoryId} not found`,
-        );
+    if (updateProductDto.categoryId !== undefined) {
+      if (updateProductDto.categoryId && updateProductDto.categoryId.trim() !== '') {
+        const category = await this.categoryRepository.findOne({
+          where: { id: updateProductDto.categoryId },
+        });
+        if (!category) {
+          throw new NotFoundException(
+            `Category with ID ${updateProductDto.categoryId} not found`,
+          );
+        }
+      } else {
+        // 如果 categoryId 為空字串或 null，清除分類關聯
+        updateProductDto.categoryId = null;
       }
     }
 
-    Object.assign(product, updateProductDto);
-    return this.productRepository.save(product);
+    console.log(`Admin Service - Before QueryBuilder update:`, {
+      id,
+      updateData: updateProductDto
+    });
+
+    // 使用 QueryBuilder 強制更新 categoryId
+    const updateResult = await this.productRepository
+      .createQueryBuilder()
+      .update(Product)
+      .set(updateProductDto)
+      .where("id = :id", { id })
+      .execute();
+
+    console.log(`Admin Service - QueryBuilder update result:`, {
+      affected: updateResult.affected,
+      raw: updateResult.raw
+    });
+
+    // 重新載入產品資料
+    const updatedProduct = await this.productRepository.findOne({
+      where: { id },
+      relations: ['brand', 'categoryRelation'],
+    });
+    
+    console.log(`Admin Service - Final product after QueryBuilder:`, {
+      id: updatedProduct.id,
+      finalCategoryId: updatedProduct.categoryId,
+      finalCategoryRelation: updatedProduct.categoryRelation?.name,
+      updatedAt: updatedProduct.updatedAt
+    });
+    
+    return updatedProduct;
   }
 
   async deleteProduct(id: string): Promise<void> {
@@ -176,13 +251,53 @@ export class AdminService {
     id: string,
     updateBrandDto: UpdateBrandDto,
   ): Promise<Brand> {
-    const brand = await this.brandRepository.findOne({ where: { id } });
-    if (!brand) {
-      throw new NotFoundException(`Brand with ID ${id} not found`);
-    }
+    try {
+      console.log('AdminService - updateBrand called:', { id, updateBrandDto });
+      
+      // 檢查品牌是否存在
+      const existingBrand = await this.brandRepository.findOne({ where: { id } });
+      if (!existingBrand) {
+        console.log('AdminService - Brand not found:', id);
+        throw new NotFoundException(`Brand with ID ${id} not found`);
+      }
 
-    Object.assign(brand, updateBrandDto);
-    return this.brandRepository.save(brand);
+      console.log('AdminService - Found existing brand:', existingBrand);
+
+      // 如果名稱有變更，檢查是否有重複
+      if (updateBrandDto.name && updateBrandDto.name !== existingBrand.name) {
+        console.log('AdminService - Checking for duplicate name:', updateBrandDto.name);
+        const duplicateBrand = await this.brandRepository.findOne({
+          where: { name: updateBrandDto.name },
+        });
+        if (duplicateBrand) {
+          console.log('AdminService - Duplicate name found:', duplicateBrand.name);
+          throw new BadRequestException(`Brand name "${updateBrandDto.name}" already exists`);
+        }
+      }
+
+      console.log('AdminService - About to update with data:', updateBrandDto);
+
+      // 使用 QueryBuilder 更新，避免關聯衝突問題
+      const updateResult = await this.brandRepository
+        .createQueryBuilder()
+        .update(Brand)
+        .set(updateBrandDto)
+        .where("id = :id", { id })
+        .execute();
+
+      console.log('AdminService - Update result:', updateResult);
+
+      // 重新載入品牌資料
+      const updatedBrand = await this.brandRepository.findOne({
+        where: { id },
+      });
+      
+      console.log('AdminService - Updated brand:', updatedBrand);
+      return updatedBrand;
+    } catch (error) {
+      console.error('AdminService - Error in updateBrand:', error);
+      throw error;
+    }
   }
 
   async deleteBrand(id: string): Promise<void> {

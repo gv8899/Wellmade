@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
-import { KeyFeature } from "@/services/admin";
-import { FaPlus, FaTrash, FaGripVertical } from "react-icons/fa";
+import { useState, useRef } from "react";
+import { KeyFeature, adminApi } from "@/services/admin";
+import { FaPlus, FaTrash, FaGripVertical, FaUpload, FaSpinner, FaImage } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface KeyFeaturesEditorProps {
   features: KeyFeature[];
@@ -9,6 +10,8 @@ interface KeyFeaturesEditorProps {
 }
 
 export default function KeyFeaturesEditor({ features, onChange }: KeyFeaturesEditorProps) {
+  const [uploading, setUploading] = useState<{ [key: number]: boolean }>({});
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
   const addFeature = () => {
     const newFeature: KeyFeature = {
       image: "",
@@ -39,6 +42,42 @@ export default function KeyFeaturesEditor({ features, onChange }: KeyFeaturesEdi
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newFeatures[index], newFeatures[targetIndex]] = [newFeatures[targetIndex], newFeatures[index]];
     onChange(newFeatures);
+  };
+
+  const handleImageUpload = async (index: number, file: File) => {
+    // 檢查檔案大小 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("圖片檔案大小不能超過 10MB");
+      return;
+    }
+
+    // 檢查檔案類型
+    if (!file.type.startsWith("image/")) {
+      toast.error("請選擇圖片檔案");
+      return;
+    }
+
+    try {
+      setUploading(prev => ({ ...prev, [index]: true }));
+      const response = await adminApi.uploadImage(file);
+      updateFeature(index, 'image', response.url);
+      toast.success("圖片上傳成功");
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      toast.error("圖片上傳失敗");
+    } finally {
+      setUploading(prev => ({ ...prev, [index]: false }));
+      if (fileInputRefs.current[index]) {
+        fileInputRefs.current[index]!.value = "";
+      }
+    }
+  };
+
+  const handleFileInputChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(index, file);
+    }
   };
 
   return (
@@ -93,16 +132,67 @@ export default function KeyFeaturesEditor({ features, onChange }: KeyFeaturesEdi
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    圖片 URL
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    特色圖片
                   </label>
-                  <input
-                    type="url"
-                    value={feature.image}
-                    onChange={(e) => updateFeature(index, 'image', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="flex items-start gap-3">
+                    {/* 圖片預覽 */}
+                    <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 flex-shrink-0">
+                      {feature.image ? (
+                        <div className="relative w-full h-full">
+                          <img
+                            src={feature.image}
+                            alt={feature.title || "特色圖片"}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateFeature(index, 'image', '')}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
+                          >
+                            <FaTrash className="w-2 h-2" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <FaImage className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                          <span className="text-xs text-gray-500">無圖片</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 上傳按鈕 */}
+                    <div className="flex-1">
+                      <input
+                        ref={(el) => { fileInputRefs.current[index] = el; }}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileInputChange(index, e)}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs.current[index]?.click()}
+                        disabled={uploading[index]}
+                        className="w-full px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      >
+                        {uploading[index] ? (
+                          <>
+                            <FaSpinner className="w-3 h-3 animate-spin" />
+                            上傳中...
+                          </>
+                        ) : (
+                          <>
+                            <FaUpload className="w-3 h-3" />
+                            選擇圖片
+                          </>
+                        )}
+                      </button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        支援 JPG、PNG、WebP，最大 10MB
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
