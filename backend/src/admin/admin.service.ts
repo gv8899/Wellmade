@@ -251,53 +251,36 @@ export class AdminService {
     id: string,
     updateBrandDto: UpdateBrandDto,
   ): Promise<Brand> {
-    try {
-      console.log('AdminService - updateBrand called:', { id, updateBrandDto });
-      
-      // 檢查品牌是否存在
-      const existingBrand = await this.brandRepository.findOne({ where: { id } });
-      if (!existingBrand) {
-        console.log('AdminService - Brand not found:', id);
-        throw new NotFoundException(`Brand with ID ${id} not found`);
-      }
-
-      console.log('AdminService - Found existing brand:', existingBrand);
-
-      // 如果名稱有變更，檢查是否有重複
-      if (updateBrandDto.name && updateBrandDto.name !== existingBrand.name) {
-        console.log('AdminService - Checking for duplicate name:', updateBrandDto.name);
-        const duplicateBrand = await this.brandRepository.findOne({
-          where: { name: updateBrandDto.name },
-        });
-        if (duplicateBrand) {
-          console.log('AdminService - Duplicate name found:', duplicateBrand.name);
-          throw new BadRequestException(`Brand name "${updateBrandDto.name}" already exists`);
-        }
-      }
-
-      console.log('AdminService - About to update with data:', updateBrandDto);
-
-      // 使用 QueryBuilder 更新，避免關聯衝突問題
-      const updateResult = await this.brandRepository
-        .createQueryBuilder()
-        .update(Brand)
-        .set(updateBrandDto)
-        .where("id = :id", { id })
-        .execute();
-
-      console.log('AdminService - Update result:', updateResult);
-
-      // 重新載入品牌資料
-      const updatedBrand = await this.brandRepository.findOne({
-        where: { id },
-      });
-      
-      console.log('AdminService - Updated brand:', updatedBrand);
-      return updatedBrand;
-    } catch (error) {
-      console.error('AdminService - Error in updateBrand:', error);
-      throw error;
+    // 檢查品牌是否存在
+    const existingBrand = await this.brandRepository.findOne({ where: { id } });
+    if (!existingBrand) {
+      throw new NotFoundException(`Brand with ID ${id} not found`);
     }
+
+    // 如果名稱有變更，檢查是否有重複
+    if (updateBrandDto.name && updateBrandDto.name !== existingBrand.name) {
+      const duplicateBrand = await this.brandRepository.findOne({
+        where: { name: updateBrandDto.name },
+      });
+      if (duplicateBrand) {
+        throw new BadRequestException(`Brand name "${updateBrandDto.name}" already exists`);
+      }
+    }
+
+    // 使用 QueryBuilder 更新，避免關聯衝突問題
+    await this.brandRepository
+      .createQueryBuilder()
+      .update(Brand)
+      .set(updateBrandDto)
+      .where("id = :id", { id })
+      .execute();
+
+    // 重新載入品牌資料
+    const updatedBrand = await this.brandRepository.findOne({
+      where: { id },
+    });
+    
+    return updatedBrand;
   }
 
   async deleteBrand(id: string): Promise<void> {
