@@ -122,7 +122,7 @@ export class CategoriesController {
   @ApiParam({ name: 'id', description: '分類ID' })
   @ApiResponse({ status: 200, description: '刪除成功' })
   @ApiResponse({ status: 404, description: '分類不存在' })
-  @ApiResponse({ status: 400, description: '無法刪除有子分類或產品的分類' })
+  @ApiResponse({ status: 400, description: '無法刪除有子分類或產品關聯的分類' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.categoriesService.remove(id);
     return { message: '分類刪除成功' };

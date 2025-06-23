@@ -91,7 +91,20 @@ export class ProductVariantsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateVariantDto: UpdateVariantDto,
   ) {
-    return await this.variantsService.update(id, updateVariantDto);
+    try {
+      console.log('ProductVariantsController - 接收變體更新請求:', { id, body: updateVariantDto });
+      const result = await this.variantsService.update(id, updateVariantDto);
+      console.log('ProductVariantsController - 變體更新成功');
+      return result;
+    } catch (error) {
+      console.error('ProductVariantsController - 變體更新失敗:', {
+        error: error.message,
+        stack: error.stack,
+        variantId: id,
+        updateData: updateVariantDto
+      });
+      throw error;
+    }
   }
 
   @Post('variants/stock')
@@ -153,6 +166,37 @@ export class ProductVariantsController {
   async updateSortOrder(@Body() updates: { id: string; sortOrder: number }[]) {
     await this.variantsService.updateSortOrder(updates);
     return { message: '排序更新成功' };
+  }
+
+  @Post(':productId/variants/sku-preview')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '預覽將要生成的 SKU' })
+  @ApiParam({ name: 'productId', description: '產品ID' })
+  @ApiResponse({ status: 200, description: '預覽成功' })
+  @ApiResponse({ status: 404, description: '產品不存在' })
+  async previewSku(
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @Body() body: { specs?: Record<string, string> },
+  ) {
+    const sku = await this.variantsService.previewSku(productId, body.specs);
+    return { sku };
+  }
+
+  @Post('variants/sku/:sku/check')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '檢查 SKU 是否可用' })
+  @ApiParam({ name: 'sku', description: 'SKU' })
+  @ApiResponse({ status: 200, description: '檢查成功' })
+  async checkSkuAvailability(
+    @Param('sku') sku: string,
+    @Body() body: { productId?: string },
+  ) {
+    const isAvailable = await this.variantsService.checkSkuAvailability(sku, body.productId);
+    return { sku, isAvailable };
   }
 
   @Delete('variants/:id')

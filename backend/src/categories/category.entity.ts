@@ -57,4 +57,8 @@ export class Category {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // 關聯的產品（可選，用於查詢優化）
+  @OneToMany('Product', 'categoryRelation')
+  products: import('../products/product.entity').Product[];
 }

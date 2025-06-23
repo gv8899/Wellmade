@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCart, CartItemInput } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
 import { toast } from "react-hot-toast";
-import { ProductStatus, InventoryType, canPurchaseVariant, getCurrentPrice } from "@/types/product";
+import { ProductStatus, InventoryType, ProductVariant as GlobalProductVariant, canPurchaseVariant, getCurrentPrice } from "@/types/product";
 import ProductStatusBadge from "@/components/product/ProductStatusBadge";
 import PreorderInfo from "@/components/product/PreorderInfo";
 
@@ -13,31 +13,15 @@ export interface ProductSpecOption {
   options: string[];       // 可選項目，例如["白","黑"]
 }
 
-export interface ProductVariant {
-  id: string;
-  variantTitle?: string; // 新增：每個品項的專屬名稱
-  specs: { [specName: string]: string }; // e.g. {顏色: "白", 長度: "1.8m"}
-  price: number;
-  originalPrice?: number;
-  image: string;
-  stockStatus: StockStatus;
-  // 新增增強功能支援
-  status?: ProductStatus;
-  inventoryType?: InventoryType;
-  stock?: number;
-  preorderLimit?: number;
-  preorderSold?: number;
-  preorderStartTime?: string;
-  preorderEndTime?: string;
-  expectedShipDate?: string;
-  preorderPrice?: number;
-  preorderDescription?: string;
-  isActive?: boolean; // 新增：變體是否啟用
+// 購物頁面顯示用的變體介面，基於全域 ProductVariant 擴展顯示需求
+export interface DisplayProductVariant extends Omit<GlobalProductVariant, 'imageUrl'> {
+  image: string; // 顯示用的圖片 URL（對應全域介面的 imageUrl）
+  stockStatus: StockStatus; // 衍生的庫存狀態，用於 UI 顯示
 }
 
 export interface ProductPurchaseOptionsProps {
   title: string;
-  variants: ProductVariant[];
+  variants: DisplayProductVariant[];
   specOptions: ProductSpecOption[];
   defaultQuantity?: number;
 }
@@ -115,6 +99,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   // 調試信息
   console.log('ProductPurchaseOptions Debug:', {
     currentVariant,
+    selectedSpecs,
+    primarySpecOption,
+    variants: variants.length,
     canPurchase,
     isAddingToCart
   });
@@ -254,11 +241,19 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
         {/* 商品圖+名稱+價格+狀態 */}
         <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
           <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-            <img src={variants[0].image} alt="商品圖" className="w-full h-full object-cover rounded-md" />
+            <img 
+              src={currentVariant?.image || variants[0]?.image} 
+              alt="商品圖" 
+              className="w-full h-full object-cover rounded-md" 
+            />
           </div>
           <div className="flex flex-col items-start justify-center ml-2">
-            <div className="text-base font-semibold text-gray-800 mb-1">{variants[0].variantTitle || title}</div>
-            <div className="text-lg font-bold text-gray-800 mb-1">${currentPrice || variants[0].price}</div>
+            <div className="text-base font-semibold text-gray-800 mb-1">
+              {currentVariant?.variantTitle || title}
+            </div>
+            <div className="text-lg font-bold text-gray-800 mb-1">
+              ${currentPrice}
+            </div>
             {currentVariant?.status && (
               <ProductStatusBadge status={currentVariant.status} size="sm" />
             )}

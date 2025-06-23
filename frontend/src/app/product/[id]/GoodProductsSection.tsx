@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { getProducts } from '@/services/api';
 
 interface Product {
   id: string;
@@ -15,22 +16,33 @@ const GoodProductsSection: React.FC<{ excludeId?: string }> = ({ excludeId }) =>
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    setError("");
-    fetch("/api/mock-product/list")
-      .then(res => {
-        if (!res.ok) throw new Error("API 錯誤");
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          setProducts(excludeId ? data.filter((p: Product) => p.id !== excludeId) : data);
-        } else {
-          setError("API 回傳格式錯誤");
-        }
-      })
-      .catch(() => setError("推薦商品載入失敗，請稍後再試。"))
-      .finally(() => setLoading(false));
+    const loadProducts = async () => {
+      setLoading(true);
+      setError("");
+      
+      try {
+        const response = await getProducts({ take: 6 });
+        const filteredProducts = excludeId 
+          ? response.items.filter(p => p.id !== excludeId)
+          : response.items;
+        
+        const formattedProducts = filteredProducts.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          cover: p.imageUrl
+        }));
+        
+        setProducts(formattedProducts);
+      } catch (error) {
+        console.error('載入推薦商品失敗:', error);
+        setError("推薦商品載入失敗，請稍後再試。");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadProducts();
   }, [excludeId]);
 
   return (

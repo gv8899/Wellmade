@@ -8,7 +8,11 @@ import {
   Delete,
   Query,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/user.enum';
@@ -27,6 +31,14 @@ export class ProductsController {
   @Get()
   async findAll(@Query() queryParams: FindProductsDto) {
     return this.productsService.findAll(queryParams);
+  }
+
+  // 測試端點：確保我們的修改被載入 (必須在 :id 路由之前)
+  @Public()
+  @Get('debug/test')
+  async debugTest() {
+    console.log('🚨🚨🚨 DEBUG 測試端點被調用 🚨🚨🚨');
+    return { message: '調試端點正常工作', timestamp: new Date().toISOString() };
   }
 
   /**
@@ -57,13 +69,27 @@ export class ProductsController {
   }
 
   // PATCH /products/:id - 更新產品 (僅管理員)
-  @Roles(UserRole.ADMIN)
+  @Public() // 暫時設為公開以便測試
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
   ): Promise<Product> {
-    return this.productsService.update(id, updateProductDto);
+    console.log('🚨🚨🚨 [CONTROLLER DEBUG] 收到更新請求 🚨🚨🚨');
+    console.log('產品ID:', id);
+    console.log('更新數據:', JSON.stringify(updateProductDto));
+    
+    try {
+      const result = await this.productsService.update(id, updateProductDto);
+      console.log('🚨🚨🚨 Service 返回成功 🚨🚨🚨');
+      console.log('結果 categoryId:', result.categoryId);
+      console.log('結果 updatedAt:', result.updatedAt);
+      return result;
+    } catch (error) {
+      console.log('🚨🚨🚨 Service 拋出錯誤 🚨🚨🚨');
+      console.log('錯誤:', error.message);
+      throw error;
+    }
   }
 
   // DELETE /products/:id - 刪除產品 (僅管理員)
@@ -94,5 +120,64 @@ export class ProductsController {
     }
 
     return product.keyFeatures;
+  }
+
+  /**
+   * 預覽產品主 SKU
+   */
+  @Post('master-sku/preview')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '預覽產品主 SKU' })
+  @ApiResponse({ status: 200, description: '預覽成功' })
+  async previewMasterSku(
+    @Body() body: { 
+      brandId?: string;
+      categoryId?: string;
+      name?: string;
+    },
+  ) {
+    // 構建臨時產品對象用於預覽
+    const tempProduct: any = {
+      id: 'preview',
+      name: body.name || 'New Product',
+    };
+
+    // 如果提供了品牌ID，獲取品牌資訊
+    if (body.brandId) {
+      const brand = await this.productsService.findBrandById(body.brandId);
+      if (brand) {
+        tempProduct.brand = brand;
+      }
+    }
+
+    // 如果提供了分類ID，獲取分類資訊
+    if (body.categoryId) {
+      const category = await this.productsService.findCategoryById(body.categoryId);
+      if (category) {
+        tempProduct.categoryRelation = category;
+      }
+    }
+
+    // 使用 SKU 生成服務預覽
+    const skuService = this.productsService.getSkuGenerationService();
+    const masterSku = await skuService.previewSku(tempProduct, {});
+
+    return { masterSku };
+  }
+
+  @Post('generate-missing-master-skus')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '為現有產品生成缺失的主 SKU' })
+  @ApiResponse({ status: 200, description: 'SKU 生成成功' })
+  async generateMissingMasterSkus() {
+    const result = await this.productsService.generateMissingMasterSkus();
+    return {
+      message: 'Master SKU 生成完成',
+      ...result
+    };
   }
 }

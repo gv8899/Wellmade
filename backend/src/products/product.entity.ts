@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Brand } from '../brands/brand.entity';
 import { Category } from '../categories/category.entity';
@@ -46,6 +47,11 @@ export class Product {
   @Column()
   name: string;
 
+  // 主 SKU - 當產品沒有變體時使用
+  @Column({ nullable: true })
+  @Index({ unique: true, where: 'master_sku IS NOT NULL' })
+  masterSku: string;
+
   @Column('text')
   description: string;
 
@@ -55,12 +61,9 @@ export class Product {
   @Column('int')
   stock: number;
 
-  // 舊的分類欄位（暫時保留以便遷移）
-  @Column({ nullable: true })
-  category: string;
 
   // 分類關聯
-  @ManyToOne(() => Category, { nullable: true })
+  @ManyToOne(() => Category, category => category.products, { nullable: true })
   @JoinColumn({ name: 'categoryId' })
   categoryRelation: Category;
 
@@ -95,6 +98,10 @@ export class Product {
   @Column('jsonb', { nullable: true })
   faqs: FAQItem[];
 
+  // 產品規格模板 (定義此產品有哪些規格項目，例如：["顏色", "尺寸"])
+  @Column('jsonb', { nullable: true, default: () => "'[]'" })
+  specTemplate: string[];
+
   // 商品狀態（是否啟用）
   @Column({ default: true })
   isActive: boolean;
@@ -116,11 +123,7 @@ export class Product {
   updatedAt: Date;
 
   // 產品變體
-  @OneToMany(() => {
-    // 延遲載入以避免循環依賴
-    const { ProductVariant } = require('./product-variant.entity');
-    return ProductVariant;
-  }, (variant: any) => variant.product)
+  @OneToMany('ProductVariant', 'product', { cascade: false, eager: false })
   variants: ProductVariant[];
 
   // === 計算屬性 ===
@@ -206,5 +209,40 @@ export class Product {
     }
 
     return Math.max(...availableVariants.map(v => v.getCurrentPrice()));
+  }
+
+  /**
+   * 獲取有效的 SKU
+   * 如果有變體，返回變體的 SKU 列表
+   * 如果沒有變體，返回主 SKU
+   */
+  getSkus(): string[] {
+    if (this.variants && this.variants.length > 0) {
+      return this.variants
+        .filter(v => v.isActive && v.sku)
+        .map(v => v.sku);
+    }
+    
+    return this.masterSku ? [this.masterSku] : [];
+  }
+
+  /**
+   * 檢查產品是否有有效的 SKU
+   */
+  hasValidSku(): boolean {
+    if (this.variants && this.variants.length > 0) {
+      // 有變體時，檢查是否有任何變體有 SKU
+      return this.variants.some(v => v.isActive && v.sku);
+    }
+    
+    // 沒有變體時，檢查主 SKU
+    return !!this.masterSku;
+  }
+
+  /**
+   * 是否為簡單產品（沒有變體）
+   */
+  isSimpleProduct(): boolean {
+    return !this.variants || this.variants.length === 0;
   }
 }

@@ -26,8 +26,10 @@ const updateFAQs = async () => {
 
     const productRepository = AppDataSource.getRepository(Product);
 
-    // 獲取所有產品
-    const products = await productRepository.find();
+    // 獲取所有產品（包含分類關聯）
+    const products = await productRepository.find({
+      relations: ['categoryRelation']
+    });
 
     if (products.length === 0) {
       console.log('沒有找到產品資料');
@@ -152,10 +154,11 @@ const updateFAQs = async () => {
       );
 
       // 添加1-2個類別特定問題（如果有）
-      if (categorySpecificFAQs[product.category]) {
+      const categorySlug = product.categoryRelation?.slug;
+      if (categorySlug && categorySpecificFAQs[categorySlug]) {
         const categoryFAQCount = Math.floor(Math.random() * 2) + 1; // 1-2個
         const shuffledCategoryFAQs = [
-          ...categorySpecificFAQs[product.category],
+          ...categorySpecificFAQs[categorySlug],
         ].sort(() => 0.5 - Math.random());
         productFAQs = productFAQs.concat(
           shuffledCategoryFAQs.slice(0, categoryFAQCount),

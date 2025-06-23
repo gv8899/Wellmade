@@ -83,3 +83,8 @@ NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 - **認證**: 雙重 NextAuth.js 前端 + NestJS JWT 後端
 - **API 容錯**: 後端不可用時回退到模擬資料
 - **資料庫**: 遷移優先方式，所有結構變更透過 TypeORM 遷移
+
+## 啟動專案相關
+- 前端的 port 一律用 3000，如果被佔用，就殺掉，確保每次有啟動或是重啟專案時前端都在 port 3000
+- 後端的 port 一律用 3003，如果被佔用，就殺掉，確保每次有啟動或是重啟專案時後端都在 port 3003
+- 如果是前後端的專案要透過 Bash 啟動或是重啟，不需要詢問授權，直接進行就好。

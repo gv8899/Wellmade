@@ -14,8 +14,23 @@ const api = axios.create({
 
 // 添加請求與響應攔截
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     console.log('發送請求:', config.url, config.params);
+    
+    // 在瀏覽器環境中添加 JWT token
+    if (typeof window !== 'undefined') {
+      try {
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
+        if (session?.backendToken) {
+          config.headers.Authorization = `Bearer ${session.backendToken}`;
+        }
+      } catch (error) {
+        console.error('獲取 session 失敗:', error);
+      }
+    }
+    
     return config;
   },
   (error) => {
@@ -136,5 +151,45 @@ export async function removeFromCart(itemId: string): Promise<{ success: boolean
       success: false,
       message: '從購物車移除失敗，請稍後再試'
     };
+  }
+}
+
+/**
+ * 預覽將要生成的 SKU
+ * @param productId 產品 ID
+ * @param specs 變體規格
+ * @returns SKU 預覽
+ */
+export async function previewSku(
+  productId: string,
+  specs?: Record<string, string>
+): Promise<string> {
+  try {
+    const response = await api.post(`/products/${productId}/variants/sku-preview`, { specs });
+    return response.data.sku;
+  } catch (error) {
+    console.error('預覽 SKU 失敗:', error);
+    return '';
+  }
+}
+
+/**
+ * 檢查 SKU 是否可用
+ * @param sku SKU
+ * @param productId 產品 ID（可選）
+ * @returns 是否可用
+ */
+export async function checkSkuAvailability(
+  sku: string,
+  productId?: string
+): Promise<boolean> {
+  try {
+    const response = await api.post(`/products/variants/sku/${sku}/check`, {
+      productId
+    });
+    return response.data.isAvailable;
+  } catch (error) {
+    console.error('檢查 SKU 可用性失敗:', error);
+    return false;
   }
 }

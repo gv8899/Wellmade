@@ -32,9 +32,6 @@ export class CreateProductDto {
   @Min(0)
   stock: number;
 
-  @IsString()
-  @IsOptional()
-  category?: string; // 保留以支援舊API，但設為可選
 
   @IsString()
   @IsOptional()
@@ -43,6 +40,14 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   brandId?: string;
+
+  @IsString()
+  @IsOptional()
+  masterSku?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  autoGenerateMasterSku?: boolean;
 
   @IsString()
   @IsOptional()
@@ -77,6 +82,11 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => FAQItemDto)
   faqs?: FAQItem[];
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  specTemplate?: string[];
 
   @IsArray()
   @IsOptional()

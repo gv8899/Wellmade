@@ -2,8 +2,10 @@ import { DataSource } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Brand } from '../brands/brand.entity';
 import { Product } from '../products/product.entity';
+import { ProductVariant } from '../products/product-variant.entity';
 import { Cart } from '../carts/entities/cart.entity';
 import { CartItem } from '../carts/entities/cart-item.entity';
+import { Category } from '../categories/category.entity';
 import { seedAdminUser } from './admin-user.seed';
 
 // 使用環境變數或預設值
@@ -14,7 +16,7 @@ const dataSource = new DataSource({
   username: process.env.DB_USER || 'wellmade_user',
   password: process.env.DB_PASSWORD || 'your_password',
   database: process.env.DB_NAME || 'wellmade',
-  entities: [User, Brand, Product, Cart, CartItem],
+  entities: [User, Brand, Product, ProductVariant, Cart, CartItem, Category],
   synchronize: false, // 不要自動同步，使用遷移
 });
 

@@ -11,6 +11,9 @@ interface ProductHeroProps {
   onSecondaryAction?: () => void;
   primaryText?: string;
   secondaryText?: string;
+  // 變體圖片相關
+  variantImages?: string[];
+  onImageChange?: (imageUrl: string) => void;
 }
 
 const ProductHero: React.FC<ProductHeroProps> = ({
@@ -21,7 +24,9 @@ const ProductHero: React.FC<ProductHeroProps> = ({
   onPrimaryAction,
   onSecondaryAction,
   primaryText = "立即購買",
-  secondaryText = "了解更多"
+  secondaryText = "了解更多",
+  variantImages = [],
+  onImageChange
 }) => {
   return (
     <section className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden">
@@ -54,6 +59,35 @@ const ProductHero: React.FC<ProductHeroProps> = ({
         )}
 
       </div>
+
+      {/* 變體圖片選擇器 */}
+      {variantImages.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
+            <div className="flex gap-2">
+              {variantImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => onImageChange?.(image)}
+                  className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                    image === imageUrl 
+                      ? 'border-blue-500 ring-2 ring-blue-200' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Image
+                    src={image}
+                    alt={`變體圖片 ${index + 1}`}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

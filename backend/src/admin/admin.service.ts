@@ -16,6 +16,7 @@ import { UpdateBrandDto } from '../brands/dto/update-brand.dto';
 import { FindProductsDto } from '../products/dto/find-products.dto';
 import { UserRole } from '../users/user.enum';
 import { UploadService } from './upload.service';
+import { ProductVariantsService } from '../products/product-variants.service';
 
 @Injectable()
 export class AdminService {
@@ -29,6 +30,7 @@ export class AdminService {
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     private uploadService: UploadService,
+    private variantsService: ProductVariantsService,
   ) {}
 
   // ========== 產品管理 ==========
@@ -49,16 +51,13 @@ export class AdminService {
 
     // 處理分類篩選，支援新舊兩種方式
     if (category) {
-      // 先嘗試用slug查詢分類
+      // 用slug查詢分類
       const categoryEntity = await this.categoryRepository.findOne({
         where: { slug: category }
       });
       
       if (categoryEntity) {
         whereConditions.categoryId = categoryEntity.id;
-      } else {
-        // 向後相容：如果找不到對應的分類，使用舊的category欄位
-        whereConditions.category = category;
       }
     }
 
@@ -95,38 +94,77 @@ export class AdminService {
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
+    console.log('AdminService - Creating product with data:', createProductDto);
+    
     // 檢查品牌是否存在
     if (createProductDto.brandId) {
       const brand = await this.brandRepository.findOne({
         where: { id: createProductDto.brandId },
       });
       if (!brand) {
-        throw new NotFoundException(
-          `Brand with ID ${createProductDto.brandId} not found`,
+        console.error(`Brand with ID ${createProductDto.brandId} not found`);
+        throw new BadRequestException(
+          `品牌不存在 (ID: ${createProductDto.brandId})`,
         );
       }
     }
 
     // 檢查分類是否存在
     if (createProductDto.categoryId) {
+      console.log('AdminService - 檢查分類 ID:', createProductDto.categoryId);
       const category = await this.categoryRepository.findOne({
         where: { id: createProductDto.categoryId },
       });
       if (!category) {
-        throw new NotFoundException(
-          `Category with ID ${createProductDto.categoryId} not found`,
+        console.error(`Category with ID ${createProductDto.categoryId} not found`);
+        
+        // 列出所有可用的分類來幫助調試
+        const allCategories = await this.categoryRepository.find({ 
+          select: ['id', 'name', 'isActive'] 
+        });
+        console.log('AdminService - 所有可用分類:', allCategories);
+        
+        throw new BadRequestException(
+          `分類不存在 (ID: ${createProductDto.categoryId})`,
         );
       }
+      console.log('AdminService - Category validation passed:', category.name);
+    } else {
+      console.error('AdminService - categoryId is required but not provided');
+      throw new BadRequestException('請選擇產品分類');
     }
 
-    const product = this.productRepository.create(createProductDto);
-    const savedProduct = await this.productRepository.save(product);
-    
-    // 重新載入關聯資料以確保返回完整的產品資訊
-    return this.productRepository.findOne({
-      where: { id: savedProduct.id },
-      relations: ['brand', 'categoryRelation'],
-    });
+    try {
+      // 分離變體資料和主 SKU 設定，像 Products Service 一樣處理
+      const { variants, autoGenerateMasterSku, ...productDataWithoutVariants } = createProductDto;
+      console.log('AdminService - 分離變體資料:', { 
+        hasVariants: variants?.length > 0, 
+        variantCount: variants?.length || 0,
+        autoGenerateMasterSku 
+      });
+      
+      const product = this.productRepository.create(productDataWithoutVariants);
+      const savedProduct = await this.productRepository.save(product);
+      console.log('AdminService - Product created successfully:', savedProduct.id);
+      
+      // 如果有變體資料，創建變體
+      if (variants && variants.length > 0) {
+        console.log('AdminService - 開始創建變體...');
+        await this.variantsService.createBulk(savedProduct.id, variants);
+        console.log('AdminService - 變體創建完成');
+      } else {
+        console.log('AdminService - 沒有變體資料，跳過變體創建');
+      }
+      
+      // 重新載入關聯資料以確保返回完整的產品資訊
+      return this.productRepository.findOne({
+        where: { id: savedProduct.id },
+        relations: ['brand', 'categoryRelation', 'variants'],
+      });
+    } catch (error) {
+      console.error('AdminService - Error creating product:', error);
+      throw new BadRequestException('創建產品時發生錯誤，請檢查資料格式');
+    }
   }
 
   async updateProduct(
@@ -137,6 +175,10 @@ export class AdminService {
       updateData: updateProductDto,
       categoryId: updateProductDto.categoryId
     });
+
+    // 排除變體欄位，變體應該通過專門的變體 API 管理
+    const { variants, autoGenerateMasterSku, ...cleanUpdateData } = updateProductDto;
+    console.log('Admin Service - 已排除變體欄位，純產品數據:', cleanUpdateData);
 
     // 檢查產品是否存在
     const existingProduct = await this.productRepository.findOne({
@@ -154,44 +196,44 @@ export class AdminService {
     });
 
     // 如果更新品牌ID，檢查品牌是否存在
-    if (updateProductDto.brandId) {
+    if (cleanUpdateData.brandId) {
       const brand = await this.brandRepository.findOne({
-        where: { id: updateProductDto.brandId },
+        where: { id: cleanUpdateData.brandId },
       });
       if (!brand) {
         throw new NotFoundException(
-          `Brand with ID ${updateProductDto.brandId} not found`,
+          `Brand with ID ${cleanUpdateData.brandId} not found`,
         );
       }
     }
 
     // 如果更新分類ID，檢查分類是否存在
-    if (updateProductDto.categoryId !== undefined) {
-      if (updateProductDto.categoryId && updateProductDto.categoryId.trim() !== '') {
+    if (cleanUpdateData.categoryId !== undefined) {
+      if (cleanUpdateData.categoryId && cleanUpdateData.categoryId.trim() !== '') {
         const category = await this.categoryRepository.findOne({
-          where: { id: updateProductDto.categoryId },
+          where: { id: cleanUpdateData.categoryId },
         });
         if (!category) {
           throw new NotFoundException(
-            `Category with ID ${updateProductDto.categoryId} not found`,
+            `Category with ID ${cleanUpdateData.categoryId} not found`,
           );
         }
       } else {
         // 如果 categoryId 為空字串或 null，清除分類關聯
-        updateProductDto.categoryId = null;
+        cleanUpdateData.categoryId = null;
       }
     }
 
     console.log(`Admin Service - Before QueryBuilder update:`, {
       id,
-      updateData: updateProductDto
+      updateData: cleanUpdateData
     });
 
-    // 使用 QueryBuilder 強制更新 categoryId
+    // 使用 QueryBuilder 強制更新 categoryId（排除變體欄位）
     const updateResult = await this.productRepository
       .createQueryBuilder()
       .update(Product)
-      .set(updateProductDto)
+      .set(cleanUpdateData)
       .where("id = :id", { id })
       .execute();
 

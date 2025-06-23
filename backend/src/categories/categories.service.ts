@@ -5,12 +5,15 @@ import { Category } from './category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
+import { Product } from '../products/product.entity';
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
   // 創建分類
@@ -186,7 +189,13 @@ export class CategoriesService {
     }
 
     // 檢查是否有產品使用此分類
-    // 這裡需要等產品實體更新後再加入檢查邏輯
+    const productCount = await this.productRepository.count({
+      where: { categoryId: id }
+    });
+
+    if (productCount > 0) {
+      throw new BadRequestException('無法刪除有產品關聯的分類，請先將產品移至其他分類或刪除產品');
+    }
 
     await this.categoryRepository.remove(category);
   }

@@ -12,6 +12,7 @@ import { CartsModule } from './carts/carts.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { LogsModule } from './logs/logs.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -29,6 +30,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     AdminModule,
     CategoriesModule,
     UploadsModule,
+    LogsModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {

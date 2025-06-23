@@ -64,6 +64,17 @@ async function bootstrap() {
       transform: true, // 自動轉換類型，例如將字符串轉換為數字
       disableErrorMessages: false, // 確保錯誤信息被返回
       validationError: { target: false },
+      exceptionFactory: (errors) => {
+        const messages = errors.map(error => {
+          const constraints = error.constraints || {};
+          const property = error.property;
+          const value = error.value;
+          console.error(`驗證錯誤 - 屬性: ${property}, 值: ${value}, 約束: ${JSON.stringify(constraints)}`);
+          return `${property}: ${Object.values(constraints).join(', ')}`;
+        });
+        const { BadRequestException } = require('@nestjs/common');
+        return new BadRequestException(messages);
+      },
     }),
   );
 

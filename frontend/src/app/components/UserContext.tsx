@@ -4,6 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { User, UserRole } from "@/types/auth";
 import { parseJWT, hasRole, isAdmin, canEdit } from "@/utils/auth";
+import { logger } from "@/utils/logger";
 
 interface UserContextType {
   user: User | null;
@@ -67,6 +68,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       console.log('UserContext: Setting user data:', userData);
       setUser(userData);
       
+      // 設置日誌器的用戶ID
+      if (userData.id) {
+        logger.setUserId(userData.id);
+        // 不記錄用戶登入到後端，這是正常業務流程，不是錯誤
+        if (process.env.NODE_ENV === 'development') {
+          console.log('👤 用戶登入:', { userId: userData.id, email: userData.email });
+        }
+      }
+      
       // 檢查是否是新登入的會話（透過localStorage標記來判斷）
       const hasShownLoginToast = localStorage.getItem('hasShownLoginToast');
       if (!hasShownLoginToast) {
@@ -94,6 +104,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   
   // 登出時同時調用 NextAuth 的 signOut
   const logout = async () => {
+    const currentUserId = user?.id;
+    // 不記錄用戶登出到後端，這是正常業務流程，不是錯誤
+    if (process.env.NODE_ENV === 'development') {
+      console.log('👤 用戶登出:', { userId: currentUserId });
+    }
+    
     setUser(null);
     await signOut({ redirect: false }); // 不自動重定向，讓應用自行處理導航
     toast.success('已成功登出', {

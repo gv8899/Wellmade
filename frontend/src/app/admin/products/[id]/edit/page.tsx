@@ -46,13 +46,22 @@ export default function EditProductPage() {
     try {
       setLoading(true);
       console.log("更新產品資料:", productData);
-      await adminApi.updateProduct(productId, productData);
+      const updatedProduct = await adminApi.updateProduct(productId, productData);
+      
+      // 更新本地的產品資料，確保頁面顯示最新資訊
+      setProduct(updatedProduct);
+      
       toast.success("產品更新成功");
-      router.push("/admin/products");
+      
+      // 可選：是否自動跳轉回列表頁，或保持在編輯頁面
+      // router.push("/admin/products");
+      
+      return updatedProduct; // 返回更新的產品供 ProductForm 處理變體
     } catch (error) {
       console.error("Failed to update product:", error);
       console.error("錯誤詳情:", error.response?.data);
       toast.error(`更新產品失敗: ${error.response?.data?.message || error.message}`);
+      throw error; // 重新拋出錯誤讓 ProductForm 能捕獲
     } finally {
       setLoading(false);
     }

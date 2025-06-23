@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { adminApi, Product } from "@/services/admin";
-import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaSearch, FaBoxes } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 export default function AdminProductsPage() {
@@ -142,6 +142,9 @@ export default function AdminProductsPage() {
                       產品
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      SKU
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       分類
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -186,8 +189,20 @@ export default function AdminProductsPage() {
                           </div>
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {product.masterSku || (product.variants && product.variants.length > 0 ? (
+                          <span className="text-gray-500">
+                            {product.variants.length} 個變體
+                          </span>
+                        ) : (
+                          <span className="text-red-600 font-medium flex items-center gap-1">
+                            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            無 SKU
+                          </span>
+                        ))}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {product.category}
+                        {product.categoryRelation?.name || '未分類'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPrice(product.price)}

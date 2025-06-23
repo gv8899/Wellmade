@@ -13,6 +13,63 @@ import {
 } from "@/types/cart";
 import { ProductStatus, InventoryType, canPurchaseVariant, getCurrentPrice } from "@/types/product";
 
+// 工具函數：驗證 UUID 格式
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+// 工具函數：從購物車項目 ID 中提取 productId 和 variantId
+function extractProductInfo(itemId: string): { productId: string | null; variantId: string | null } {
+  if (!itemId || typeof itemId !== 'string') {
+    return { productId: null, variantId: null };
+  }
+
+  // 情況1：直接是 UUID（例如：产品ID）
+  if (isValidUUID(itemId)) {
+    return { productId: itemId, variantId: null };
+  }
+
+  // 情況2：格式為 productId_specs 或 productId_variantId
+  const parts = itemId.split('_');
+  const potentialProductId = parts[0];
+  
+  if (isValidUUID(potentialProductId)) {
+    // 如果第一部分是有效 UUID，檢查第二部分是否也是 UUID（變體ID）
+    const potentialVariantId = parts[1];
+    if (potentialVariantId && isValidUUID(potentialVariantId)) {
+      return { productId: potentialProductId, variantId: potentialVariantId };
+    }
+    return { productId: potentialProductId, variantId: null };
+  }
+
+  // 情況3：舊格式或無效格式
+  console.warn(`無法從 ID 中提取有效的 productId: ${itemId}`);
+  return { productId: null, variantId: null };
+}
+
+// 工具函數：清理購物車中的無效項目
+function cleanInvalidCartItems(items: CartItem[]): CartItem[] {
+  const validItems: CartItem[] = [];
+  const invalidItems: CartItem[] = [];
+
+  for (const item of items) {
+    const { productId } = extractProductInfo(item.id);
+    if (productId && isValidUUID(productId)) {
+      validItems.push(item);
+    } else {
+      invalidItems.push(item);
+    }
+  }
+
+  if (invalidItems.length > 0) {
+    console.warn(`[CART_CLEANUP] 清理了 ${invalidItems.length} 項無效商品:`, 
+      invalidItems.map(item => ({ id: item.id, name: item.name }))
+    );
+  }
+
+  return validItems;
+}
 
 export interface CartItemInput extends Omit<CartItem, "quantity"> {
   quantity?: number; // 可選的數量參數
@@ -176,7 +233,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'Session 或 Token 不存在' };
       }
       
-      const localCart = localCartStorage.getCart();
+      const rawLocalCart = localCartStorage.getCart();
+      
+      // 清理無效的購物車項目
+      const localCart = cleanInvalidCartItems(rawLocalCart);
+      
+      // 如果清理後有變化，更新本地存儲
+      if (localCart.length !== rawLocalCart.length) {
+        localCartStorage.saveCart(localCart);
+        toast.info(`已清理 ${rawLocalCart.length - localCart.length} 項無效商品`);
+      }
       
       if (localCart.length > 0) {
         // 有本地購物車，需要合併
@@ -187,11 +253,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         
         for (const item of localCart) {
           try {
-            // 修復關鍵錯誤：正確提取 productId 和 variantId
-            const idParts = item.id.split('_');
-            const productId = idParts[0];
-            // 如果有變體資訊，variantId 是第二部分，否則為 undefined
-            const variantId = idParts.length > 1 ? idParts[1] : undefined;
+            // 修復關鍵錯誤：健壯的 productId 和 variantId 提取
+            const { productId, variantId } = extractProductInfo(item.id);
+            
+            // 跳過無效的商品 ID
+            if (!productId || !isValidUUID(productId)) {
+              console.warn(`[LOGIN_SYNC] 跳過無效商品 ID: ${item.id}，商品名: ${item.name}`);
+              failedItems.push(item);
+              continue;
+            }
             
             console.log(`[LOGIN_SYNC] 準備合併商品:`, {
               原始ID: item.id,

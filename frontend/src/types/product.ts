@@ -42,6 +42,9 @@ export interface ProductVariant {
   preorderPrice?: number;
   preorderDescription?: string;
   
+  // SKU 生成相關
+  autoGenerateSku?: boolean;
+  
   createdAt: string;
   updatedAt: string;
 }
@@ -55,10 +58,10 @@ export type PriceRange =
 export interface EnhancedProduct {
   id: string;
   name: string;
+  masterSku?: string;
   description: string;
   price: number;
   stock: number;
-  category: string;
   imageUrl: string;
   images: string[];
   isActive: boolean;

@@ -13,6 +13,7 @@ export default function AdminCategoriesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCategories, setTotalCategories] = useState(0);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const fetchCategories = async () => {
     try {
@@ -63,17 +64,67 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    // 設置載入狀態
+    setDeleteLoading(categoryId);
+
     try {
       await categoryApi.delete(categoryId);
-      toast.success("分類已刪除");
+      toast.success(`分類 "${categoryName}" 已成功刪除`);
       fetchCategories();
     } catch (error: any) {
       console.error("Failed to delete category:", error);
-      if (error.response?.status === 400) {
-        toast.error("無法刪除有子分類的分類");
+      
+      // 處理網路錯誤
+      if (!error.response) {
+        toast.error("網路連線錯誤，請檢查網路狀態後重試");
       } else {
-        toast.error("刪除分類失敗");
+
+      const status = error.response.status;
+      const errorMessage = error.response?.data?.message || error.message || "未知錯誤";
+
+      switch (status) {
+        case 400:
+          // 業務邏輯錯誤
+          if (errorMessage.includes('子分類') || errorMessage.includes('children')) {
+            toast.error("無法刪除含有子分類的分類，請先刪除所有子分類");
+          } else if (errorMessage.includes('產品') || errorMessage.includes('product')) {
+            toast.error("無法刪除有產品關聯的分類，請先將產品移至其他分類或刪除相關產品");
+          } else if (errorMessage.includes('constraint') || errorMessage.includes('foreign key')) {
+            toast.error("無法刪除此分類，因為存在相關聯的資料");
+          } else {
+            toast.error(`刪除失敗：${errorMessage}`);
+          }
+          break;
+          
+        case 401:
+          toast.error("身份驗證失敗，請重新登入");
+          break;
+          
+        case 403:
+          toast.error("您沒有權限執行此操作");
+          break;
+          
+        case 404:
+          toast.error("找不到要刪除的分類，可能已被其他用戶刪除");
+          // 重新載入分類列表
+          fetchCategories();
+          break;
+          
+        case 409:
+          toast.error("分類正在被其他操作使用中，請稍後再試");
+          break;
+          
+        case 500:
+          toast.error("伺服器內部錯誤，請稍後再試或聯繫系統管理員");
+          break;
+          
+        default:
+          toast.error(`刪除失敗 (錯誤代碼: ${status})：${errorMessage}`);
       }
+      }
+    } finally {
+      // 清除載入狀態
+      setDeleteLoading(null);
     }
   };
 
@@ -127,10 +178,19 @@ export default function AdminCategoriesPage() {
             </button>
             <button
               onClick={() => handleDeleteCategory(category.id, category.name)}
-              className="text-red-600 hover:text-red-900"
-              title="刪除"
+              disabled={deleteLoading === category.id}
+              className={`${
+                deleteLoading === category.id 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-red-600 hover:text-red-900'
+              }`}
+              title={deleteLoading === category.id ? "刪除中..." : "刪除"}
             >
-              <FaTrash className="w-4 h-4" />
+              {deleteLoading === category.id ? (
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FaTrash className="w-4 h-4" />
+              )}
             </button>
           </div>
         </td>
@@ -286,10 +346,19 @@ export default function AdminCategoriesPage() {
                             </button>
                             <button
                               onClick={() => handleDeleteCategory(category.id, category.name)}
-                              className="text-red-600 hover:text-red-900"
-                              title="刪除"
+                              disabled={deleteLoading === category.id}
+                              className={`${
+                                deleteLoading === category.id 
+                                  ? 'text-gray-400 cursor-not-allowed' 
+                                  : 'text-red-600 hover:text-red-900'
+                              }`}
+                              title={deleteLoading === category.id ? "刪除中..." : "刪除"}
                             >
-                              <FaTrash className="w-4 h-4" />
+                              {deleteLoading === category.id ? (
+                                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <FaTrash className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </td>

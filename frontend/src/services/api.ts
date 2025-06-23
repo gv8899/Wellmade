@@ -109,7 +109,14 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
-  category: string;
+  category?: string; // 舊分類（向後相容）
+  categoryId?: string; // 新分類ID
+  categoryRelation?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+  }; // 新分類關聯
   imageUrl: string;
   images: string[];
   isActive: boolean;
@@ -120,6 +127,20 @@ export interface Product {
   faqs?: FAQItem[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+/**
+ * 分類介面
+ */
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isActive: boolean;
+  parentId?: string;
+  parent?: Category;
+  children?: Category[];
 }
 
 /**
@@ -154,15 +175,142 @@ export const getProducts = async (params: ProductQueryParams = {}): Promise<Page
     return response.data;
   } catch (error) {
     console.error('獲取產品列表失敗:', error);
+    throw error;
+  }
+};
+
+/**
+ * 獲取增強的產品列表（包含變體價格範圍信息）
+ * @param params 查詢參數
+ */
+export const getEnhancedProducts = async (params: ProductQueryParams = {}): Promise<PagedResult<import('@/types/product').EnhancedProduct>> => {
+  try {
+    // 首先獲取基本產品列表
+    const productsResponse = await getProducts(params);
     
-    // 出錯時使用模擬資料
-    console.warn('使用模擬產品資料');
-    const mockResponse = await fetch('/api/mock-product/list');
-    const mockData = await mockResponse.json();
+    // 為每個產品計算增強信息
+    const enhancedProducts = await Promise.all(
+      productsResponse.items.map(async (product) => {
+        try {
+          // 嘗試從詳細產品信息中獲取變體
+          const detailedProduct = await getProductById(product.id);
+          
+          // 計算價格範圍
+          let priceRange: import('@/types/product').PriceRange;
+          let availableVariantsCount = 0;
+          
+          if (detailedProduct.variants && detailedProduct.variants.length > 0) {
+            const activePrices = detailedProduct.variants
+              .filter(v => v.isActive)
+              .map(v => import('@/types/product').getCurrentPrice(v));
+            
+            if (activePrices.length > 0) {
+              const minPrice = Math.min(...activePrices);
+              const maxPrice = Math.max(...activePrices);
+              
+              priceRange = minPrice === maxPrice 
+                ? { price: minPrice }
+                : { minPrice, maxPrice };
+              
+              availableVariantsCount = detailedProduct.variants.filter(v => 
+                v.isActive && import('@/types/product').canPurchaseVariant(v)
+              ).length;
+            } else {
+              priceRange = { price: product.price };
+            }
+          } else {
+            priceRange = { price: product.price };
+            availableVariantsCount = 1;
+          }
+          
+          // 構建增強產品對象
+          const enhancedProduct: import('@/types/product').EnhancedProduct = {
+            id: product.id,
+            name: product.name,
+            masterSku: product.masterSku,
+            description: product.description,
+            price: product.price,
+            stock: product.stock,
+            category: getProductCategoryName(product),
+            imageUrl: product.imageUrl,
+            images: product.images || [],
+            isActive: product.isActive,
+            status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+            brandId: product.brandId,
+            brand: product.brand,
+            categoryRelation: product.categoryRelation,
+            variants: detailedProduct.variants,
+            keyFeatures: product.keyFeatures,
+            featureDetails: product.featureDetails,
+            faqs: product.faqs,
+            overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+            priceRange,
+            availableVariantsCount,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt
+          };
+          
+          return enhancedProduct;
+        } catch (error) {
+          console.warn(`無法獲取產品 ${product.id} 的詳細信息，使用基本信息:`, error);
+          
+          // 如果無法獲取詳細信息，使用基本產品信息構建增強對象
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            stock: product.stock,
+            category: getProductCategoryName(product),
+            imageUrl: product.imageUrl,
+            images: product.images || [],
+            isActive: product.isActive,
+            status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+            brandId: product.brandId,
+            brand: product.brand,
+            categoryRelation: product.categoryRelation,
+            overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+            priceRange: { price: product.price },
+            availableVariantsCount: 1,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt
+          } as import('@/types/product').EnhancedProduct;
+        }
+      })
+    );
     
     return {
-      items: mockData.products,
-      total: mockData.products.length
+      items: enhancedProducts,
+      total: productsResponse.total
+    };
+  } catch (error) {
+    console.error('獲取增強產品列表失敗:', error);
+    // 回退到基本產品列表
+    const basicProducts = await getProducts(params);
+    const enhancedProducts = basicProducts.items.map(product => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      category: getProductCategoryName(product),
+      imageUrl: product.imageUrl,
+      images: product.images || [],
+      isActive: product.isActive,
+      status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+      brandId: product.brandId,
+      brand: product.brand,
+      categoryRelation: product.categoryRelation,
+      overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+      priceRange: { price: product.price },
+      availableVariantsCount: 1,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    } as import('@/types/product').EnhancedProduct));
+    
+    return {
+      items: enhancedProducts,
+      total: basicProducts.total
     };
   }
 };
@@ -177,13 +325,7 @@ export const getProductById = async (id: string): Promise<Product> => {
     return response.data;
   } catch (error) {
     console.error(`獲取產品 ${id} 詳情失敗:`, error);
-    
-    // 出錯時嘗試從模擬資料獲取
-    console.warn('使用模擬產品資料');
-    const mockResponse = await fetch(`/api/mock-product/${id}`);
-    const mockData = await mockResponse.json();
-    
-    return mockData;
+    throw error;
   }
 };
 
@@ -229,6 +371,70 @@ export const getBrands = async (): Promise<Brand[]> => {
 export const getBrandById = async (id: string): Promise<Brand> => {
   const response = await api.get(`/brands/${id}`);
   return response.data;
+};
+
+/**
+ * 獲取分類列表（包含樹狀結構）
+ */
+export const getCategories = async (): Promise<Category[]> => {
+  try {
+    const response = await api.get('/categories/tree');
+    return response.data;
+  } catch (error) {
+    console.error('獲取分類列表失敗:', error);
+    // 回退到基本的分類列表
+    try {
+      const response = await api.get('/categories');
+      return response.data;
+    } catch (fallbackError) {
+      console.error('獲取基本分類列表也失敗:', fallbackError);
+      return [];
+    }
+  }
+};
+
+/**
+ * 獲取啟用的分類列表（用於前台篩選）
+ */
+export const getActiveCategories = async (): Promise<Category[]> => {
+  try {
+    const categories = await getCategories();
+    return categories.filter(cat => cat.isActive);
+  } catch (error) {
+    console.error('獲取啟用分類失敗:', error);
+    return [];
+  }
+};
+
+/**
+ * 獲取產品的分類名稱（優先使用新的分類系統）
+ * @param product 產品物件
+ * @returns 分類名稱
+ */
+export const getProductCategoryName = (product: Product): string => {
+  // 優先使用新的分類關聯
+  if (product.categoryRelation?.name) {
+    return product.categoryRelation.name;
+  }
+  
+  
+  // 預設值
+  return '未分類';
+};
+
+/**
+ * 獲取產品的分類Slug（用於篩選）
+ * @param product 產品物件
+ * @returns 分類slug
+ */
+export const getProductCategorySlug = (product: Product): string => {
+  // 優先使用新的分類關聯
+  if (product.categoryRelation?.slug) {
+    return product.categoryRelation.slug;
+  }
+  
+  
+  return '';
 };
 
 // 導出默認的 api 實例

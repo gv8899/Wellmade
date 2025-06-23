@@ -4,7 +4,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 // 從 API 服務引入類型和方法
-import { Product, getProducts, ProductQueryParams } from "@/services/api";
+import { Product, getProducts, getEnhancedProducts, ProductQueryParams, getActiveCategories, getProductCategoryName, getProductCategorySlug, Category } from "@/services/api";
 import { EnhancedProduct, formatPriceRange } from "@/types/product";
 import ProductStatusBadge from "@/components/product/ProductStatusBadge";
 import ProductPriceDisplay from "@/components/product/ProductPriceDisplay";
@@ -33,6 +33,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalProducts, setTotalProducts] = useState(0);
+  
+  // 分類資料
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   
   // 分頁控制
   const [currentPage, setCurrentPage] = useState(0);
@@ -63,30 +67,43 @@ export default function Home() {
       }
       
       try {
-        // 呼叫 API 服務
-        const response = await getProducts(queryParams);
-        
-        // 將後端資料格式轉換為前端顯示格式
-        const displayProducts: DisplayProduct[] = response.items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          description: item.description,
-          cover: item.imageUrl, // 使用 imageUrl 作為主圖
-          category: item.category,
-        }));
-        
-        // 嘗試獲取增強的產品信息，如果失敗則使用基本信息
+        // 優先嘗試獲取增強產品信息
         try {
-          // 這裡應該調用新的 API 來獲取包含狀態信息的產品
-          // 暫時使用基本產品信息，待後端 API 更新後再調整
-          setEnhancedProducts([]);
+          const enhancedResponse = await getEnhancedProducts(queryParams);
+          setEnhancedProducts(enhancedResponse.items);
+          
+          // 也設置基本產品信息用於回退顯示
+          const displayProducts: DisplayProduct[] = enhancedResponse.items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            cover: item.imageUrl,
+            category: item.category,
+          }));
+          
+          setProducts(displayProducts);
+          setTotalProducts(enhancedResponse.total);
         } catch (enhancedError) {
-          console.warn('無法獲取增強產品信息，使用基本顯示:', enhancedError);
+          console.warn('無法獲取增強產品信息，回退到基本產品列表:', enhancedError);
+          
+          // 回退到基本產品 API
+          const response = await getProducts(queryParams);
+          
+          // 將後端資料格式轉換為前端顯示格式
+          const displayProducts: DisplayProduct[] = response.items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            cover: item.imageUrl, // 使用 imageUrl 作為主圖
+            category: getProductCategoryName(item), // 使用新的分類顯示函數
+          }));
+          
+          setProducts(displayProducts);
+          setEnhancedProducts([]); // 清空增強信息
+          setTotalProducts(response.total);
         }
-        
-        setProducts(displayProducts);
-        setTotalProducts(response.total);
       } catch (err: any) {
         setError(err.message || "商品資料載入失敗，請稍後再試。");
       } finally {
@@ -97,9 +114,25 @@ export default function Home() {
     loadProducts();
   }, [category, price, currentPage]);  // 依賴於篩選條件和分頁
 
-  // 自動產生分類選項 (來自已載入的商品)
-  const categories = Array.from(new Set(products.map(p => p.category)));
-  
+  // 載入分類資料
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const categoryData = await getActiveCategories();
+        setCategories(categoryData);
+      } catch (error) {
+        console.error('載入分類失敗:', error);
+        // 使用空陣列作為回退
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []); // 只在組件載入時執行一次
+
   // 價格範圍選項 (固定選項)
   const priceRanges = [
     { label: "全部", value: "" },
@@ -138,9 +171,13 @@ export default function Home() {
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
                 >
                   <option value="">所有分類</option>
-                  {categories.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
+                  {categoriesLoading ? (
+                    <option disabled>載入中...</option>
+                  ) : (
+                    categories.map((cat) => (
+                      <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                    ))
+                  )}
                 </select>
               </div>
               <div>
@@ -218,7 +255,7 @@ export default function Home() {
                       <div className="text-sm text-gray-500">{p.category}</div>
                       
                       {/* 庫存狀態提示 */}
-                      {enhancedProduct && enhancedProduct.availableVariants === 0 && (
+                      {enhancedProduct && enhancedProduct.availableVariantsCount === 0 && (
                         <div className="text-xs text-red-500 font-medium">暫時缺貨</div>
                       )}
                     </div>

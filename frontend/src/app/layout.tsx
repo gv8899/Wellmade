@@ -22,6 +22,8 @@ import { CartProvider } from '@/CartContext';
 import { UserProvider } from "@/app/components/UserContext";
 import Header from "@/app/components/Header";
 import { AuthProvider } from "@/app/AuthProvider";
+import LoggerProvider from "@/components/LoggerProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function RootLayout({
   children,
@@ -34,14 +36,16 @@ export default function RootLayout({
         className={`min-h-screen bg-background text-foreground font-sans antialiased ${geistSans.variable} ${geistMono.variable}`}
         suppressHydrationWarning={true}
       >
-        <AuthProvider>
-          <UserProvider>
-            <CartProvider>
-              <Header />
-              <main className="pt-16 min-h-[calc(100vh-4rem)]">
-                {children}
-              </main>
-              <Toaster position="top-center" toastOptions={{
+        <LoggerProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              <UserProvider>
+                <CartProvider>
+                  <Header />
+                  <main className="pt-16 min-h-[calc(100vh-4rem)]">
+                    {children}
+                  </main>
+                <Toaster position="top-center" toastOptions={{
                 style: {
                   background: '#333',
                   color: '#fff',
@@ -63,9 +67,11 @@ export default function RootLayout({
                 },
               },
             }} />
-          </CartProvider>
-        </UserProvider>
-        </AuthProvider>
+                </CartProvider>
+              </UserProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </LoggerProvider>
       </body>
     </html>
   );

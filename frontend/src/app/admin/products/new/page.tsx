@@ -27,12 +27,24 @@ export default function NewProductPage() {
   const handleSubmit = async (productData: any) => {
     try {
       setLoading(true);
-      await adminApi.createProduct(productData);
+      console.log('NewProductPage - 提交產品資料:', productData);
+      const createdProduct = await adminApi.createProduct(productData);
       toast.success("產品創建成功");
       router.push("/admin/products");
-    } catch (error) {
-      console.error("Failed to create product:", error);
-      toast.error("創建產品失敗");
+      return createdProduct; // 返回創建的產品供 ProductForm 處理變體
+    } catch (error: any) {
+      console.error("NewProductPage - 創建產品失敗:", error);
+      
+      // 提取更詳細的錯誤信息
+      let errorMessage = "創建產品失敗";
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      throw error; // 重新拋出錯誤讓 ProductForm 能捕獲
     } finally {
       setLoading(false);
     }

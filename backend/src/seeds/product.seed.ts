@@ -99,7 +99,7 @@ export const seedProducts = async (
       description: `這是一個測試產品的詳細描述，屬於${category}類別，提供多種功能和特性。`,
       price: price,
       stock: stock,
-      category: category,
+      // category: category, // 移除舊的 category 欄位
       brandId: randomBrand.id,
       imageUrl: `https://picsum.photos/seed/${i}/500/500`, // 使用隨機圖片
       images: [
@@ -123,7 +123,7 @@ export const seedProducts = async (
         '高級不鏽鋼材質，多用途，適合各種食材切割，符合人體工學設計的手感，使用舒適。',
       price: 1299,
       stock: 50,
-      category: '廚房用品',
+      // category: '廚房用品', // 移除舊的 category 欄位
       brandId: brandEntities.find((b) => b.name === 'KitchenAid')?.id,
       imageUrl: 'https://picsum.photos/seed/knife/500/500',
       images: [
@@ -187,7 +187,7 @@ export const seedProducts = async (
         '採用環保木材製作，極簡設計風格，可調節層板高度，適合各種空間擺放。',
       price: 3499,
       stock: 30,
-      category: '客廳用品',
+      // category: '客廳用品', // 移除舊的 category 欄位
       brandId: brandEntities.find((b) => b.name === 'IKEA')?.id,
       imageUrl: 'https://picsum.photos/seed/shelf/500/500',
       images: [
@@ -251,7 +251,7 @@ export const seedProducts = async (
         '內建智能溫控系統，可保持飲料在最佳溫度，杯身採用高級別陶瓷隔熱層，安全舒適。',
       price: 890,
       stock: 100,
-      category: '廚房用品',
+      // category: '廚房用品', // 移除舊的 category 欄位
       brandId: brandEntities.find((b) => b.name === 'Philips')?.id,
       imageUrl: 'https://picsum.photos/seed/mug/500/500',
       images: [

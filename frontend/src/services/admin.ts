@@ -27,6 +27,7 @@ export interface Product {
   keyFeatures?: KeyFeature[];
   featureDetails?: FeatureDetail[];
   faqs?: FAQ[];
+  specTemplate?: string[]; // 產品規格模板
   isActive: boolean;
   status?: ProductStatus; // 新增狀態欄位
   createdAt: string;
@@ -270,8 +271,24 @@ class AdminApiService {
   }
 
   async createProductVariant(productId: string, variantData: Partial<ProductVariant>): Promise<ProductVariant> {
-    const response = await api.post(`/products/${productId}/variants`, variantData);
-    return response.data;
+    console.log('📤 [AdminAPI] 創建變體請求:', {
+      productId,
+      variantData,
+      url: `/products/${productId}/variants`
+    });
+    
+    try {
+      const response = await api.post(`/products/${productId}/variants`, variantData);
+      console.log('✅ [AdminAPI] 創建變體成功:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [AdminAPI] 創建變體失敗:', {
+        error: error.response?.data || error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      throw error;
+    }
   }
 
   async updateProductVariant(variantId: string, variantData: Partial<ProductVariant>): Promise<ProductVariant> {

@@ -11,7 +11,7 @@ import GoodProductsSection from "./GoodProductsSection";
 import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
-import { Product as ApiProduct, getProductById, FAQItem as ApiFAQItem } from '@/services/api';
+import { Product as ApiProduct, getProductById, getProductCategoryName, FAQItem as ApiFAQItem } from '@/services/api';
 
 // 前端顯示用的產品類型
 interface Product {
@@ -49,7 +49,24 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   const [product, setProduct] = React.useState<Product | null>(null);
   const [collected, setCollected] = React.useState(false);
+  const [variants, setVariants] = React.useState<ProductVariant[]>([]);
+  const [specOptions, setSpecOptions] = React.useState<ProductSpecOption[]>([]);
+  const [currentImage, setCurrentImage] = React.useState<string>("");
   const { cartItems, addToCart, removeFromCart, addCartClick } = useCart();
+
+  // 準備變體圖片列表 - 移到組件頂部
+  const variantImages = React.useMemo(() => {
+    const images = [product?.cover].filter(Boolean) as string[];
+    
+    // 添加變體圖片
+    variants.forEach(variant => {
+      if (variant.image && !images.includes(variant.image)) {
+        images.push(variant.image);
+      }
+    });
+    
+    return images;
+  }, [product, variants]);
 
   // 生命週期，localStorage與資料讀取
   React.useEffect(() => {
@@ -66,7 +83,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           price: apiProduct.price,
           description: apiProduct.description,
           cover: apiProduct.imageUrl, // 使用主圖作為封面
-          category: apiProduct.category,
+          category: getProductCategoryName(apiProduct),
           // 將所有圖轉換為媒體列表
           media: [
             {
@@ -97,14 +114,102 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         };
         
         setProduct(displayProduct);
+        setCurrentImage(displayProduct.cover); // 設置初始圖片
+        
+        // 載入產品變體
+        await loadProductVariants(apiProduct);
+        
       } catch (error) {
         console.error('無法載入產品資料:', error);
-        // 如果 API 失敗，嘗試使用模擬資料
-        fetch(`/api/mock-product/${id}`)
-          .then((res) => res.json())
-          .then((data: Product) => setProduct(data))
-          .catch(err => console.error('無法載入模擬產品資料:', err));
+        // 設置錯誤狀態或重導至錯誤頁面
+        setProduct(null);
       }
+    };
+    
+    // 載入產品變體資料
+    const loadProductVariants = async (apiProduct: ApiProduct) => {
+      try {
+        // 檢查產品是否有實際的變體
+        if (apiProduct.variants && apiProduct.variants.length > 0) {
+          // 轉換為前端顯示格式
+          const displayVariants: ProductVariant[] = apiProduct.variants.map(variant => ({
+            id: variant.id,
+            variantTitle: variant.variantTitle || `${variant.specs ? Object.values(variant.specs).join(' - ') : ''}`,
+            specs: variant.specs || {},
+            price: Number(variant.price),
+            compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : undefined,
+            image: variant.imageUrl || apiProduct.imageUrl,
+            stockStatus: variant.status === 'IN_STOCK' ? 'in_stock' : 
+                        variant.status === 'PREORDER' ? 'preorder' : 'out_of_stock',
+            // 保留新架構的欄位
+            stock: variant.stock,
+            status: variant.status,
+            inventoryType: variant.inventoryType,
+            isActive: variant.isActive,
+            preorderLimit: variant.preorderLimit,
+            preorderSold: variant.preorderSold
+          }));
+          
+          setVariants(displayVariants);
+          
+          // 生成規格選項
+          const specMap = new Map<string, Set<string>>();
+          apiProduct.variants.forEach(variant => {
+            if (variant.specs) {
+              Object.entries(variant.specs).forEach(([key, value]) => {
+                if (!specMap.has(key)) {
+                  specMap.set(key, new Set());
+                }
+                specMap.get(key)!.add(value);
+              });
+            }
+          });
+          
+          const generatedSpecOptions: ProductSpecOption[] = Array.from(specMap.entries()).map(([name, values]) => ({
+            name,
+            options: Array.from(values)
+          }));
+          
+          setSpecOptions(generatedSpecOptions);
+        } else {
+          // 產品沒有變體，生成單一變體
+          const singleVariant: ProductVariant[] = [{
+            id: apiProduct.id,
+            variantTitle: "標準版",
+            specs: {},
+            price: Number(apiProduct.price),
+            image: apiProduct.imageUrl,
+            stockStatus: apiProduct.status === 'IN_STOCK' ? 'in_stock' : 
+                        apiProduct.status === 'PREORDER' ? 'preorder' : 'out_of_stock',
+            stock: apiProduct.stock,
+            status: apiProduct.status,
+            isActive: apiProduct.isActive
+          }];
+          
+          setVariants(singleVariant);
+          setSpecOptions([]); // 沒有規格選項
+        }
+      } catch (error) {
+        console.error('載入變體失敗:', error);
+        // 生成預設變體
+        generateDefaultVariant(apiProduct);
+      }
+    };
+    
+    // 生成預設變體
+    const generateDefaultVariant = (product: Product | ApiProduct) => {
+      const defaultVariants: ProductVariant[] = [
+        { 
+          id: `${product.id}_default`,
+          variantTitle: "標準版",
+          specs: {},
+          price: typeof product.price === 'string' ? Number(product.price) : product.price,
+          image: 'cover' in product ? product.cover : product.imageUrl,
+          stockStatus: "in_stock"
+        }
+      ];
+      setVariants(defaultVariants);
+      setSpecOptions([]);
     };
     
     loadProductData();
@@ -122,14 +227,15 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   // 處理加入購物車
   const handleCart = () => {
-    if (!isInCart && product) {
-      // 添加到購物車
+    if (!isInCart && product && variants.length > 0) {
+      // 使用第一個可用變體
+      const firstVariant = variants[0];
       const item = {
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: firstVariant.price,
         cover: product.cover,
-        specs: { "版本": "標準版" }, // 使用正確的屬性名稱 specs
+        specs: firstVariant.specs,
         quantity: 1
       };
       addToCart(item);
@@ -197,55 +303,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     }
   ];
 
-  // 商品變體
-  const variants: ProductVariant[] = [
-    { 
-      id: `${product.id}_black_standard`,
-      variantTitle: "經典黑 - 標準版",
-      specs: {
-        "顏色": "經典黑",
-        "版本": "標準版"
-      },
-      price: product.price,
-      image: product.cover,
-      stockStatus: "in_stock"
-    },
-    { 
-      id: `${product.id}_white_standard`,
-      variantTitle: "純淨白 - 標準版",
-      specs: {
-        "顏色": "純淨白",
-        "版本": "標準版"
-      },
-      price: product.price,
-      image: product.cover,
-      stockStatus: "in_stock"
-    },
-    { 
-      id: `${product.id}_green_premium`,
-      variantTitle: "自然綠 - 高級版",
-      specs: {
-        "顏色": "自然綠",
-        "版本": "高級版"
-      },
-      price: product.price + 500,
-      originalPrice: product.price,
-      image: product.cover,
-      stockStatus: "in_stock"
-    }
-  ];
-
-  // 規格選項
-  const specOptions: ProductSpecOption[] = [
-    { 
-      name: "顏色",
-      options: ["經典黑", "純淨白", "自然綠"]
-    },
-    { 
-      name: "版本",
-      options: ["標準版", "高級版", "專業版"]
-    }
-  ];
+  // 變體和規格選項現在從 state 中獲取
 
   // 格式化價格
   const formatPrice = (price: number) => {
@@ -254,17 +312,24 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   const isInCart = cartItems.some(item => item.id === id);
 
+  // 處理圖片切換
+  const handleImageChange = (imageUrl: string) => {
+    setCurrentImage(imageUrl);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <ProductHero
-        subtitle={product.category || "精品科技"}
+        subtitle={product.categoryRelation?.name || "精品科技"}
         title={product.name}
         description={product.description}
-        imageUrl={product.cover}
+        imageUrl={currentImage || product.cover}
         primaryText="立即購買"
         secondaryText={isInCart ? "已加入購物車" : "加入購物車"}
         onPrimaryAction={() => window.scrollTo({top: document.getElementById('purchase')?.offsetTop, behavior: 'smooth'})}
         onSecondaryAction={handleCart}
+        variantImages={variantImages}
+        onImageChange={handleImageChange}
       />
       
       <KeyFeatures
@@ -281,15 +346,17 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       
       <FeatureDetails details={product?.featureDetails?.length ? product.featureDetails : defaultFeatureDetails} />
       
-      <ProductPurchaseOptions
-        title={product.name}
-        variants={variants}
-        specOptions={specOptions.map(option => ({
-          name: option.name,
-          options: option.options.length > 0 ? option.options : ['預設值'] // 確保 options 至少有一個預設值
-        }))}
-        defaultQuantity={1}
-      />
+      {variants.length > 0 && (
+        <ProductPurchaseOptions
+          title={product.name}
+          variants={variants}
+          specOptions={specOptions.map(option => ({
+            name: option.name,
+            options: option.options.length > 0 ? option.options : ['預設值'] // 確保 options 至少有一個預設值
+          }))}
+          defaultQuantity={1}
+        />
+      )}
 
       {product.brand && 
         <BrandSection 
