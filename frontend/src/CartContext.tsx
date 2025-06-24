@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { toast } from "react-hot-toast";
 import { cartApi, localCartStorage, sessionManager } from "@/services/cart";
 import { useSession } from "next-auth/react";
+import { consoleLogger } from "@/utils/console-logger";
 import { 
   CartMode, 
   CartEvent, 
@@ -54,7 +55,7 @@ function cleanInvalidCartItems(items: CartItem[]): CartItem[] {
   const invalidItems: CartItem[] = [];
 
   for (const item of items) {
-    const { productId } = extractProductInfo(item.id);
+    const productId = (item as any).productId || item.id;
     if (productId && isValidUUID(productId)) {
       validItems.push(item);
     } else {
@@ -247,25 +248,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (localCart.length > 0) {
         // 有本地購物車，需要合併
         console.log(`登入同步：合併 ${localCart.length} 項本地商品`);
+        consoleLogger.cartAction('開始登入同步', { localItemCount: localCart.length });
         
         let successCount = 0;
         const failedItems: CartItem[] = [];
         
         for (const item of localCart) {
           try {
-            // 修復關鍵錯誤：健壯的 productId 和 variantId 提取
-            const { productId, variantId } = extractProductInfo(item.id);
+            // 從本地購物車項目中提取 productId 和 variantId
+            const productId = (item as any).productId;
+            const variantId = (item as any).variantId;
+            
+            // 如果沒有 productId，嘗試從 item.id 中解析
+            let finalProductId = productId;
+            if (!finalProductId && item.id) {
+              // 如果 item.id 是 UUID 格式，直接使用
+              if (isValidUUID(item.id)) {
+                finalProductId = item.id;
+              } else {
+                // 如果是組合 ID，嘗試提取第一部分作為 productId
+                const parts = item.id.split('_');
+                if (parts.length > 0 && isValidUUID(parts[0])) {
+                  finalProductId = parts[0];
+                }
+              }
+            }
             
             // 跳過無效的商品 ID
-            if (!productId || !isValidUUID(productId)) {
-              console.warn(`[LOGIN_SYNC] 跳過無效商品 ID: ${item.id}，商品名: ${item.name}`);
+            if (!finalProductId || !isValidUUID(finalProductId)) {
+              console.warn(`[LOGIN_SYNC] 跳過無效商品 ID: ${finalProductId}，商品名: ${item.name}`);
+              consoleLogger.warn('cart', `跳過無效商品 ID: ${finalProductId}`, { itemName: item.name, originalId: item.id });
               failedItems.push(item);
               continue;
             }
             
             console.log(`[LOGIN_SYNC] 準備合併商品:`, {
               原始ID: item.id,
-              提取的productId: productId,
+              最終productId: finalProductId,
               提取的variantId: variantId,
               name: item.name,
               quantity: item.quantity,
@@ -273,7 +292,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             });
             
             const response = await cartApi.addToCart({
-              productId,
+              productId: finalProductId,
               ...(variantId && { variantId }),
               quantity: item.quantity,
               specs: item.specs
@@ -512,10 +531,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // 根據模式異步處理
       if (cartState.mode === CartMode.MEMBER) {
         try {
-          const productId = item.id.includes('_') ? item.id.split('_')[0] : item.id;
+          // 使用正確的 productId 和 variantId
+          const productId = item.productId || (item.id.includes('_') ? item.id.split('_')[0] : item.id);
+          const variantId = item.variantId;
+          
           const response = await cartApi.addToCart({
             productId,
-            variantId: item.id,
+            ...(variantId && { variantId }),
             quantity,
             specs: item.specs
           });

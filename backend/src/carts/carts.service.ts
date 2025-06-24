@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
@@ -6,6 +6,7 @@ import { CartItem } from './entities/cart-item.entity';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { ProductsService } from '../products/products.service';
+import { ProductVariantsService } from '../products/product-variants.service';
 
 @Injectable()
 export class CartsService {
@@ -17,6 +18,7 @@ export class CartsService {
     private cartItemRepository: Repository<CartItem>,
 
     private productsService: ProductsService,
+    private variantsService: ProductVariantsService,
   ) {}
 
   /**
@@ -125,6 +127,13 @@ export class CartsService {
       throw new NotFoundException(`找不到 ID 為 ${productId} 的產品`);
     }
 
+    // 容器產品檢查：不允許直接加入購物車
+    if (product.isContainer && !variantId) {
+      throw new BadRequestException(
+        '此產品需要選擇具體規格才能加入購物車。請選擇您要的變體。'
+      );
+    }
+
     // 檢查購物車中是否已存在相同的商品（相同產品和規格）
     const existingItem = cart.items?.find(
       (item) =>
@@ -139,6 +148,23 @@ export class CartsService {
       return this.cartItemRepository.save(existingItem);
     }
 
+    // 獲取價格和名稱
+    let itemPrice = product.price;
+    let itemName = product.name;
+    
+    // 如果指定了變體ID，從變體獲取價格和名稱
+    if (variantId) {
+      try {
+        const variant = await this.variantsService.findOne(variantId);
+        if (variant) {
+          itemPrice = variant.price;
+          itemName = variant.variantTitle || product.name;
+        }
+      } catch (error) {
+        console.warn('獲取變體信息失敗，使用產品默認價格:', error.message);
+      }
+    }
+
     // 創建新的購物車項目
     const cartItem = this.cartItemRepository.create({
       cartId: cart.id,
@@ -146,8 +172,8 @@ export class CartsService {
       variantId,
       quantity,
       specs,
-      name: product.name,
-      price: product.price,
+      name: itemName,
+      price: itemPrice,
       cover:
         product.images && product.images.length > 0 ? product.images[0] : null,
     });

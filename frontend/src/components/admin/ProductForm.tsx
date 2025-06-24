@@ -25,6 +25,7 @@ interface ProductFormData {
   faqs?: FAQ[];
   variants?: ProductVariant[];
   isActive: boolean;
+  isContainer: boolean;
   status: ProductStatus;
 }
 
@@ -63,6 +64,7 @@ export default function ProductForm({
   ); // 優先使用 categoryId，回退到 categoryRelation.id
   const [brandId, setBrandId] = useState(product?.brandId || "");
   const [isActive, setIsActive] = useState(product?.isActive ?? true);
+  const [isContainer, setIsContainer] = useState((product as any)?.isContainer ?? false);
   const [status, setStatus] = useState<ProductStatus>(product?.status || ProductStatus.IN_STOCK);
   
   // 分類資料
@@ -205,7 +207,7 @@ export default function ProductForm({
       return;
     }
     
-    if (price <= 0) {
+    if (!isContainer && price <= 0) {
       toast.error("請輸入有效的價格");
       return;
     }
@@ -213,8 +215,8 @@ export default function ProductForm({
     const productData = {
       name: name.trim(),
       description: description.trim(),
-      price: Number(price),
-      stock: Number(stock),
+      price: isContainer ? undefined : Number(price), // 容器產品無價格
+      stock: isContainer ? 0 : Number(stock), // 容器產品庫存為 0
       categoryId,
       brandId: brandId || undefined,
       imageUrl: imageUrl || undefined,
@@ -224,6 +226,7 @@ export default function ProductForm({
       faqs: faqs.length > 0 ? faqs : undefined,
       specTemplate: specTemplate.length > 0 ? specTemplate : undefined,
       isActive,
+      isContainer,
       status,
       // 🔧 修復：編輯模式下不傳遞變體資訊給產品更新 API，變體單獨處理
       ...(mode === "create" ? {
@@ -324,18 +327,50 @@ export default function ProductForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              價格 (TWD) *
+              產品類型 *
+            </label>
+            <select
+              value={isContainer ? "container" : "simple"}
+              onChange={(e) => {
+                const newIsContainer = e.target.value === "container";
+                setIsContainer(newIsContainer);
+                if (newIsContainer) {
+                  setPrice(0);
+                  setStock(0);
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black"
+              required
+            >
+              <option value="simple">簡單產品（無變體）</option>
+              <option value="container">容器產品（有變體）</option>
+            </select>
+            {isContainer && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <strong>容器產品：</strong>本身不可購買，用戶必須選擇具體變體。價格和庫存將由變體決定。
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              價格 (TWD) {!isContainer && "*"}
             </label>
             <input
               type="text"
               value={price || ''}
               onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9.]/g, '');
-                setPrice(value ? Number(value) : 0);
+                if (!isContainer) {
+                  const value = e.target.value.replace(/[^0-9.]/g, '');
+                  setPrice(value ? Number(value) : 0);
+                }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              placeholder="請輸入價格"
-              required
+              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isContainer ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              placeholder={isContainer ? "容器產品無固定價格" : "請輸入價格"}
+              required={!isContainer}
+              disabled={isContainer}
             />
           </div>
 
@@ -347,11 +382,14 @@ export default function ProductForm({
               type="text"
               value={stock || ''}
               onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                setStock(value ? Number(value) : 0);
+                if (!isContainer) {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setStock(value ? Number(value) : 0);
+                }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              placeholder="請輸入數量"
+              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isContainer ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              placeholder={isContainer ? "容器產品庫存由變體決定" : "請輸入數量"}
+              disabled={isContainer}
             />
           </div>
 

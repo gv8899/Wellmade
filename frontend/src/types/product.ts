@@ -65,6 +65,7 @@ export interface EnhancedProduct {
   imageUrl: string;
   images: string[];
   isActive: boolean;
+  isContainer: boolean;
   status: ProductStatus;
   brandId?: string;
   brand?: {
@@ -103,6 +104,8 @@ export interface EnhancedProduct {
   overallStatus: ProductStatus;
   priceRange: PriceRange;
   availableVariantsCount: number;
+  totalStock?: number; // 容器產品的總庫存
+  canPurchaseDirectly?: boolean; // 是否可直接購買
   
   createdAt?: string;
   updatedAt?: string;

@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // 建立 Axios 實例
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003',
+  baseURL: '/api', // 使用 Next.js 代理路由
   headers: {
     'Content-Type': 'application/json',
   },

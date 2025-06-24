@@ -140,17 +140,17 @@ export default function TestErrorsPage() {
           <p><strong>2.</strong> 打開瀏覽器開發者工具查看日誌</p>
           <p><strong>3.</strong> 使用 Claude MCP 查詢資料庫：</p>
           <pre className="bg-gray-200 p-2 rounded mt-2 text-xs">
-SELECT level, message, context, timestamp 
+{`SELECT level, message, context, timestamp 
 FROM frontend_logs 
 WHERE timestamp >= NOW() - INTERVAL '10 minutes'
-ORDER BY timestamp DESC;
+ORDER BY timestamp DESC;`}
           </pre>
           <p><strong>4.</strong> 查看特定錯誤類型：</p>
           <pre className="bg-gray-200 p-2 rounded mt-2 text-xs">
-SELECT * FROM frontend_logs 
+{`SELECT * FROM frontend_logs 
 WHERE level = 'error' 
 AND timestamp >= NOW() - INTERVAL '10 minutes'
-ORDER BY timestamp DESC;
+ORDER BY timestamp DESC;`}
           </pre>
         </div>
       </div>

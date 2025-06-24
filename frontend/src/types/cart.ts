@@ -117,6 +117,8 @@ export interface CartOperationResult<T = any> {
 // 購物車項目介面
 export interface CartItem {
   id: string;
+  productId?: string;      // 產品 ID
+  variantId?: string;      // 變體 ID
   name: string;
   price: number;
   quantity: number;

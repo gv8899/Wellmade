@@ -24,6 +24,7 @@ export interface ProductPurchaseOptionsProps {
   variants: DisplayProductVariant[];
   specOptions: ProductSpecOption[];
   defaultQuantity?: number;
+  isContainer?: boolean; // 是否為容器產品
 }
 
 const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
@@ -31,6 +32,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   variants: initialVariants,
   specOptions: initialSpecOptions,
   defaultQuantity = 1,
+  isContainer = false,
 }) => {
   const { addToCart, addCartClick } = useCart();
   
@@ -137,6 +139,8 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             try {
               await addToCart({
                 id: currentVariant.id,
+                productId: product.id,
+                variantId: currentVariant.id,
                 name: currentVariant.variantTitle || title,
                 price: currentPrice,
                 cover: currentVariant.image,
@@ -171,6 +175,8 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             try {
               await addToCart({
                 id: currentVariant.id,
+                productId: product.id,
+                variantId: currentVariant.id,
                 name: currentVariant.variantTitle || title,
                 price: currentPrice,
                 cover: currentVariant.image,
@@ -229,6 +235,23 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
           >
             重新整理
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 容器產品檢查：必須選擇變體
+  if (isContainer && (!currentVariant || variants.length === 0)) {
+    return (
+      <div className="w-full max-w-5xl mx-auto my-10">
+        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <div className="flex justify-center items-center h-40 flex-col">
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">請選擇規格：</p>
+            <div className="text-sm text-gray-500">
+              此產品需要選擇具體規格才能購買
+            </div>
+          </div>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { CartItem } from '@/types/cart';
+import { consoleLogger } from '@/utils/console-logger';
 
 // 重試配置
 interface RetryConfig {
@@ -101,7 +102,7 @@ async function retryRequest<T>(
   requestFn: () => Promise<T>,
   config: RetryConfig = DEFAULT_RETRY_CONFIG
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error | undefined;
   
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
@@ -126,7 +127,7 @@ async function retryRequest<T>(
     }
   }
   
-  throw lastError;
+  throw lastError || new Error('Request failed after retries');
 }
 
 // 創建 axios 實例
@@ -204,6 +205,15 @@ api.interceptors.response.use(
       data: error.response?.data
     });
     
+    // 使用 consoleLogger 記錄 API 錯誤
+    consoleLogger.apiCall(
+      error.config?.method?.toUpperCase() || 'UNKNOWN',
+      url,
+      error.response?.status,
+      undefined,
+      { errorType, requestId, data: error.response?.data }
+    );
+    
     // 增強錯誤對象
     const enhancedError = error as any;
     enhancedError.errorType = errorType;
@@ -226,7 +236,7 @@ function getErrorMessage(error: AxiosError, errorType: string): string {
     case 'UNAUTHORIZED':
       return '認證失效，請重新登入';
     case 'CLIENT_ERROR':
-      return error.response?.data?.message || '請求參數錯誤';
+      return (error.response?.data as any)?.message || '請求參數錯誤';
     default:
       return '未知錯誤，請聯絡客服';
   }
@@ -573,6 +583,8 @@ export const localCartStorage = {
         .filter(item => item && item.id && item.quantity > 0)
         .map(item => ({
           id: item.id,
+          productId: item.productId || undefined,
+          variantId: item.variantId || undefined,
           name: item.name || '',
           price: Number(item.price) || 0,
           quantity: Number(item.quantity) || 1,

@@ -106,11 +106,30 @@ export class ProductsService {
       const maxPrice = product.getMaxPrice();
       const availableVariants = product.getAvailableVariants();
       
+      let priceRange: any;
+      
+      if (product.isContainer) {
+        // 容器產品顯示變體價格範圍
+        const priceRangeData = product.getPriceRange();
+        if (priceRangeData) {
+          priceRange = priceRangeData.min === priceRangeData.max 
+            ? { price: priceRangeData.min }
+            : { minPrice: priceRangeData.min, maxPrice: priceRangeData.max };
+        } else {
+          priceRange = { price: null };
+        }
+      } else {
+        // 簡單產品顯示固定價格
+        priceRange = minPrice === maxPrice ? { price: minPrice } : { minPrice, maxPrice };
+      }
+      
       return {
         ...product,
         overallStatus,
-        priceRange: minPrice === maxPrice ? { price: minPrice } : { minPrice, maxPrice },
+        priceRange,
         availableVariantsCount: availableVariants.length,
+        totalStock: product.isContainer ? product.getTotalStock() : product.stock,
+        canPurchaseDirectly: product.canPurchaseDirectly(),
       };
     });
 
@@ -146,11 +165,16 @@ export class ProductsService {
         throw new NotFoundException(`Product with ID ${id} is not available`);
       }
 
-      // 計算產品的整體狀態和價格範圍
-      const overallStatus = product.getOverallStatus();
-      const minPrice = product.getMinPrice();
-      const maxPrice = product.getMaxPrice();
-      const availableVariants = product.getAvailableVariants();
+      // 為容器產品添加增強信息
+      if (product.isContainer) {
+        const priceRange = product.getPriceRange();
+        const totalStock = product.getTotalStock();
+        (product as any).priceRange = priceRange;
+        (product as any).totalStock = totalStock;
+        (product as any).canPurchaseDirectly = false;
+      } else {
+        (product as any).canPurchaseDirectly = true;
+      }
       
       return product;
     } catch (error) {

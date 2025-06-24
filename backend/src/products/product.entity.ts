@@ -55,10 +55,10 @@ export class Product {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
   price: number;
 
-  @Column('int')
+  @Column('int', { default: 0 })
   stock: number;
 
 
@@ -101,6 +101,10 @@ export class Product {
   // 產品規格模板 (定義此產品有哪些規格項目，例如：["顏色", "尺寸"])
   @Column('jsonb', { nullable: true, default: () => "'[]'" })
   specTemplate: string[];
+
+  // 是否為容器產品（只用來組織變體，不可直接購買）
+  @Column({ default: false })
+  isContainer: boolean;
 
   // 商品狀態（是否啟用）
   @Column({ default: true })
@@ -244,5 +248,46 @@ export class Product {
    */
   isSimpleProduct(): boolean {
     return !this.variants || this.variants.length === 0;
+  }
+
+  /**
+   * 是否可直接購買
+   * 容器產品不可直接購買，必須選擇變體
+   */
+  canPurchaseDirectly(): boolean {
+    return !this.isContainer;
+  }
+
+  /**
+   * 獲取容器產品的有效價格範圍
+   */
+  getPriceRange(): { min: number; max: number } | null {
+    if (!this.isContainer || !this.variants || this.variants.length === 0) {
+      return null;
+    }
+
+    const availableVariants = this.getAvailableVariants();
+    if (availableVariants.length === 0) {
+      return null;
+    }
+
+    const prices = availableVariants.map(v => v.getCurrentPrice());
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices)
+    };
+  }
+
+  /**
+   * 獲取容器產品的總庫存
+   */
+  getTotalStock(): number {
+    if (!this.isContainer || !this.variants || this.variants.length === 0) {
+      return this.stock || 0;
+    }
+
+    return this.variants
+      .filter(v => v.isActive)
+      .reduce((sum, v) => sum + (v.stock || 0), 0);
   }
 }

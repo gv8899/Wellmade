@@ -22,12 +22,23 @@ export default function ProductPriceDisplay({
     lg: 'text-xl'
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (price === null || price === undefined) {
+      return showCurrency ? '$0' : '0';
+    }
     return showCurrency ? `$${price.toLocaleString()}` : price.toLocaleString();
   };
 
   const renderPriceRange = () => {
     if ('price' in priceRange) {
+      // 容器產品可能沒有固定價格
+      if (priceRange.price === null || priceRange.price === undefined) {
+        return (
+          <span className={`font-bold text-gray-600 ${sizeClasses[size]}`}>
+            請選擇規格
+          </span>
+        );
+      }
       return (
         <span className={`font-bold text-gray-900 ${sizeClasses[size]}`}>
           {formatPrice(priceRange.price)}
@@ -42,7 +53,7 @@ export default function ProductPriceDisplay({
     }
   };
 
-  const showDiscount = originalPrice && 'price' in priceRange && originalPrice > priceRange.price;
+  const showDiscount = originalPrice && 'price' in priceRange && priceRange.price !== null && priceRange.price !== undefined && originalPrice > priceRange.price;
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>

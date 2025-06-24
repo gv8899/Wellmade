@@ -24,6 +24,7 @@ import Header from "@/app/components/Header";
 import { AuthProvider } from "@/app/AuthProvider";
 import LoggerProvider from "@/components/LoggerProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ConsoleLogViewer from "@/components/ConsoleLogViewer";
 
 export default function RootLayout({
   children,
@@ -45,6 +46,7 @@ export default function RootLayout({
                   <main className="pt-16 min-h-[calc(100vh-4rem)]">
                     {children}
                   </main>
+                  {process.env.NODE_ENV === 'development' && <ConsoleLogViewer />}
                 <Toaster position="top-center" toastOptions={{
                 style: {
                   background: '#333',
