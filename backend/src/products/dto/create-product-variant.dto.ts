@@ -1,4 +1,14 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsObject, IsEnum, IsDateString, IsPositive, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsObject,
+  IsEnum,
+  IsDateString,
+  IsPositive,
+  Min,
+} from 'class-validator';
 import { ProductStatus, InventoryType } from '../enums/product-status.enum';
 
 export class CreateProductVariantDto {

@@ -44,10 +44,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       this.logger.warn(
         `JWT authentication failed. Error: ${err}, User: ${user}`,
       );
-      
+
       // 拋出 UnauthorizedException 而不是通用錯誤
       const { UnauthorizedException } = require('@nestjs/common');
-      throw new UnauthorizedException(info?.message || 'Invalid or missing JWT token');
+      throw new UnauthorizedException(
+        info?.message || 'Invalid or missing JWT token',
+      );
     }
     return user;
   }

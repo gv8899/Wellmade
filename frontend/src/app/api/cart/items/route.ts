@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
+import axios from 'axios';
 
 // 後端 API 基礎 URL
-const API_BASE_URL = 'http://localhost:3003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3003';
 
 /**
  * 處理 POST /api/cart/items 請求 (添加商品到購物車)
@@ -31,24 +32,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 發送請求到後端
-    const response = await fetch(`${API_BASE_URL}/cart/items`, {
-      method: 'POST',
+    const response = await axios.post(`${API_BASE_URL}/cart/items`, body, {
       headers,
-      body: JSON.stringify(body),
-      credentials: 'include',
+      withCredentials: true,
+      timeout: 10000,
     });
 
-    if (!response.ok) {
-      console.error('添加購物車項目失敗:', response.status, response.statusText);
-      return NextResponse.json(
-        { error: `後端請求失敗: ${response.status} ${response.statusText}` }, 
-        { status: response.status }
-      );
-    }
-
     // 返回後端響應
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(response.data);
   } catch (error) {
     console.error('處理添加購物車項目請求時發生錯誤:', error);
     return NextResponse.json(

@@ -9,7 +9,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 async function generateMissingSkus() {
   const app = await NestFactory.createApplicationContext(AppModule);
-  
+
   try {
     const variantRepository = app.get<Repository<ProductVariant>>(
       getRepositoryToken(ProductVariant),
@@ -41,7 +41,7 @@ async function generateMissingSkus() {
         );
 
         await variantRepository.update(variant.id, { sku: generatedSku });
-        
+
         console.log(`✓ 變體 ${variant.id} 生成 SKU: ${generatedSku}`);
         successCount++;
       } catch (error) {
@@ -53,7 +53,6 @@ async function generateMissingSkus() {
     console.log('\n生成完成！');
     console.log(`成功: ${successCount} 個`);
     console.log(`失敗: ${errorCount} 個`);
-
   } catch (error) {
     console.error('執行腳本時發生錯誤:', error);
   } finally {

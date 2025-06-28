@@ -59,9 +59,9 @@ export class ProductsService {
     if (category) {
       // 用slug查詢分類
       const categoryEntity = await this.categoryRepository.findOne({
-        where: { slug: category }
+        where: { slug: category },
       });
-      
+
       if (categoryEntity) {
         whereConditions.categoryId = categoryEntity.id;
       }
@@ -100,35 +100,39 @@ export class ProductsService {
     });
 
     // 為每個產品計算整體狀態和價格範圍
-    const enhancedItems = items.map(product => {
+    const enhancedItems = items.map((product) => {
       const overallStatus = product.getOverallStatus();
       const minPrice = product.getMinPrice();
       const maxPrice = product.getMaxPrice();
       const availableVariants = product.getAvailableVariants();
-      
+
       let priceRange: any;
-      
+
       if (product.isContainer) {
         // 容器產品顯示變體價格範圍
         const priceRangeData = product.getPriceRange();
         if (priceRangeData) {
-          priceRange = priceRangeData.min === priceRangeData.max 
-            ? { price: priceRangeData.min }
-            : { minPrice: priceRangeData.min, maxPrice: priceRangeData.max };
+          priceRange =
+            priceRangeData.min === priceRangeData.max
+              ? { price: priceRangeData.min }
+              : { minPrice: priceRangeData.min, maxPrice: priceRangeData.max };
         } else {
           priceRange = { price: null };
         }
       } else {
         // 簡單產品顯示固定價格
-        priceRange = minPrice === maxPrice ? { price: minPrice } : { minPrice, maxPrice };
+        priceRange =
+          minPrice === maxPrice ? { price: minPrice } : { minPrice, maxPrice };
       }
-      
+
       return {
         ...product,
         overallStatus,
         priceRange,
         availableVariantsCount: availableVariants.length,
-        totalStock: product.isContainer ? product.getTotalStock() : product.stock,
+        totalStock: product.isContainer
+          ? product.getTotalStock()
+          : product.stock,
         canPurchaseDirectly: product.canPurchaseDirectly(),
       };
     });
@@ -175,7 +179,7 @@ export class ProductsService {
       } else {
         (product as any).canPurchaseDirectly = true;
       }
-      
+
       return product;
     } catch (error) {
       if (
@@ -221,31 +225,34 @@ export class ProductsService {
     }
 
     // 提取變體資料和主 SKU 設定
-    const { variants, autoGenerateMasterSku, ...productDataWithoutVariants } = productData;
+    const { variants, autoGenerateMasterSku, ...productDataWithoutVariants } =
+      productData;
 
     const product = this.productRepository.create(productDataWithoutVariants);
     const savedProduct = await this.productRepository.save(product);
-    
+
     // 如果有變體資料，創建變體
     if (variants && variants.length > 0) {
       await this.variantsService.createBulk(savedProduct.id, variants);
     } else {
       // 沒有變體的產品，自動生成主 SKU（除非已提供）
       if (!savedProduct.masterSku) {
-        console.log(`🔧 [SKU] 新產品 "${savedProduct.name}" 沒有變體，自動生成主 SKU...`);
-        
+        console.log(
+          `🔧 [SKU] 新產品 "${savedProduct.name}" 沒有變體，自動生成主 SKU...`,
+        );
+
         const productWithRelations = await this.productRepository.findOne({
           where: { id: savedProduct.id },
           relations: ['brand', 'categoryRelation'],
         });
-        
+
         if (productWithRelations) {
           try {
             const masterSku = await this.skuGenerationService.generateSku(
               productWithRelations,
               {}, // 沒有規格
             );
-            
+
             await this.productRepository.update(savedProduct.id, { masterSku });
             console.log(`✅ [SKU] 已生成主 SKU: ${masterSku}`);
           } catch (error) {
@@ -254,7 +261,7 @@ export class ProductsService {
         }
       }
     }
-    
+
     // 重新載入關聯資料後返回
     return this.findOne(savedProduct.id);
   }
@@ -264,23 +271,30 @@ export class ProductsService {
     id: string,
     updateProductDto: UpdateProductDto,
   ): Promise<Product> {
-    console.log('🔍 [DEBUG] 開始更新產品:', { id, updateData: updateProductDto });
-    
+    console.log('🔍 [DEBUG] 開始更新產品:', {
+      id,
+      updateData: updateProductDto,
+    });
+
     // 排除變體欄位，變體的更新應該通過專門的變體 API 處理
-    const { variants, autoGenerateMasterSku, ...productUpdateData } = updateProductDto;
+    const { variants, autoGenerateMasterSku, ...productUpdateData } =
+      updateProductDto;
     console.log('🔧 [DEBUG] 已排除變體欄位，純產品數據:', productUpdateData);
-    
+
     const product = await this.findOne(id); // 確認產品存在
     console.log('📦 [DEBUG] 當前產品狀態:', {
       id: product.id,
       name: product.name,
-      categoryId: product.categoryId
+      categoryId: product.categoryId,
     });
 
     // 處理分類更新
     if (productUpdateData.categoryId !== undefined) {
-      console.log('🎯 [DEBUG] 處理 categoryId 更新:', productUpdateData.categoryId);
-      
+      console.log(
+        '🎯 [DEBUG] 處理 categoryId 更新:',
+        productUpdateData.categoryId,
+      );
+
       if (productUpdateData.categoryId) {
         // 確認新分類存在
         const category = await this.categoryRepository.findOne({
@@ -291,7 +305,10 @@ export class ProductsService {
             `Category with ID ${productUpdateData.categoryId} not found`,
           );
         }
-        console.log('✅ [DEBUG] 目標分類已驗證:', { id: category.id, name: category.name });
+        console.log('✅ [DEBUG] 目標分類已驗證:', {
+          id: category.id,
+          name: category.name,
+        });
       } else {
         console.log('🔄 [DEBUG] categoryId 設為 null');
       }
@@ -299,35 +316,35 @@ export class ProductsService {
 
     console.log('🔧 [DEBUG] Object.assign 前的狀態:', {
       product_categoryId: product.categoryId,
-      updateDto_categoryId: productUpdateData.categoryId
+      updateDto_categoryId: productUpdateData.categoryId,
     });
 
     // 使用 Object.assign 合併現有產品和更新數據（不包含變體）
     const updatedProduct = Object.assign(product, productUpdateData);
-    
+
     console.log('🔧 [DEBUG] Object.assign 後的狀態:', {
-      updatedProduct_categoryId: updatedProduct.categoryId
+      updatedProduct_categoryId: updatedProduct.categoryId,
     });
 
     console.log('💾 [DEBUG] 準備保存產品...');
     const savedProduct = await this.productRepository.save(updatedProduct);
-    
+
     console.log('✅ [DEBUG] 產品已保存:', {
-      savedProduct_categoryId: savedProduct.categoryId
+      savedProduct_categoryId: savedProduct.categoryId,
     });
-    
+
     // 直接使用 repository 重新查詢，避免 findOne 的額外邏輯
     console.log('🔄 [DEBUG] 直接重新查詢產品資料...');
     const finalProduct = await this.productRepository.findOne({
       where: { id },
       relations: ['brand', 'categoryRelation', 'variants'],
     });
-    
+
     console.log('🎉 [DEBUG] 最終產品狀態:', {
       finalProduct_categoryId: finalProduct.categoryId,
-      categoryRelation: finalProduct.categoryRelation?.name || 'null'
+      categoryRelation: finalProduct.categoryRelation?.name || 'null',
     });
-    
+
     return finalProduct;
   }
 
@@ -342,24 +359,30 @@ export class ProductsService {
             where: { id: product.id },
             relations: ['brand', 'categoryRelation', 'variants'],
           });
-          
+
           if (!productWithVariants) {
             return;
           }
-          
+
           // 檢查是否需要生成主 SKU（只有在沒有變體時才生成）
-          const hasVariants = productWithVariants.variants && productWithVariants.variants.length > 0;
+          const hasVariants =
+            productWithVariants.variants &&
+            productWithVariants.variants.length > 0;
           const needsMasterSku = !productWithVariants.masterSku && !hasVariants;
-          
+
           if (needsMasterSku) {
-            console.log(`🔧 [SKU] 為產品 "${productWithVariants.name}" 生成主 SKU...`);
-            
+            console.log(
+              `🔧 [SKU] 為產品 "${productWithVariants.name}" 生成主 SKU...`,
+            );
+
             const masterSku = await this.skuGenerationService.generateSku(
               productWithVariants,
               {}, // 沒有規格
             );
-            
-            await this.productRepository.update(productWithVariants.id, { masterSku });
+
+            await this.productRepository.update(productWithVariants.id, {
+              masterSku,
+            });
             console.log(`✅ [SKU] 已生成主 SKU: ${masterSku}`);
           }
         } catch (error) {
@@ -372,61 +395,68 @@ export class ProductsService {
   }
 
   // 為所有現有產品生成缺失的主 SKU
-  async generateMissingMasterSkus(): Promise<{ success: number; failed: number; skipped: number }> {
+  async generateMissingMasterSkus(): Promise<{
+    success: number;
+    failed: number;
+    skipped: number;
+  }> {
     console.log('🚀 [SKU] 開始為現有產品生成缺失的主 SKU...');
-    
+
     const products = await this.productRepository.find({
       relations: ['brand', 'categoryRelation', 'variants'],
     });
-    
+
     let success = 0;
     let failed = 0;
     let skipped = 0;
-    
+
     for (const product of products) {
       try {
         const hasVariants = product.variants && product.variants.length > 0;
         const hasMasterSku = !!product.masterSku;
-        
+
         if (hasVariants) {
           // 有變體的產品不需要主 SKU
           skipped++;
           continue;
         }
-        
+
         if (hasMasterSku) {
           // 已經有主 SKU
           skipped++;
           continue;
         }
-        
+
         // 需要生成主 SKU
         const masterSku = await this.skuGenerationService.generateSku(
           product,
           {}, // 沒有規格
         );
-        
+
         await this.productRepository.update(product.id, { masterSku });
         console.log(`✅ [SKU] "${product.name}" -> ${masterSku}`);
         success++;
-        
       } catch (error) {
-        console.error(`❌ [SKU] 產品 "${product.name}" 生成失敗:`, error.message);
+        console.error(
+          `❌ [SKU] 產品 "${product.name}" 生成失敗:`,
+          error.message,
+        );
         failed++;
       }
     }
-    
-    console.log(`🎉 [SKU] 完成！成功: ${success}, 失敗: ${failed}, 跳過: ${skipped}`);
-    
+
+    console.log(
+      `🎉 [SKU] 完成！成功: ${success}, 失敗: ${failed}, 跳過: ${skipped}`,
+    );
+
     return { success, failed, skipped };
   }
-
 
   // 刪除產品
   async remove(id: string): Promise<void> {
     // 先刪除所有變體（因為設定了 CASCADE，其實會自動刪除）
     await this.variantsService.removeByProductId(id);
-    
+
     const result = await this.productRepository.delete(id);
 
     if (result.affected === 0) {
@@ -437,26 +467,32 @@ export class ProductsService {
   // 根據類別查找產品 (為了相容性保留，但建議使用 findAll 並傳入 category 參數)
   async findByCategory(category: string): Promise<Product[]> {
     const rawResult = await this.productRepository.find({
-      where: category ? 
-        {
-          categoryRelation: {
-            name: Like(`%${category}%`)
+      where: category
+        ? {
+            categoryRelation: {
+              name: Like(`%${category}%`),
+            },
           }
-        } : {},
+        : {},
       relations: ['brand', 'categoryRelation', 'variants'],
     });
     return rawResult;
   }
 
   // 獲取可購買的產品 (支援預購和現貨)
-  async findAvailableProducts(queryParams: FindProductsDto = {}): Promise<{ items: EnhancedProduct[]; total: number }> {
+  async findAvailableProducts(
+    queryParams: FindProductsDto = {},
+  ): Promise<{ items: EnhancedProduct[]; total: number }> {
     const result = await this.findAll(queryParams);
-    
+
     // 過濾出可購買的產品
-    const availableItems = result.items.filter(product => {
-      return product.overallStatus === ProductStatus.IN_STOCK || product.overallStatus === ProductStatus.PREORDER;
+    const availableItems = result.items.filter((product) => {
+      return (
+        product.overallStatus === ProductStatus.IN_STOCK ||
+        product.overallStatus === ProductStatus.PREORDER
+      );
     });
-    
+
     return {
       items: availableItems,
       total: availableItems.length,
@@ -469,12 +505,12 @@ export class ProductsService {
       where: { id: productId },
       relations: ['variants'],
     });
-    
+
     if (!product) {
       throw new NotFoundException(`Product with ID ${productId} not found`);
     }
-    
-    return product.getAvailableVariants().map(variant => ({
+
+    return product.getAvailableVariants().map((variant) => ({
       ...variant,
       currentPrice: variant.getCurrentPrice(),
       availableStock: variant.getAvailableStock(),
@@ -496,7 +532,7 @@ export class ProductsService {
       discontinued: 0,
     };
 
-    products.forEach(product => {
+    products.forEach((product) => {
       const status = product.getOverallStatus();
       switch (status) {
         case ProductStatus.IN_STOCK:

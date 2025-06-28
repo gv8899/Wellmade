@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/[...nextauth]/route';
+import axios from 'axios';
 
 // 後端 API 基礎 URL
-const API_BASE_URL = 'http://localhost:3003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3003';
 
 /**
  * 處理 PATCH /api/cart/items/:id 請求 (更新購物車項目數量)
@@ -20,10 +21,9 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    
-    // 解析請求正文
-    const body = await request.json();
+
     const session = await getServerSession(authOptions);
+    const body = await request.json();
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -35,25 +35,23 @@ export async function PATCH(
     }
 
     console.log(`發送PATCH請求到 ${API_BASE_URL}/cart/items/${id}`, body);
-    const response = await fetch(`${API_BASE_URL}/cart/items/${id}`, {
-      method: 'PATCH',
+    const response = await axios.patch(`${API_BASE_URL}/cart/items/${id}`, body, {
       headers,
-      body: JSON.stringify(body),
-      credentials: 'include',
+      withCredentials: true,
+      timeout: 10000,
     });
 
-    if (!response.ok) {
-      console.error(`更新購物車項目 ${id} 失敗:`, response.status, response.statusText);
+    return NextResponse.json(response.data);
+  } catch (error: any) {
+    console.error('處理更新購物車項目請求時發生錯誤:', error);
+    
+    if (error.response) {
       return NextResponse.json(
-        { error: `後端請求失敗: ${response.status} ${response.statusText}` }, 
-        { status: response.status }
+        { error: `後端請求失敗: ${error.response.status} ${error.response.statusText}` }, 
+        { status: error.response.status }
       );
     }
-
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('更新購物車項目請求錯誤:', error);
+    
     return NextResponse.json(
       { error: '處理更新購物車項目請求時發生錯誤' }, 
       { status: 500 }
@@ -62,7 +60,7 @@ export async function PATCH(
 }
 
 /**
- * 處理 DELETE /api/cart/items/:id 請求 (刪除購物車項目)
+ * 處理 DELETE /api/cart/items/:id 請求 (移除購物車項目)
  */
 export async function DELETE(
   request: NextRequest,
@@ -82,103 +80,52 @@ export async function DELETE(
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (session && (session as any).backendToken) {
       headers.Authorization = `Bearer ${(session as any).backendToken}`;
       console.log(`刪除購物車項目 ${id} - 使用JWT令牌`);
-      console.log(`Session詳情:`, {
-        hasSession: !!session,
-        hasBackendToken: !!(session as any).backendToken,
-        email: session.user?.email,
-        tokenLength: ((session as any).backendToken || '').length
-      });
-    } else {
-      console.log(`刪除購物車項目 ${id} - 無有效認證`);
     }
 
-    console.log(`發送DELETE請求到 ${API_BASE_URL}/cart/items/${id}`, { headers });
-    
-    // 先檢查刪除前的購物車狀態
+    // 獲取刪除前的購物車狀態（用於記錄）
     try {
-      const preDeleteResponse = await fetch(`${API_BASE_URL}/cart`, {
-        method: 'GET',
+      await axios.get(`${API_BASE_URL}/cart`, {
         headers,
-        credentials: 'include',
+        withCredentials: true,
+        timeout: 10000,
       });
-      if (preDeleteResponse.ok) {
-        const preDeleteData = await preDeleteResponse.json();
-        console.log(`[PRE-DELETE] 購物車狀態:`, {
-          itemCount: preDeleteData.items?.length || 0,
-          items: preDeleteData.items?.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            quantity: item.quantity
-          })) || []
-        });
-      }
-    } catch (e) {
-      console.log('[PRE-DELETE] 無法獲取刪除前狀態');
+    } catch (error) {
+      console.warn('無法獲取刪除前的購物車狀態:', error);
     }
-    
-    const response = await fetch(`${API_BASE_URL}/cart/items/${id}`, {
-      method: 'DELETE',
+
+    console.log(`發送DELETE請求到 ${API_BASE_URL}/cart/items/${id}`);
+    await axios.delete(`${API_BASE_URL}/cart/items/${id}`, {
       headers,
-      credentials: 'include',
+      withCredentials: true,
+      timeout: 10000,
     });
 
-    console.log(`後端DELETE響應:`, {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-
-    // 讀取響應體（如果有的話）
-    let responseBody = '';
+    // 獲取刪除後的購物車狀態
     try {
-      responseBody = await response.text();
-      console.log(`後端響應體:`, responseBody);
-    } catch (e) {
-      console.log('無法讀取響應體');
-    }
-    
-    // 檢查刪除後的購物車狀態
-    if (response.ok) {
-      try {
-        const postDeleteResponse = await fetch(`${API_BASE_URL}/cart`, {
-          method: 'GET',
-          headers,
-          credentials: 'include',
-        });
-        if (postDeleteResponse.ok) {
-          const postDeleteData = await postDeleteResponse.json();
-          console.log(`[POST-DELETE] 購物車狀態:`, {
-            itemCount: postDeleteData.items?.length || 0,
-            items: postDeleteData.items?.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-              quantity: item.quantity
-            })) || []
-          });
-        }
-      } catch (e) {
-        console.log('[POST-DELETE] 無法獲取刪除後狀態');
-      }
+      await axios.get(`${API_BASE_URL}/cart`, {
+        headers,
+        withCredentials: true,
+        timeout: 10000,
+      });
+    } catch (error) {
+      console.warn('無法獲取刪除後的購物車狀態:', error);
     }
 
-    if (!response.ok) {
-      console.error(`刪除購物車項目 ${id} 失敗:`, response.status, response.statusText);
-      console.error(`響應內容:`, responseBody);
+    return new NextResponse(null, { status: 204 });
+  } catch (error: any) {
+    console.error('處理刪除購物車項目請求時發生錯誤:', error);
+    
+    if (error.response) {
       return NextResponse.json(
-        { error: `後端請求失敗: ${response.status} ${response.statusText}` }, 
-        { status: response.status }
+        { error: `後端請求失敗: ${error.response.status} ${error.response.statusText}` }, 
+        { status: error.response.status }
       );
     }
-
-    console.log(`刪除成功，返回204`);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    console.error('刪除購物車項目請求錯誤:', error);
+    
     return NextResponse.json(
       { error: '處理刪除購物車項目請求時發生錯誤' }, 
       { status: 500 }

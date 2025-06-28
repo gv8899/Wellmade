@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
+import axios from 'axios';
 
 // 後端 API 基礎 URL
-const API_BASE_URL = 'http://localhost:3003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3003';
 
 /**
  * 處理 POST /api/cart/merge 請求 (合併本地購物車到用戶帳號)
@@ -44,33 +45,14 @@ export async function POST(request: NextRequest) {
     });
 
     // 發送請求到後端
-    const response = await fetch(`${API_BASE_URL}/cart/merge`, {
-      method: 'POST',
+    const response = await axios.post(`${API_BASE_URL}/cart/merge`, body, {
       headers,
-      body: JSON.stringify(body),
-      credentials: 'include',
+      withCredentials: true,
+      timeout: 10000,
     });
 
-    if (!response.ok) {
-      console.error('合併購物車失敗:', response.status, response.statusText);
-      // 嘗試讀取錯誤詳情
-      let errorDetails = '';
-      try {
-        const errorData = await response.json();
-        errorDetails = JSON.stringify(errorData);
-      } catch (e) {
-        errorDetails = response.statusText;
-      }
-      
-      return NextResponse.json(
-        { error: `後端請求失敗: ${response.status} ${errorDetails}` },
-        { status: response.status }
-      );
-    }
-
     // 返回後端響應
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(response.data);
   } catch (error) {
     console.error('處理合併購物車請求時發生錯誤:', error);
     return NextResponse.json(

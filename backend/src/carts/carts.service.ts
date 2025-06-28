@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
@@ -130,7 +134,7 @@ export class CartsService {
     // 容器產品檢查：不允許直接加入購物車
     if (product.isContainer && !variantId) {
       throw new BadRequestException(
-        '此產品需要選擇具體規格才能加入購物車。請選擇您要的變體。'
+        '此產品需要選擇具體規格才能加入購物車。請選擇您要的變體。',
       );
     }
 
@@ -151,7 +155,7 @@ export class CartsService {
     // 獲取價格和名稱
     let itemPrice = product.price;
     let itemName = product.name;
-    
+
     // 如果指定了變體ID，從變體獲取價格和名稱
     if (variantId) {
       try {
@@ -174,8 +178,7 @@ export class CartsService {
       specs,
       name: itemName,
       price: itemPrice,
-      cover:
-        product.images && product.images.length > 0 ? product.images[0] : null,
+      cover: product.imageUrl || null,
     });
 
     // 保存並返回
@@ -252,6 +255,14 @@ export class CartsService {
         }
       },
     );
+  }
+
+  /**
+   * 清空購物車
+   */
+  async clear(userId?: string, sessionId?: string): Promise<void> {
+    const cart = await this.getOrCreateCart(userId, sessionId);
+    await this.clearCart(cart);
   }
 
   /**

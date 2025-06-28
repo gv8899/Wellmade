@@ -62,20 +62,23 @@ class Logger {
       // 捕獲 JavaScript 運行時錯誤和資源加載錯誤
       window.addEventListener('error', (event) => {
         if (event.target !== window) {
-          // 資源加載錯誤 - 只在生產環境記錄，或開發環境的重要資源
+          // 資源加載錯誤 - 只記錄重要資源的錯誤
           const source = event.target?.src || event.target?.href || ''
-          const isImportantResource = !source.includes('_next/static') && !source.includes('chrome-extension')
+          const isImportantResource = !source.includes('_next/static') && 
+                                     !source.includes('chrome-extension') &&
+                                     !source.includes('data:') &&
+                                     source.trim() !== ''
           
-          if (process.env.NODE_ENV === 'production' || isImportantResource) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('🚨 捕獲到資源加載錯誤:', event)
-            }
+          // 只在生產環境記錄重要資源錯誤
+          if (process.env.NODE_ENV === 'production' && isImportantResource) {
             this.error('資源加載錯誤', {
               element: event.target?.tagName,
               source: source,
               type: 'resource_error',
               timestamp: new Date().toISOString()
             })
+          } else if (process.env.NODE_ENV === 'development' && isImportantResource) {
+            console.log('🚨 捕獲到資源加載錯誤:', event)
           }
         } else {
           // JavaScript 運行時錯誤

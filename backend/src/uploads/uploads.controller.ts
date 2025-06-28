@@ -8,13 +8,12 @@ import * as fs from 'fs';
 export class UploadsController {
   private readonly uploadsPath = path.join(process.cwd(), 'uploads');
 
-
   @Get(':filename')
   @Public()
   async getFile(@Param('filename') filename: string, @Res() res: Response) {
     try {
       const filePath = path.join(this.uploadsPath, filename);
-      
+
       // 檢查檔案是否存在
       if (!fs.existsSync(filePath)) {
         throw new NotFoundException('File not found');
@@ -23,7 +22,7 @@ export class UploadsController {
       // 安全檢查：確保請求的檔案在 uploads 目錄內
       const resolvedPath = path.resolve(filePath);
       const uploadsResolvedPath = path.resolve(this.uploadsPath);
-      
+
       if (!resolvedPath.startsWith(uploadsResolvedPath)) {
         throw new NotFoundException('File not found');
       }
@@ -31,7 +30,7 @@ export class UploadsController {
       // 設定適當的 Content-Type
       const ext = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream';
-      
+
       switch (ext) {
         case '.jpg':
         case '.jpeg':
@@ -50,7 +49,7 @@ export class UploadsController {
 
       res.setHeader('Content-Type', contentType);
       res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day cache
-      
+
       return res.sendFile(filePath);
     } catch (error) {
       throw new NotFoundException('File not found');

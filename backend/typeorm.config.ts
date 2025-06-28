@@ -8,6 +8,10 @@ import { Brand } from './src/brands/brand.entity';
 import { Category } from './src/categories/category.entity';
 import { Cart } from './src/carts/entities/cart.entity';
 import { CartItem } from './src/carts/entities/cart-item.entity';
+import { Order } from './src/orders/entities/order.entity';
+import { OrderItem } from './src/orders/entities/order-item.entity';
+import { PaymentRecord } from './src/orders/entities/payment-record.entity';
+import { FrontendLog } from './src/logs/frontend-log.entity';
 
 // 載入環境變數
 config();
@@ -22,7 +26,7 @@ export default new DataSource({
   username: configService.get('DB_USER'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_NAME'),
-  entities: [Product, ProductVariant, User, Brand, Category, Cart, CartItem],
+  entities: [Product, ProductVariant, User, Brand, Category, Cart, CartItem, Order, OrderItem, PaymentRecord, FrontendLog],
   // 指定遷移存放位置
   migrations: ['migrations/*.ts'],
   // 讓 TypeORM 不自動同步數據庫結構 (我們將使用遷移來管理)

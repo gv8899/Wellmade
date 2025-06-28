@@ -61,9 +61,10 @@ export class Product {
   @Column('int', { default: 0 })
   stock: number;
 
-
   // 分類關聯
-  @ManyToOne(() => Category, category => category.products, { nullable: true })
+  @ManyToOne(() => Category, (category) => category.products, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'categoryId' })
   categoryRelation: Category;
 
@@ -114,7 +115,7 @@ export class Product {
   @Column({
     type: 'enum',
     enum: ProductStatus,
-    default: ProductStatus.IN_STOCK
+    default: ProductStatus.IN_STOCK,
   })
   status: ProductStatus;
 
@@ -131,7 +132,7 @@ export class Product {
   variants: ProductVariant[];
 
   // === 計算屬性 ===
-  
+
   /**
    * 獲取產品的整體狀態
    * 基於所有變體的狀態計算
@@ -142,28 +143,29 @@ export class Product {
     }
 
     // 如果有任何變體有庫存，產品就是有庫存的
-    const hasInStock = this.variants.some(v => 
-      v.isActive && v.status === ProductStatus.IN_STOCK && v.stock > 0
+    const hasInStock = this.variants.some(
+      (v) => v.isActive && v.status === ProductStatus.IN_STOCK && v.stock > 0,
     );
-    
+
     if (hasInStock) {
       return ProductStatus.IN_STOCK;
     }
 
     // 如果有任何變體可預購，產品就是可預購的
-    const hasPreorder = this.variants.some(v => 
-      v.isActive && v.status === ProductStatus.PREORDER && v.canPurchase()
+    const hasPreorder = this.variants.some(
+      (v) =>
+        v.isActive && v.status === ProductStatus.PREORDER && v.canPurchase(),
     );
-    
+
     if (hasPreorder) {
       return ProductStatus.PREORDER;
     }
 
     // 如果所有變體都停產，產品就是停產的
-    const allDiscontinued = this.variants.every(v => 
-      !v.isActive || v.status === ProductStatus.DISCONTINUED
+    const allDiscontinued = this.variants.every(
+      (v) => !v.isActive || v.status === ProductStatus.DISCONTINUED,
     );
-    
+
     if (allDiscontinued) {
       return ProductStatus.DISCONTINUED;
     }
@@ -177,9 +179,9 @@ export class Product {
    */
   getAvailableVariants(): ProductVariant[] {
     if (!this.variants) return [];
-    
-    return this.variants.filter(variant => 
-      variant.isActive && variant.canPurchase()
+
+    return this.variants.filter(
+      (variant) => variant.isActive && variant.canPurchase(),
     );
   }
 
@@ -196,7 +198,7 @@ export class Product {
       return this.price;
     }
 
-    return Math.min(...availableVariants.map(v => v.getCurrentPrice()));
+    return Math.min(...availableVariants.map((v) => v.getCurrentPrice()));
   }
 
   /**
@@ -212,7 +214,7 @@ export class Product {
       return this.price;
     }
 
-    return Math.max(...availableVariants.map(v => v.getCurrentPrice()));
+    return Math.max(...availableVariants.map((v) => v.getCurrentPrice()));
   }
 
   /**
@@ -222,11 +224,9 @@ export class Product {
    */
   getSkus(): string[] {
     if (this.variants && this.variants.length > 0) {
-      return this.variants
-        .filter(v => v.isActive && v.sku)
-        .map(v => v.sku);
+      return this.variants.filter((v) => v.isActive && v.sku).map((v) => v.sku);
     }
-    
+
     return this.masterSku ? [this.masterSku] : [];
   }
 
@@ -236,9 +236,9 @@ export class Product {
   hasValidSku(): boolean {
     if (this.variants && this.variants.length > 0) {
       // 有變體時，檢查是否有任何變體有 SKU
-      return this.variants.some(v => v.isActive && v.sku);
+      return this.variants.some((v) => v.isActive && v.sku);
     }
-    
+
     // 沒有變體時，檢查主 SKU
     return !!this.masterSku;
   }
@@ -271,10 +271,10 @@ export class Product {
       return null;
     }
 
-    const prices = availableVariants.map(v => v.getCurrentPrice());
+    const prices = availableVariants.map((v) => v.getCurrentPrice());
     return {
       min: Math.min(...prices),
-      max: Math.max(...prices)
+      max: Math.max(...prices),
     };
   }
 
@@ -287,7 +287,7 @@ export class Product {
     }
 
     return this.variants
-      .filter(v => v.isActive)
+      .filter((v) => v.isActive)
       .reduce((sum, v) => sum + (v.stock || 0), 0);
   }
 }

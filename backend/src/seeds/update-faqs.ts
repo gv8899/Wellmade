@@ -28,7 +28,7 @@ const updateFAQs = async () => {
 
     // 獲取所有產品（包含分類關聯）
     const products = await productRepository.find({
-      relations: ['categoryRelation']
+      relations: ['categoryRelation'],
     });
 
     if (products.length === 0) {

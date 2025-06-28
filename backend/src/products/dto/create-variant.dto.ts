@@ -14,7 +14,10 @@ import {
 import { ProductStatus, InventoryType } from '../enums/product-status.enum';
 
 export class CreateVariantDto {
-  @ApiPropertyOptional({ description: 'SKU (Stock Keeping Unit) - 如果未提供或設定 autoGenerateSku 為 true，將自動生成' })
+  @ApiPropertyOptional({
+    description:
+      'SKU (Stock Keeping Unit) - 如果未提供或設定 autoGenerateSku 為 true，將自動生成',
+  })
   @IsOptional()
   @IsString()
   sku?: string;
@@ -29,9 +32,9 @@ export class CreateVariantDto {
   @IsString()
   variantTitle?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: '規格',
-    example: { "顏色": "白色", "尺寸": "M" }
+    example: { 顏色: '白色', 尺寸: 'M' },
   })
   @IsObject()
   specs: Record<string, string>;
@@ -79,19 +82,19 @@ export class CreateVariantDto {
   barcode?: string;
 
   // 產品狀態相關欄位
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: '產品狀態',
     enum: ProductStatus,
-    default: ProductStatus.IN_STOCK 
+    default: ProductStatus.IN_STOCK,
   })
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus = ProductStatus.IN_STOCK;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: '庫存類型',
     enum: InventoryType,
-    default: InventoryType.PHYSICAL 
+    default: InventoryType.PHYSICAL,
   })
   @IsOptional()
   @IsEnum(InventoryType)

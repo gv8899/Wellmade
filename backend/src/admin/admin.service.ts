@@ -53,9 +53,9 @@ export class AdminService {
     if (category) {
       // 用slug查詢分類
       const categoryEntity = await this.categoryRepository.findOne({
-        where: { slug: category }
+        where: { slug: category },
       });
-      
+
       if (categoryEntity) {
         whereConditions.categoryId = categoryEntity.id;
       }
@@ -95,7 +95,7 @@ export class AdminService {
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
     console.log('AdminService - Creating product with data:', createProductDto);
-    
+
     // 檢查品牌是否存在
     if (createProductDto.brandId) {
       const brand = await this.brandRepository.findOne({
@@ -116,14 +116,16 @@ export class AdminService {
         where: { id: createProductDto.categoryId },
       });
       if (!category) {
-        console.error(`Category with ID ${createProductDto.categoryId} not found`);
-        
+        console.error(
+          `Category with ID ${createProductDto.categoryId} not found`,
+        );
+
         // 列出所有可用的分類來幫助調試
-        const allCategories = await this.categoryRepository.find({ 
-          select: ['id', 'name', 'isActive'] 
+        const allCategories = await this.categoryRepository.find({
+          select: ['id', 'name', 'isActive'],
         });
         console.log('AdminService - 所有可用分類:', allCategories);
-        
+
         throw new BadRequestException(
           `分類不存在 (ID: ${createProductDto.categoryId})`,
         );
@@ -136,17 +138,21 @@ export class AdminService {
 
     try {
       // 分離變體資料和主 SKU 設定，像 Products Service 一樣處理
-      const { variants, autoGenerateMasterSku, ...productDataWithoutVariants } = createProductDto;
-      console.log('AdminService - 分離變體資料:', { 
-        hasVariants: variants?.length > 0, 
+      const { variants, autoGenerateMasterSku, ...productDataWithoutVariants } =
+        createProductDto;
+      console.log('AdminService - 分離變體資料:', {
+        hasVariants: variants?.length > 0,
         variantCount: variants?.length || 0,
-        autoGenerateMasterSku 
+        autoGenerateMasterSku,
       });
-      
+
       const product = this.productRepository.create(productDataWithoutVariants);
       const savedProduct = await this.productRepository.save(product);
-      console.log('AdminService - Product created successfully:', savedProduct.id);
-      
+      console.log(
+        'AdminService - Product created successfully:',
+        savedProduct.id,
+      );
+
       // 如果有變體資料，創建變體
       if (variants && variants.length > 0) {
         console.log('AdminService - 開始創建變體...');
@@ -155,7 +161,7 @@ export class AdminService {
       } else {
         console.log('AdminService - 沒有變體資料，跳過變體創建');
       }
-      
+
       // 重新載入關聯資料以確保返回完整的產品資訊
       return this.productRepository.findOne({
         where: { id: savedProduct.id },
@@ -173,11 +179,12 @@ export class AdminService {
   ): Promise<Product> {
     console.log(`Admin Service - Updating product ${id}:`, {
       updateData: updateProductDto,
-      categoryId: updateProductDto.categoryId
+      categoryId: updateProductDto.categoryId,
     });
 
     // 排除變體欄位，變體應該通過專門的變體 API 管理
-    const { variants, autoGenerateMasterSku, ...cleanUpdateData } = updateProductDto;
+    const { variants, autoGenerateMasterSku, ...cleanUpdateData } =
+      updateProductDto;
     console.log('Admin Service - 已排除變體欄位，純產品數據:', cleanUpdateData);
 
     // 檢查產品是否存在
@@ -192,7 +199,7 @@ export class AdminService {
     console.log(`Admin Service - Original product:`, {
       id: existingProduct.id,
       name: existingProduct.name,
-      originalCategoryId: existingProduct.categoryId
+      originalCategoryId: existingProduct.categoryId,
     });
 
     // 如果更新品牌ID，檢查品牌是否存在
@@ -209,7 +216,10 @@ export class AdminService {
 
     // 如果更新分類ID，檢查分類是否存在
     if (cleanUpdateData.categoryId !== undefined) {
-      if (cleanUpdateData.categoryId && cleanUpdateData.categoryId.trim() !== '') {
+      if (
+        cleanUpdateData.categoryId &&
+        cleanUpdateData.categoryId.trim() !== ''
+      ) {
         const category = await this.categoryRepository.findOne({
           where: { id: cleanUpdateData.categoryId },
         });
@@ -226,7 +236,7 @@ export class AdminService {
 
     console.log(`Admin Service - Before QueryBuilder update:`, {
       id,
-      updateData: cleanUpdateData
+      updateData: cleanUpdateData,
     });
 
     // 使用 QueryBuilder 強制更新 categoryId（排除變體欄位）
@@ -234,12 +244,12 @@ export class AdminService {
       .createQueryBuilder()
       .update(Product)
       .set(cleanUpdateData)
-      .where("id = :id", { id })
+      .where('id = :id', { id })
       .execute();
 
     console.log(`Admin Service - QueryBuilder update result:`, {
       affected: updateResult.affected,
-      raw: updateResult.raw
+      raw: updateResult.raw,
     });
 
     // 重新載入產品資料
@@ -247,14 +257,14 @@ export class AdminService {
       where: { id },
       relations: ['brand', 'categoryRelation'],
     });
-    
+
     console.log(`Admin Service - Final product after QueryBuilder:`, {
       id: updatedProduct.id,
       finalCategoryId: updatedProduct.categoryId,
       finalCategoryRelation: updatedProduct.categoryRelation?.name,
-      updatedAt: updatedProduct.updatedAt
+      updatedAt: updatedProduct.updatedAt,
     });
-    
+
     return updatedProduct;
   }
 
@@ -305,7 +315,9 @@ export class AdminService {
         where: { name: updateBrandDto.name },
       });
       if (duplicateBrand) {
-        throw new BadRequestException(`Brand name "${updateBrandDto.name}" already exists`);
+        throw new BadRequestException(
+          `Brand name "${updateBrandDto.name}" already exists`,
+        );
       }
     }
 
@@ -314,14 +326,14 @@ export class AdminService {
       .createQueryBuilder()
       .update(Brand)
       .set(updateBrandDto)
-      .where("id = :id", { id })
+      .where('id = :id', { id })
       .execute();
 
     // 重新載入品牌資料
     const updatedBrand = await this.brandRepository.findOne({
       where: { id },
     });
-    
+
     return updatedBrand;
   }
 

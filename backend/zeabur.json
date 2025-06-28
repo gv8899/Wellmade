@@ -1,0 +1,14 @@
+{
+  "name": "wellmade-backend",
+  "build": {
+    "buildCommand": "npm install && npm run build && npm run migration:run",
+    "outputDirectory": "dist"
+  },
+  "run": {
+    "startCommand": "NODE_OPTIONS=--experimental-global-webcrypto npm run start:prod"
+  },
+  "env": {
+    "NODE_VERSION": "18",
+    "PORT": "3003"
+  }
+}

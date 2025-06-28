@@ -27,9 +27,9 @@ export class UpdateVariantDto {
   @IsString()
   variantTitle?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: '規格',
-    example: { "顏色": "白色", "尺寸": "M" }
+    example: { 顏色: '白色', 尺寸: 'M' },
   })
   @IsOptional()
   @IsObject()
@@ -79,17 +79,17 @@ export class UpdateVariantDto {
   @IsString()
   barcode?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: '產品狀態',
-    enum: ProductStatus
+    enum: ProductStatus,
   })
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: '庫存類型',
-    enum: InventoryType
+    enum: InventoryType,
   })
   @IsOptional()
   @IsEnum(InventoryType)

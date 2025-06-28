@@ -46,9 +46,18 @@ export class UploadService {
     const baseFilename = `${timestamp}-${randomString}`;
 
     // 檔案路徑
-    const originalPath = path.join(this.uploadPath, `${baseFilename}-original${fileExtension}`);
-    const thumbnailPath = path.join(this.uploadPath, `${baseFilename}-thumb.webp`);
-    const mediumPath = path.join(this.uploadPath, `${baseFilename}-medium.webp`);
+    const originalPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-original${fileExtension}`,
+    );
+    const thumbnailPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-thumb.webp`,
+    );
+    const mediumPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-medium.webp`,
+    );
 
     try {
       // 保存原圖
@@ -72,7 +81,8 @@ export class UploadService {
         .webp({ quality: 85 })
         .toFile(mediumPath);
 
-      const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3003';
+      const baseUrl =
+        this.configService.get<string>('BASE_URL') || 'http://localhost:3003';
 
       return {
         original: `${baseUrl}/uploads/${path.basename(originalPath)}`,
@@ -85,7 +95,9 @@ export class UploadService {
     } catch (error) {
       // 清理可能已創建的檔案
       await this.cleanupFiles([originalPath, thumbnailPath, mediumPath]);
-      throw new BadRequestException(`Image processing failed: ${error.message}`);
+      throw new BadRequestException(
+        `Image processing failed: ${error.message}`,
+      );
     }
   }
 
@@ -179,7 +191,10 @@ export class UploadService {
         }
       }
     } catch (error) {
-      console.warn(`Failed to delete image files for ${filename}:`, error.message);
+      console.warn(
+        `Failed to delete image files for ${filename}:`,
+        error.message,
+      );
     }
   }
 }

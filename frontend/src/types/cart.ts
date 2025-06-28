@@ -142,3 +142,18 @@ export interface CartState {
   error: string | null;
   lastSyncTime: number;
 }
+
+// 標準化的加入購物車輸入介面
+export interface AddToCartInput {
+  productId: string;          // 必須：產品ID
+  variantId?: string;         // 可選：變體ID（容器產品必須提供）
+  quantity: number;           // 必須：數量
+  specs?: Record<string, string>; // 可選：規格選擇
+}
+
+// 前端購物車項目顯示用介面（包含所有顯示需要的資訊）
+export interface CartItemDisplay extends CartItem {
+  name: string;               // 顯示名稱
+  price: number;              // 顯示價格
+  cover: string;              // 封面圖片
+}

@@ -15,6 +15,9 @@ import { UploadsModule } from './uploads/uploads.module';
 import { LogsModule } from './logs/logs.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { OrdersModule } from './orders/orders.module';
+import { PaymentModule } from './payment/payment.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -31,6 +34,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     CategoriesModule,
     UploadsModule,
     LogsModule,
+    HealthModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -54,6 +58,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
       },
       inject: [ConfigService],
     }),
+    OrdersModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [

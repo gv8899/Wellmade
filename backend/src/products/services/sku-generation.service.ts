@@ -40,18 +40,18 @@ export class SkuGenerationService {
       米色: 'BE',
     },
     尺寸: {
-      'XS': 'XS',
-      'S': 'S',
-      'M': 'M',
-      'L': 'L',
-      'XL': 'XL',
-      'XXL': '2XL',
-      'XXXL': '3XL',
-      '小': 'S',
-      '中': 'M',
-      '大': 'L',
-      '特大': 'XL',
-      '迷你': 'XS',
+      XS: 'XS',
+      S: 'S',
+      M: 'M',
+      L: 'L',
+      XL: 'XL',
+      XXL: '2XL',
+      XXXL: '3XL',
+      小: 'S',
+      中: 'M',
+      大: 'L',
+      特大: 'XL',
+      迷你: 'XS',
     },
     材質: {
       不鏽鋼: 'SS',
@@ -123,11 +123,11 @@ export class SkuGenerationService {
     }
 
     // 組合基礎 SKU
-    let baseSku = parts.join(this.skuFormat.separator);
+    const baseSku = parts.join(this.skuFormat.separator);
 
     // 確保 SKU 唯一性
     const uniqueSku = await this.ensureUniqueSku(baseSku, product.id);
-    
+
     return uniqueSku;
   }
 
@@ -141,7 +141,7 @@ export class SkuGenerationService {
 
     // 移除非字母字符，轉大寫
     const cleanName = brand.name.replace(/[^A-Za-z]/g, '').toUpperCase();
-    
+
     // 如果品牌名稱很短，直接使用
     if (cleanName.length <= this.skuFormat.brandLength) {
       return cleanName;
@@ -160,34 +160,34 @@ export class SkuGenerationService {
     }
 
     const categoryName = category.name.toLowerCase();
-    
+
     // 預定義的分類代碼映射
     const categoryCodeMap: Record<string, string> = {
-      '廚房': 'KCH',
-      '廚房用品': 'KCH',
-      '浴室': 'BTH',
-      '浴室用品': 'BTH',
-      '臥室': 'BED',
-      '臥室用品': 'BED',
-      '客廳': 'LIV',
-      '客廳用品': 'LIV',
-      '辦公': 'OFC',
-      '辦公用品': 'OFC',
-      '戶外': 'OUT',
-      '戶外用品': 'OUT',
-      '收納': 'STG',
-      '收納用品': 'STG',
-      '清潔': 'CLN',
-      '清潔用品': 'CLN',
-      '餐具': 'DIN',
-      '餐廚': 'DIN',
-      '家電': 'APP',
-      '小家電': 'APP',
-      '裝飾': 'DEC',
-      '家飾': 'DEC',
-      '寢具': 'BED',
-      '服飾': 'CLO',
-      '配件': 'ACC',
+      廚房: 'KCH',
+      廚房用品: 'KCH',
+      浴室: 'BTH',
+      浴室用品: 'BTH',
+      臥室: 'BED',
+      臥室用品: 'BED',
+      客廳: 'LIV',
+      客廳用品: 'LIV',
+      辦公: 'OFC',
+      辦公用品: 'OFC',
+      戶外: 'OUT',
+      戶外用品: 'OUT',
+      收納: 'STG',
+      收納用品: 'STG',
+      清潔: 'CLN',
+      清潔用品: 'CLN',
+      餐具: 'DIN',
+      餐廚: 'DIN',
+      家電: 'APP',
+      小家電: 'APP',
+      裝飾: 'DEC',
+      家飾: 'DEC',
+      寢具: 'BED',
+      服飾: 'CLO',
+      配件: 'ACC',
     };
 
     // 尋找匹配的分類代碼
@@ -203,7 +203,7 @@ export class SkuGenerationService {
       // 多個單詞，取每個單詞的首字母
       return words
         .slice(0, 3)
-        .map(w => w.charAt(0).toUpperCase())
+        .map((w) => w.charAt(0).toUpperCase())
         .join('');
     } else {
       // 單個單詞，取前三個字母
@@ -229,10 +229,10 @@ export class SkuGenerationService {
    */
   private getSpecCode(specs: Record<string, string>): string {
     const codes: string[] = [];
-    
+
     // 定義規格的優先順序
     const specOrder = ['顏色', '尺寸', '容量', '材質'];
-    
+
     // 按照優先順序處理規格
     for (const specType of specOrder) {
       const specValue = specs[specType];
@@ -278,7 +278,10 @@ export class SkuGenerationService {
   /**
    * 確保 SKU 的全域唯一性
    */
-  private async ensureUniqueSku(baseSku: string, productId: string): Promise<string> {
+  private async ensureUniqueSku(
+    baseSku: string,
+    productId: string,
+  ): Promise<string> {
     let sku = baseSku;
     let counter = 0;
 
@@ -295,7 +298,7 @@ export class SkuGenerationService {
 
       // 如果存在，無論是否同一產品都需要添加後綴確保唯一性
       counter++;
-      
+
       // 使用時間戳和計數器確保更高的唯一性
       const timestamp = Date.now().toString().slice(-3);
       sku = `${baseSku}${this.skuFormat.separator}${counter.toString().padStart(2, '0')}${timestamp}`;
@@ -312,12 +315,15 @@ export class SkuGenerationService {
       .select(['variant.sku'])
       .getMany();
 
-    const existingSkus = new Set(existingVariants.map(v => v.sku));
-    
-    return skus.reduce((acc, sku) => {
-      acc[sku] = existingSkus.has(sku);
-      return acc;
-    }, {} as Record<string, boolean>);
+    const existingSkus = new Set(existingVariants.map((v) => v.sku));
+
+    return skus.reduce(
+      (acc, sku) => {
+        acc[sku] = existingSkus.has(sku);
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    );
   }
 
   /**
@@ -338,9 +344,7 @@ export class SkuGenerationService {
     parts.push(categoryCode);
 
     // 3. 產品ID簡碼（如果是新產品，使用臨時代碼）
-    const productCode = product.id 
-      ? this.getProductCode(product.id)
-      : 'XXXX';
+    const productCode = product.id ? this.getProductCode(product.id) : 'XXXX';
     parts.push(productCode);
 
     // 4. 規格代碼

@@ -10,7 +10,12 @@ import {
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public } from '../auth/decorators/public.decorator';
@@ -78,7 +83,7 @@ export class ProductsController {
     console.log('🚨🚨🚨 [CONTROLLER DEBUG] 收到更新請求 🚨🚨🚨');
     console.log('產品ID:', id);
     console.log('更新數據:', JSON.stringify(updateProductDto));
-    
+
     try {
       const result = await this.productsService.update(id, updateProductDto);
       console.log('🚨🚨🚨 Service 返回成功 🚨🚨🚨');
@@ -132,11 +137,7 @@ export class ProductsController {
   @ApiOperation({ summary: '預覽產品主 SKU' })
   @ApiResponse({ status: 200, description: '預覽成功' })
   async previewMasterSku(
-    @Body() body: { 
-      brandId?: string;
-      categoryId?: string;
-      name?: string;
-    },
+    @Body() body: { brandId?: string; categoryId?: string; name?: string },
   ) {
     // 構建臨時產品對象用於預覽
     const tempProduct: any = {
@@ -154,7 +155,9 @@ export class ProductsController {
 
     // 如果提供了分類ID，獲取分類資訊
     if (body.categoryId) {
-      const category = await this.productsService.findCategoryById(body.categoryId);
+      const category = await this.productsService.findCategoryById(
+        body.categoryId,
+      );
       if (category) {
         tempProduct.categoryRelation = category;
       }
@@ -177,7 +180,7 @@ export class ProductsController {
     const result = await this.productsService.generateMissingMasterSkus();
     return {
       message: 'Master SKU 生成完成',
-      ...result
+      ...result,
     };
   }
 }

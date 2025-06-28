@@ -1,0 +1,14 @@
+{
+  "name": "wellmade-frontend",
+  "build": {
+    "buildCommand": "npm install && npm run build",
+    "outputDirectory": ".next"
+  },
+  "run": {
+    "startCommand": "npm run start"
+  },
+  "env": {
+    "NODE_VERSION": "18",
+    "PORT": "3000"
+  }
+}

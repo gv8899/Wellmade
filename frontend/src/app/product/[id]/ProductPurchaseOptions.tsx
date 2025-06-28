@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useCart, CartItemInput } from "@/CartContext";
+import { useCart } from "@/CartContext";
 import RestockNotifyModal from "./RestockNotifyModal";
 import { toast } from "react-hot-toast";
 import { ProductStatus, InventoryType, ProductVariant as GlobalProductVariant, canPurchaseVariant, getCurrentPrice } from "@/types/product";
@@ -20,6 +20,7 @@ export interface DisplayProductVariant extends Omit<GlobalProductVariant, 'image
 }
 
 export interface ProductPurchaseOptionsProps {
+  productId: string; // 產品ID
   title: string;
   variants: DisplayProductVariant[];
   specOptions: ProductSpecOption[];
@@ -28,6 +29,7 @@ export interface ProductPurchaseOptionsProps {
 }
 
 const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
+  productId,
   title,
   variants: initialVariants,
   specOptions: initialSpecOptions,
@@ -137,15 +139,12 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             setIsAddingToCart(true);
             
             try {
+              // 使用正確的 AddToCartInput 結構
               await addToCart({
-                id: currentVariant.id,
-                productId: product.id,
-                variantId: currentVariant.id,
-                name: currentVariant.variantTitle || title,
-                price: currentPrice,
-                cover: currentVariant.image,
-                specs: selectedSpecs,
-                quantity: quantity
+                productId: productId,
+                variantId: isContainer ? currentVariant.id : undefined,  // 容器產品提供 variantId，簡單產品不提供
+                quantity: quantity,
+                specs: selectedSpecs
               });
               
               addCartClick();
@@ -173,15 +172,12 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             setIsAddingToCart(true);
             
             try {
+              // 使用正確的 AddToCartInput 結構
               await addToCart({
-                id: currentVariant.id,
-                productId: product.id,
-                variantId: currentVariant.id,
-                name: currentVariant.variantTitle || title,
-                price: currentPrice,
-                cover: currentVariant.image,
-                specs: selectedSpecs,
-                quantity: quantity
+                productId: productId,
+                variantId: isContainer ? currentVariant.id : undefined,  // 容器產品提供 variantId，簡單產品不提供
+                quantity: quantity,
+                specs: selectedSpecs
               });
               
               addCartClick();

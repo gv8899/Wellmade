@@ -185,99 +185,45 @@ export const getProducts = async (params: ProductQueryParams = {}): Promise<Page
  */
 export const getEnhancedProducts = async (params: ProductQueryParams = {}): Promise<PagedResult<import('@/types/product').EnhancedProduct>> => {
   try {
-    // 首先獲取基本產品列表
+    // 獲取產品列表（已包含完整信息包括變體和價格範圍）
     const productsResponse = await getProducts(params);
     
-    // 為每個產品計算增強信息
-    const enhancedProducts = await Promise.all(
-      productsResponse.items.map(async (product) => {
-        try {
-          // 嘗試從詳細產品信息中獲取變體
-          const detailedProduct = await getProductById(product.id);
-          
-          // 計算價格範圍
-          let priceRange: import('@/types/product').PriceRange;
-          let availableVariantsCount = 0;
-          
-          if (detailedProduct.variants && detailedProduct.variants.length > 0) {
-            const activePrices = detailedProduct.variants
-              .filter(v => v.isActive)
-              .map(v => import('@/types/product').getCurrentPrice(v));
-            
-            if (activePrices.length > 0) {
-              const minPrice = Math.min(...activePrices);
-              const maxPrice = Math.max(...activePrices);
-              
-              priceRange = minPrice === maxPrice 
-                ? { price: minPrice }
-                : { minPrice, maxPrice };
-              
-              availableVariantsCount = detailedProduct.variants.filter(v => 
-                v.isActive && import('@/types/product').canPurchaseVariant(v)
-              ).length;
-            } else {
-              priceRange = { price: product.price };
-            }
-          } else {
-            priceRange = { price: product.price };
-            availableVariantsCount = 1;
-          }
-          
-          // 構建增強產品對象
-          const enhancedProduct: import('@/types/product').EnhancedProduct = {
-            id: product.id,
-            name: product.name,
-            masterSku: product.masterSku,
-            description: product.description,
-            price: product.price,
-            stock: product.stock,
-            category: getProductCategoryName(product),
-            imageUrl: product.imageUrl,
-            images: product.images || [],
-            isActive: product.isActive,
-            status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-            brandId: product.brandId,
-            brand: product.brand,
-            categoryRelation: product.categoryRelation,
-            variants: detailedProduct.variants,
-            keyFeatures: product.keyFeatures,
-            featureDetails: product.featureDetails,
-            faqs: product.faqs,
-            overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-            priceRange,
-            availableVariantsCount,
-            createdAt: product.createdAt,
-            updatedAt: product.updatedAt
-          };
-          
-          return enhancedProduct;
-        } catch (error) {
-          console.warn(`無法獲取產品 ${product.id} 的詳細信息，使用基本信息:`, error);
-          
-          // 如果無法獲取詳細信息，使用基本產品信息構建增強對象
-          return {
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            stock: product.stock,
-            category: getProductCategoryName(product),
-            imageUrl: product.imageUrl,
-            images: product.images || [],
-            isActive: product.isActive,
-            status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-            brandId: product.brandId,
-            brand: product.brand,
-            categoryRelation: product.categoryRelation,
-            overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-            priceRange: { price: product.price },
-            availableVariantsCount: 1,
-            createdAt: product.createdAt,
-            updatedAt: product.updatedAt
-          } as import('@/types/product').EnhancedProduct;
-        }
-      })
-    );
+    // 直接使用產品列表中的信息構建增強產品對象
+    const enhancedProducts = productsResponse.items.map((product: any) => {
+      // 使用後端已計算的價格範圍和變體信息
+      const priceRange = product.priceRange || { price: product.price };
+      const availableVariantsCount = product.availableVariantsCount || (product.variants?.length > 0 ? product.variants.length : 1);
+      
+      const enhancedProduct: import('@/types/product').EnhancedProduct = {
+        id: product.id,
+        name: product.name,
+        masterSku: product.masterSku,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        imageUrl: product.imageUrl,
+        images: product.images || [],
+        isActive: product.isActive,
+        isContainer: product.isContainer || false,
+        status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
+        brandId: product.brandId,
+        brand: product.brand,
+        categoryRelation: product.categoryRelation,
+        variants: product.variants || [],
+        keyFeatures: product.keyFeatures,
+        featureDetails: product.featureDetails,
+        faqs: product.faqs,
+        overallStatus: product.overallStatus || product.status || import('@/types/product').ProductStatus.IN_STOCK,
+        priceRange,
+        availableVariantsCount,
+        totalStock: product.totalStock || product.stock,
+        canPurchaseDirectly: product.canPurchaseDirectly,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      };
+      
+      return enhancedProduct;
+    });
     
     return {
       items: enhancedProducts,
@@ -285,33 +231,7 @@ export const getEnhancedProducts = async (params: ProductQueryParams = {}): Prom
     };
   } catch (error) {
     console.error('獲取增強產品列表失敗:', error);
-    // 回退到基本產品列表
-    const basicProducts = await getProducts(params);
-    const enhancedProducts = basicProducts.items.map(product => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      category: getProductCategoryName(product),
-      imageUrl: product.imageUrl,
-      images: product.images || [],
-      isActive: product.isActive,
-      status: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-      brandId: product.brandId,
-      brand: product.brand,
-      categoryRelation: product.categoryRelation,
-      overallStatus: product.status || import('@/types/product').ProductStatus.IN_STOCK,
-      priceRange: { price: product.price },
-      availableVariantsCount: 1,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt
-    } as import('@/types/product').EnhancedProduct));
-    
-    return {
-      items: enhancedProducts,
-      total: basicProducts.total
-    };
+    throw error;
   }
 };
 
@@ -321,7 +241,7 @@ export const getEnhancedProducts = async (params: ProductQueryParams = {}): Prom
  */
 export const getProductById = async (id: string): Promise<Product> => {
   try {
-    const response = await api.get(`/products/${id}`);
+    const response = await api.get(`/product?id=${id}`);
     return response.data;
   } catch (error) {
     console.error(`獲取產品 ${id} 詳情失敗:`, error);

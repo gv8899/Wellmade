@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
+import axios from 'axios';
 
 // 後端 API 基礎 URL
-const API_BASE_URL = 'http://localhost:3003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3003';
 
 /**
  * 處理 GET /api/cart 請求
@@ -44,23 +45,14 @@ export async function GET(request: NextRequest) {
     }
 
     // 發送請求到後端
-    const response = await fetch(`${API_BASE_URL}/cart`, {
-      method: 'GET',
+    const response = await axios.get(`${API_BASE_URL}/cart`, {
       headers,
-      credentials: 'include', // 包括 cookies
+      withCredentials: true, // 包括 cookies
+      timeout: 10000,
     });
 
-    if (!response.ok) {
-      console.error('後端請求失敗:', response.status, response.statusText);
-      return NextResponse.json(
-        { error: `後端請求失敗: ${response.status} ${response.statusText}` }, 
-        { status: response.status }
-      );
-    }
-
     // 返回後端響應
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(response.data);
   } catch (error) {
     console.error('購物車API路由錯誤:', error);
     return NextResponse.json(
@@ -85,18 +77,11 @@ export async function DELETE(request: NextRequest) {
       headers.Authorization = `Bearer ${(session as any).backendToken}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}/cart`, {
-      method: 'DELETE',
+    const response = await axios.delete(`${API_BASE_URL}/cart`, {
       headers,
-      credentials: 'include',
+      withCredentials: true,
+      timeout: 10000,
     });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `後端請求失敗: ${response.status}` }, 
-        { status: response.status }
-      );
-    }
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

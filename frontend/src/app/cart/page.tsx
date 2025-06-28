@@ -153,12 +153,16 @@ export default function CartPage() {
                 />
                 {/* 商品圖片 */}
                 <div className="w-20 h-20 relative flex-shrink-0 bg-gray-100">
-                  {item.cover ? (
+                  {item.cover && item.cover.trim() !== '' ? (
                     <Image
                       src={item.cover}
                       alt={item.name}
                       fill
                       className="object-cover"
+                      onError={(e) => {
+                        // 圖片加載失敗時隱藏圖片元素
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div className="w-20 h-20 bg-gray-100 flex items-center justify-center text-gray-400">無圖</div>

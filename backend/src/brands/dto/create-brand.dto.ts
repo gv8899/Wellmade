@@ -17,10 +17,13 @@ export class CreateBrandDto {
 
   @ApiProperty({ description: '品牌標誌圖片網址 (選填)', required: false })
   @IsOptional()
-  @Transform(({ value }) => value === '' ? undefined : value)
-  @Matches(/^(https?:\/\/)?(localhost|127\.0\.0\.1|[\w\.-]+\.[a-zA-Z]{2,})(:\d{1,5})?(\/.*)?$/, {
-    message: '請提供有效的網址'
-  })
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Matches(
+    /^(https?:\/\/)?(localhost|127\.0\.0\.1|[\w\.-]+\.[a-zA-Z]{2,})(:\d{1,5})?(\/.*)?$/,
+    {
+      message: '請提供有效的網址',
+    },
+  )
   logoUrl?: string;
 
   @ApiProperty({ description: '品牌描述 (選填)', required: false })

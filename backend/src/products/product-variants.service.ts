@@ -8,7 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductVariant } from './product-variant.entity';
 import { Product } from './product.entity';
-import { CreateVariantDto, CreateProductVariantDto } from './dto/create-variant.dto';
+import {
+  CreateVariantDto,
+  CreateProductVariantDto,
+} from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
 import { ProductStatus, InventoryType } from './enums/product-status.enum';
 import { SkuGenerationService } from './services/sku-generation.service';
@@ -18,15 +21,17 @@ export class ProductVariantsService {
   constructor(
     @InjectRepository(ProductVariant)
     private readonly variantRepository: Repository<ProductVariant>,
-    
+
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    
+
     private readonly skuGenerationService: SkuGenerationService,
   ) {}
 
   // 創建產品變體
-  async create(createVariantDto: CreateProductVariantDto): Promise<ProductVariant> {
+  async create(
+    createVariantDto: CreateProductVariantDto,
+  ): Promise<ProductVariant> {
     // 檢查產品是否存在（包含品牌和分類資訊）
     const product = await this.productRepository.findOne({
       where: { id: createVariantDto.productId },
@@ -59,9 +64,7 @@ export class ProductVariantsService {
     });
 
     if (existingSku) {
-      throw new ConflictException(
-        `SKU ${sku} already exists in the system`,
-      );
+      throw new ConflictException(`SKU ${sku} already exists in the system`);
     }
 
     const variant = this.variantRepository.create({
@@ -72,7 +75,10 @@ export class ProductVariantsService {
   }
 
   // 批量創建變體（用於創建產品時一併創建變體）
-  async createBulk(productId: string, variants: CreateVariantDto[]): Promise<ProductVariant[]> {
+  async createBulk(
+    productId: string,
+    variants: CreateVariantDto[],
+  ): Promise<ProductVariant[]> {
     if (!variants || variants.length === 0) {
       return [];
     }
@@ -91,7 +97,7 @@ export class ProductVariantsService {
     const processedVariants = await Promise.all(
       variants.map(async (variantDto) => {
         let sku = variantDto.sku;
-        
+
         // 如果沒有提供 SKU 或標記為自動生成，則生成 SKU
         if (!sku || variantDto.autoGenerateSku) {
           sku = await this.skuGenerationService.generateSku(
@@ -105,18 +111,21 @@ export class ProductVariantsService {
           sku,
           productId,
         };
-      })
+      }),
     );
 
     // 檢查處理後的 SKU 是否有重複
-    const skus = processedVariants.map(v => v.sku);
+    const skus = processedVariants.map((v) => v.sku);
     const uniqueSkus = new Set(skus);
     if (skus.length !== uniqueSkus.size) {
-      throw new BadRequestException('Duplicate SKUs found in variants after generation');
+      throw new BadRequestException(
+        'Duplicate SKUs found in variants after generation',
+      );
     }
 
     // 檢查資料庫中是否已存在這些 SKU
-    const existingSkuCheck = await this.skuGenerationService.checkSkuExists(skus);
+    const existingSkuCheck =
+      await this.skuGenerationService.checkSkuExists(skus);
     const existingSkus = Object.entries(existingSkuCheck)
       .filter(([_, exists]) => exists)
       .map(([sku]) => sku);
@@ -127,8 +136,8 @@ export class ProductVariantsService {
       );
     }
 
-    const variantEntities = processedVariants.map(variantData => 
-      this.variantRepository.create(variantData)
+    const variantEntities = processedVariants.map((variantData) =>
+      this.variantRepository.create(variantData),
     );
 
     return await this.variantRepository.save(variantEntities);
@@ -171,23 +180,35 @@ export class ProductVariantsService {
   }
 
   // 更新變體
-  async update(id: string, updateVariantDto: UpdateVariantDto): Promise<ProductVariant> {
-    console.log('ProductVariantsService - 更新變體:', { id, updateData: updateVariantDto });
-    
+  async update(
+    id: string,
+    updateVariantDto: UpdateVariantDto,
+  ): Promise<ProductVariant> {
+    console.log('ProductVariantsService - 更新變體:', {
+      id,
+      updateData: updateVariantDto,
+    });
+
     const variant = await this.variantRepository.findOne({
       where: { id },
       relations: ['product'],
     });
-    
+
     if (!variant) {
       throw new NotFoundException(`Variant with ID ${id} not found`);
     }
-    
-    console.log('ProductVariantsService - 找到變體:', { id: variant.id, sku: variant.sku });
+
+    console.log('ProductVariantsService - 找到變體:', {
+      id: variant.id,
+      sku: variant.sku,
+    });
 
     // 如果更新規格，驗證規格一致性
     if (updateVariantDto.specs) {
-      await this.validateSpecsConsistency(variant.product, updateVariantDto.specs);
+      await this.validateSpecsConsistency(
+        variant.product,
+        updateVariantDto.specs,
+      );
     }
 
     // 如果更新SKU，檢查新SKU是否已存在（全域檢查）
@@ -204,13 +225,17 @@ export class ProductVariantsService {
     }
 
     // 確保不會更新不應該更新的欄位
-    const { productId: _productId, ...cleanUpdateData } = updateVariantDto as any;
+    const { productId: _productId, ...cleanUpdateData } =
+      updateVariantDto as any;
     console.log('ProductVariantsService - 清理後的更新資料:', cleanUpdateData);
-    
+
     Object.assign(variant, cleanUpdateData);
     const savedVariant = await this.variantRepository.save(variant);
-    console.log('ProductVariantsService - 變體更新成功:', { id: savedVariant.id, sku: savedVariant.sku });
-    
+    console.log('ProductVariantsService - 變體更新成功:', {
+      id: savedVariant.id,
+      sku: savedVariant.sku,
+    });
+
     return savedVariant;
   }
 
@@ -231,16 +256,20 @@ export class ProductVariantsService {
 
     const variants = await queryBuilder
       .andWhere('variant.isActive = :isActive', { isActive: true })
-      .andWhere('variant.status != :discontinued', { discontinued: ProductStatus.DISCONTINUED })
+      .andWhere('variant.status != :discontinued', {
+        discontinued: ProductStatus.DISCONTINUED,
+      })
       .getMany();
 
-    return variants.filter(variant => variant.canPurchase());
+    return variants.filter((variant) => variant.canPurchase());
   }
 
   // 批量更新排序順序
-  async updateSortOrder(updates: { id: string; sortOrder: number }[]): Promise<void> {
-    const updatePromises = updates.map(update =>
-      this.variantRepository.update(update.id, { sortOrder: update.sortOrder })
+  async updateSortOrder(
+    updates: { id: string; sortOrder: number }[],
+  ): Promise<void> {
+    const updatePromises = updates.map((update) =>
+      this.variantRepository.update(update.id, { sortOrder: update.sortOrder }),
     );
 
     await Promise.all(updatePromises);
@@ -313,12 +342,12 @@ export class ProductVariantsService {
   generateSku(productName: string, specs: Record<string, string>): string {
     const productPrefix = productName
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase())
+      .map((word) => word.charAt(0).toUpperCase())
       .join('')
       .slice(0, 3);
 
     const specsString = Object.values(specs)
-      .map(value => value.charAt(0).toUpperCase())
+      .map((value) => value.charAt(0).toUpperCase())
       .join('');
 
     const timestamp = Date.now().toString().slice(-4);
@@ -327,7 +356,10 @@ export class ProductVariantsService {
   }
 
   // 預覽 SKU 生成結果
-  async previewSku(productId: string, specs?: Record<string, string>): Promise<string> {
+  async previewSku(
+    productId: string,
+    specs?: Record<string, string>,
+  ): Promise<string> {
     const product = await this.productRepository.findOne({
       where: { id: productId },
       relations: ['brand', 'categoryRelation'],
@@ -341,8 +373,12 @@ export class ProductVariantsService {
   }
 
   // 檢查 SKU 是否可用
-  async checkSkuAvailability(sku: string, productId?: string): Promise<boolean> {
-    const query = this.variantRepository.createQueryBuilder('variant')
+  async checkSkuAvailability(
+    sku: string,
+    productId?: string,
+  ): Promise<boolean> {
+    const query = this.variantRepository
+      .createQueryBuilder('variant')
       .where('variant.sku = :sku', { sku });
 
     if (productId) {
@@ -355,12 +391,15 @@ export class ProductVariantsService {
 
   // 驗證變體規格與產品規格模板的一致性
   private async validateSpecsConsistency(
-    product: Product, 
-    variantSpecs: Record<string, string>
+    product: Product,
+    variantSpecs: Record<string, string>,
   ): Promise<void> {
     // 如果產品沒有規格模板，允許任何規格
     if (!product.specTemplate || product.specTemplate.length === 0) {
-      console.log(`產品 ${product.id} 沒有規格模板，允許任意規格:`, Object.keys(variantSpecs));
+      console.log(
+        `產品 ${product.id} 沒有規格模板，允許任意規格:`,
+        Object.keys(variantSpecs),
+      );
       return;
     }
 
@@ -368,15 +407,21 @@ export class ProductVariantsService {
     const variantKeys = new Set(Object.keys(variantSpecs));
 
     // 檢查變體規格是否包含模板中沒有的規格項目（僅警告，不阻止）
-    const extraKeys = [...variantKeys].filter(key => !templateKeys.has(key));
+    const extraKeys = [...variantKeys].filter((key) => !templateKeys.has(key));
     if (extraKeys.length > 0) {
-      console.warn(`變體包含產品模板中沒有的規格項目（允許）: ${extraKeys.join(', ')}`);
+      console.warn(
+        `變體包含產品模板中沒有的規格項目（允許）: ${extraKeys.join(', ')}`,
+      );
     }
 
     // 檢查是否缺少必要的規格項目（僅在有模板時嚴格要求）
-    const missingKeys = [...templateKeys].filter(key => !variantKeys.has(key));
+    const missingKeys = [...templateKeys].filter(
+      (key) => !variantKeys.has(key),
+    );
     if (missingKeys.length > 0) {
-      console.warn(`變體缺少模板中的規格項目（暫時允許）: ${missingKeys.join(', ')}`);
+      console.warn(
+        `變體缺少模板中的規格項目（暫時允許）: ${missingKeys.join(', ')}`,
+      );
       // 暫時註釋掉嚴格驗證，改為警告
       // throw new BadRequestException(
       //   `變體缺少必要的規格項目: ${missingKeys.join(', ')}。產品規格模板要求: ${product.specTemplate.join(', ')}`
@@ -387,7 +432,7 @@ export class ProductVariantsService {
       productTemplate: product.specTemplate,
       variantSpecs: Object.keys(variantSpecs),
       extraKeys: extraKeys.length > 0 ? extraKeys : '無',
-      missingKeys: missingKeys.length > 0 ? missingKeys : '無'
+      missingKeys: missingKeys.length > 0 ? missingKeys : '無',
     });
   }
 }

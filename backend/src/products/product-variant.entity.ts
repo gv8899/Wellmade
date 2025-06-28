@@ -18,7 +18,9 @@ export class ProductVariant {
   id: string;
 
   // 產品關聯
-  @ManyToOne(() => Product, product => product.variants, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, (product) => product.variants, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'productId' })
   product: Product;
 
@@ -74,7 +76,7 @@ export class ProductVariant {
   @Column({
     type: 'enum',
     enum: ProductStatus,
-    default: ProductStatus.IN_STOCK
+    default: ProductStatus.IN_STOCK,
   })
   status: ProductStatus;
 
@@ -82,12 +84,12 @@ export class ProductVariant {
   @Column({
     type: 'enum',
     enum: InventoryType,
-    default: InventoryType.PHYSICAL
+    default: InventoryType.PHYSICAL,
   })
   inventoryType: InventoryType;
 
   // === 預購相關欄位 ===
-  
+
   // 預購限制數量（僅當 inventoryType 為 PREORDER_LIMITED 時使用）
   @Column('int', { nullable: true })
   preorderLimit: number;
@@ -123,7 +125,7 @@ export class ProductVariant {
   updatedAt: Date;
 
   // === 計算屬性 ===
-  
+
   /**
    * 獲取可用庫存數量
    * 對於預購商品，返回剩餘可預購數量

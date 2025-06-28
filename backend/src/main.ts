@@ -25,14 +25,50 @@ async function bootstrap() {
   // });
 
   // 啟用全局 CORS，並配置允許憑證、前端域名等
+  const allowedOrigins = [
+    // 本地開發環境
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:50046',
+    // 生產環境域名
+    'https://wellmade.select',
+    'https://www.wellmade.select',
+  ];
+
+  // 如果有環境變數指定的前端 URL，也加入允許清單
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+
+  // Zeabur 預設域名支援
+  if (process.env.ZEABUR_SERVICE_URL) {
+    allowedOrigins.push(`https://${process.env.ZEABUR_SERVICE_URL}`);
+  }
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'http://127.0.0.1:50046',
-    ],
+    origin: (origin, callback) => {
+      // 允許無 origin 的請求（例如 Postman、行動應用）
+      if (!origin) return callback(null, true);
+      
+      // 檢查是否在允許清單中
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // 允許所有 *.zeabur.app 子域名
+      if (origin.endsWith('.zeabur.app')) {
+        return callback(null, true);
+      }
+      
+      // 開發環境允許所有請求
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      
+      callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -65,11 +101,13 @@ async function bootstrap() {
       disableErrorMessages: false, // 確保錯誤信息被返回
       validationError: { target: false },
       exceptionFactory: (errors) => {
-        const messages = errors.map(error => {
+        const messages = errors.map((error) => {
           const constraints = error.constraints || {};
           const property = error.property;
           const value = error.value;
-          console.error(`驗證錯誤 - 屬性: ${property}, 值: ${value}, 約束: ${JSON.stringify(constraints)}`);
+          console.error(
+            `驗證錯誤 - 屬性: ${property}, 值: ${value}, 約束: ${JSON.stringify(constraints)}`,
+          );
           return `${property}: ${Object.values(constraints).join(', ')}`;
         });
         const { BadRequestException } = require('@nestjs/common');
@@ -88,7 +126,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document); // API 文檔將在 /api 路徑可訪問
 
-  await app.listen(process.env.PORT ?? 3003);
-  console.log(`應用已啟動在: ${await app.getUrl()}`);
+  await app.listen(process.env.PORT ?? 3003, '0.0.0.0');
+  console.log(`應用已啟動在: http://localhost:${process.env.PORT ?? 3003}`);
 }
 bootstrap();

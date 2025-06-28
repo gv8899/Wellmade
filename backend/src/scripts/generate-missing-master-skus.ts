@@ -8,7 +8,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 async function generateMissingMasterSkus() {
   const app = await NestFactory.createApplicationContext(AppModule);
-  
+
   try {
     const productRepository = app.get<Repository<Product>>(
       getRepositoryToken(Product),
@@ -26,7 +26,7 @@ async function generateMissingMasterSkus() {
 
     // 過濾出沒有變體的產品（簡單產品）
     const simpleProducts = productsWithoutSku.filter(
-      product => !product.variants || product.variants.length === 0
+      (product) => !product.variants || product.variants.length === 0,
     );
 
     console.log(`找到 ${simpleProducts.length} 個需要生成主 SKU 的簡單產品`);
@@ -42,11 +42,16 @@ async function generateMissingMasterSkus() {
         );
 
         await productRepository.update(product.id, { masterSku: generatedSku });
-        
-        console.log(`✓ 產品 "${product.name}" (${product.id}) 生成主 SKU: ${generatedSku}`);
+
+        console.log(
+          `✓ 產品 "${product.name}" (${product.id}) 生成主 SKU: ${generatedSku}`,
+        );
         successCount++;
       } catch (error) {
-        console.error(`✗ 產品 "${product.name}" (${product.id}) 生成主 SKU 失敗:`, error.message);
+        console.error(
+          `✗ 產品 "${product.name}" (${product.id}) 生成主 SKU 失敗:`,
+          error.message,
+        );
         errorCount++;
       }
     }
@@ -57,19 +62,22 @@ async function generateMissingMasterSkus() {
 
     // 顯示有變體但沒有 SKU 的產品資訊
     const complexProducts = productsWithoutSku.filter(
-      product => product.variants && product.variants.length > 0
+      (product) => product.variants && product.variants.length > 0,
     );
-    
+
     if (complexProducts.length > 0) {
-      console.log(`\n注意：有 ${complexProducts.length} 個產品有變體，請檢查變體的 SKU 設定`);
-      complexProducts.forEach(product => {
-        const variantsWithoutSku = product.variants.filter(v => !v.sku);
+      console.log(
+        `\n注意：有 ${complexProducts.length} 個產品有變體，請檢查變體的 SKU 設定`,
+      );
+      complexProducts.forEach((product) => {
+        const variantsWithoutSku = product.variants.filter((v) => !v.sku);
         if (variantsWithoutSku.length > 0) {
-          console.log(`- "${product.name}": ${variantsWithoutSku.length}/${product.variants.length} 個變體缺少 SKU`);
+          console.log(
+            `- "${product.name}": ${variantsWithoutSku.length}/${product.variants.length} 個變體缺少 SKU`,
+          );
         }
       });
     }
-
   } catch (error) {
     console.error('執行腳本時發生錯誤:', error);
   } finally {

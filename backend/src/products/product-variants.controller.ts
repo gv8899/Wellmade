@@ -92,7 +92,10 @@ export class ProductVariantsController {
     @Body(ValidationPipe) updateVariantDto: UpdateVariantDto,
   ) {
     try {
-      console.log('ProductVariantsController - 接收變體更新請求:', { id, body: updateVariantDto });
+      console.log('ProductVariantsController - 接收變體更新請求:', {
+        id,
+        body: updateVariantDto,
+      });
       const result = await this.variantsService.update(id, updateVariantDto);
       console.log('ProductVariantsController - 變體更新成功');
       return result;
@@ -101,7 +104,7 @@ export class ProductVariantsController {
         error: error.message,
         stack: error.stack,
         variantId: id,
-        updateData: updateVariantDto
+        updateData: updateVariantDto,
       });
       throw error;
     }
@@ -113,9 +116,7 @@ export class ProductVariantsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '批量更新變體庫存' })
   @ApiResponse({ status: 200, description: '更新成功' })
-  async updateStock(
-    @Body() updates: { id: string; stock: number }[],
-  ) {
+  async updateStock(@Body() updates: { id: string; stock: number }[]) {
     await this.variantsService.updateStock(updates);
     return { message: '庫存更新成功' };
   }
@@ -195,7 +196,10 @@ export class ProductVariantsController {
     @Param('sku') sku: string,
     @Body() body: { productId?: string },
   ) {
-    const isAvailable = await this.variantsService.checkSkuAvailability(sku, body.productId);
+    const isAvailable = await this.variantsService.checkSkuAvailability(
+      sku,
+      body.productId,
+    );
     return { sku, isAvailable };
   }
 

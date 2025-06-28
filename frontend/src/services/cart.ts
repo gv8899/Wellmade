@@ -248,8 +248,7 @@ const CART_API = {
   ADD_ITEM: '/cart/items',
   UPDATE_ITEM: '/cart/items',
   REMOVE_ITEM: '/cart/items',
-  CLEAR_CART: '/cart',
-  MERGE_CART: '/cart/merge'
+  CLEAR_CART: '/cart'
 };
 
 // API 響應類型
@@ -260,13 +259,12 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
-// 購物車項目 API 介面
+// 購物車項目 API 介面（與後端 DTO 一致）
 export interface CartApiItem {
-  id?: string;
   productId: string;
   variantId?: string;
   quantity: number;
-  specs?: { [key: string]: string };
+  specs?: Record<string, string>;
 }
 
 // 生成唯一的購物車項目 ID（改進版本）
@@ -286,56 +284,6 @@ const generateCartItemId = (productId: string, specs: Record<string, string> = {
   return cleanSpecs ? `${productId}_${cleanSpecs}` : productId;
 };
 
-// 模擬檢索購物車函數（改進版本）
-const mockGetCart = (): ApiResponse<CartItem[]> => {
-  console.log('[MOCK] 使用本地購物車作為降級方案');
-  const localItems = localCartStorage.getCart();
-  return { success: true, data: localItems };
-};
-
-const mockAddToCart = (item: any): ApiResponse<CartItem> => {
-  console.log('[MOCK] 模擬添加商品到本地購物車');
-  const productId = item.productId;
-  const id = generateCartItemId(productId, item.specs);
-  
-  // 嘗試從本地存儲的購物車中找到匹配的商品信息
-  const localCart = localCartStorage.getCart();
-  const existingItem = localCart.find(cartItem => cartItem.id === id);
-  
-  const newItem: CartItem = {
-    id,
-    name: existingItem?.name || `商品 ${productId}`,
-    price: existingItem?.price || 1000,
-    quantity: item.quantity,
-    cover: existingItem?.cover || '',
-    specs: item.specs || {},
-  };
-  
-  return { success: true, data: newItem };
-};
-
-const mockUpdateQuantity = (itemId: string, quantity: number): ApiResponse<CartItem> => {
-  console.log(`[MOCK] 模擬更新商品數量: ${itemId} -> ${quantity}`);
-  
-  if (typeof window === 'undefined') {
-    return { 
-      success: true, 
-      data: { id: itemId, name: '商品', price: 1000, quantity, cover: '', specs: {} } 
-    };
-  }
-  
-  const localCart = localCartStorage.getCart();
-  const item = localCart.find(i => i.id === itemId);
-  
-  if (item) {
-    return { success: true, data: { ...item, quantity } };
-  }
-  
-  return { 
-    success: true, 
-    data: { id: itemId, name: '未知商品', price: 1000, quantity, cover: '', specs: {} }
-  };
-};
 
 // 購物車 API 服務 - 改進版本
 export const cartApi = {
@@ -361,13 +309,6 @@ export const cartApi = {
       return { success: true, data: cartItems };
     }).catch((error) => {
       console.error('[CART] 獲取購物車失敗:', error.friendlyMessage || error.message);
-      
-      // 根據錯誤類型決定是否降級
-      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
-        console.log('[CART] 降級使用本地購物車');
-        return mockGetCart();
-      }
-      
       return {
         success: false,
         error: error.friendlyMessage || '獲取購物車失敗'
@@ -378,7 +319,7 @@ export const cartApi = {
   /**
    * 添加商品到購物車
    */
-  addToCart: async (item: Omit<CartApiItem, 'id'>): Promise<ApiResponse<CartItem>> => {
+  addToCart: async (item: CartApiItem): Promise<ApiResponse<CartItem>> => {
     return retryRequest(async () => {
       console.log(`[CART] 添加商品: ${item.productId} x${item.quantity}`);
       
@@ -402,13 +343,6 @@ export const cartApi = {
       maxRetries: 2 // 添加操作減少重試次數
     }).catch((error) => {
       console.error('[CART] 添加商品失敗:', error.friendlyMessage || error.message);
-      
-      // 根據錯誤類型決定是否降級
-      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
-        console.log('[CART] 降級使用本地存儲');
-        return mockAddToCart(item);
-      }
-      
       return {
         success: false,
         error: error.friendlyMessage || '添加商品失敗'
@@ -428,13 +362,6 @@ export const cartApi = {
       return { success: true, data: response.data };
     }).catch((error) => {
       console.error('[CART] 更新數量失敗:', error.friendlyMessage || error.message);
-      
-      // 根據錯誤類型決定是否降級
-      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
-        console.log('[CART] 降級使用本地存儲');
-        return mockUpdateQuantity(itemId, quantity);
-      }
-      
       return {
         success: false,
         error: error.friendlyMessage || '更新數量失敗'
@@ -454,13 +381,6 @@ export const cartApi = {
       return { success: true };
     }).catch((error) => {
       console.error('[CART] 移除商品失敗:', error.friendlyMessage || error.message);
-      
-      // 對於移除操作，即使 API 失敗也返回成功（樂觀更新）
-      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
-        console.log('[CART] API 失敗但本地已移除');
-        return { success: true };
-      }
-      
       return {
         success: false,
         error: error.friendlyMessage || '移除商品失敗'
@@ -480,13 +400,6 @@ export const cartApi = {
       return { success: true };
     }).catch((error) => {
       console.error('[CART] 清空購物車失敗:', error.friendlyMessage || error.message);
-      
-      // 對於清空操作，即使 API 失敗也返回成功（樂觀更新）
-      if (error.errorType === 'NETWORK' || error.errorType === 'SERVER_ERROR') {
-        console.log('[CART] API 失敗但本地已清空');
-        return { success: true };
-      }
-      
       return {
         success: false,
         error: error.friendlyMessage || '清空購物車失敗'
@@ -494,42 +407,6 @@ export const cartApi = {
     });
   },
 
-  /**
-   * 合併本地購物車到用戶帳戶
-   */
-  mergeCart: async (localCart: CartItem[]): Promise<ApiResponse<CartItem[]>> => {
-    if (localCart.length === 0) {
-      console.log('[CART] 本地購物車為空，獲取後端購物車');
-      return cartApi.getCart();
-    }
-
-    return retryRequest(async () => {
-      console.log(`[CART] 合併 ${localCart.length} 項本地商品`);
-      
-      const mergeItems = localCart.map(item => ({
-        productId: item.id,
-        quantity: item.quantity,
-        specs: item.specs
-      }));
-      
-      const response = await api.post(CART_API.MERGE_CART, { items: mergeItems });
-      
-      const mergedItems = response.data.items || [];
-      console.log(`[CART] 成功合併購物車，共 ${mergedItems.length} 項商品`);
-      
-      return { success: true, data: mergedItems };
-    }, {
-      ...DEFAULT_RETRY_CONFIG,
-      maxRetries: 2 // 合併操作減少重試次數
-    }).catch((error) => {
-      console.error('[CART] 合併購物車失敗:', error.friendlyMessage || error.message);
-      
-      return {
-        success: false,
-        error: error.friendlyMessage || '合併購物車失敗'
-      };
-    });
-  },
 };
 
 // 提供本地存儲的購物車功能（改進版本）

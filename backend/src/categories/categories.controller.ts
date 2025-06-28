@@ -43,9 +43,7 @@ export class CategoriesController {
   @ApiResponse({ status: 201, description: '分類創建成功' })
   @ApiResponse({ status: 400, description: '請求參數錯誤' })
   @ApiResponse({ status: 409, description: 'Slug已存在' })
-  async create(
-    @Body(ValidationPipe) createCategoryDto: CreateCategoryDto,
-  ) {
+  async create(@Body(ValidationPipe) createCategoryDto: CreateCategoryDto) {
     return await this.categoriesService.create(createCategoryDto);
   }
 
@@ -107,9 +105,7 @@ export class CategoriesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '批量更新分類排序' })
   @ApiResponse({ status: 200, description: '更新成功' })
-  async updateSortOrder(
-    @Body() updates: { id: string; sortOrder: number }[],
-  ) {
+  async updateSortOrder(@Body() updates: { id: string; sortOrder: number }[]) {
     await this.categoriesService.updateSortOrder(updates);
     return { message: '排序更新成功' };
   }

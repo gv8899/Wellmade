@@ -11,9 +11,16 @@ import { ProductVariantsService } from './product-variants.service';
 import { SkuGenerationService } from './services/sku-generation.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, ProductVariant, Brand, Category])],
+  imports: [
+    TypeOrmModule.forFeature([Product, ProductVariant, Brand, Category]),
+  ],
   controllers: [ProductsController, ProductVariantsController],
   providers: [ProductsService, ProductVariantsService, SkuGenerationService],
-  exports: [TypeOrmModule, ProductsService, ProductVariantsService, SkuGenerationService], // 導出服務以便其他模組可以使用
+  exports: [
+    TypeOrmModule,
+    ProductsService,
+    ProductVariantsService,
+    SkuGenerationService,
+  ], // 導出服務以便其他模組可以使用
 })
 export class ProductsModule {}

@@ -6,7 +6,7 @@ import { KeyFeatureCard } from "./KeyFeatures";
 import FeatureDetails from "./FeatureDetails";
 import { FeatureDetail } from "../../../services/api";
 import FAQSection, { FAQItem } from "./FAQSection";
-import ProductPurchaseOptions, { ProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
+import ProductPurchaseOptions, { DisplayDisplayProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
 import GoodProductsSection from "./GoodProductsSection";
 import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
@@ -49,7 +49,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   const [product, setProduct] = React.useState<Product | null>(null);
   const [collected, setCollected] = React.useState(false);
-  const [variants, setVariants] = React.useState<ProductVariant[]>([]);
+  const [variants, setVariants] = React.useState<DisplayProductVariant[]>([]);
   const [specOptions, setSpecOptions] = React.useState<ProductSpecOption[]>([]);
   const [currentImage, setCurrentImage] = React.useState<string>("");
   const { cartItems, addToCart, removeFromCart, addCartClick } = useCart();
@@ -117,7 +117,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         setCurrentImage(displayProduct.cover); // 設置初始圖片
         
         // 載入產品變體
-        await loadProductVariants(apiProduct);
+        await loadDisplayProductVariants(apiProduct);
         
       } catch (error) {
         console.error('無法載入產品資料:', error);
@@ -127,12 +127,12 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     };
     
     // 載入產品變體資料
-    const loadProductVariants = async (apiProduct: ApiProduct) => {
+    const loadDisplayProductVariants = async (apiProduct: ApiProduct) => {
       try {
         // 檢查產品是否有實際的變體
         if (apiProduct.variants && apiProduct.variants.length > 0) {
           // 轉換為前端顯示格式
-          const displayVariants: ProductVariant[] = apiProduct.variants.map(variant => ({
+          const displayVariants: DisplayProductVariant[] = apiProduct.variants.map(variant => ({
             id: variant.id,
             variantTitle: variant.variantTitle || `${variant.specs ? Object.values(variant.specs).join(' - ') : ''}`,
             specs: variant.specs || {},
@@ -173,7 +173,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           setSpecOptions(generatedSpecOptions);
         } else {
           // 產品沒有變體，生成單一變體
-          const singleVariant: ProductVariant[] = [{
+          const singleVariant: DisplayProductVariant[] = [{
             id: apiProduct.id,
             variantTitle: "標準版",
             specs: {},
@@ -198,7 +198,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     
     // 生成預設變體
     const generateDefaultVariant = (product: Product | ApiProduct) => {
-      const defaultVariants: ProductVariant[] = [
+      const defaultVariants: DisplayProductVariant[] = [
         { 
           id: `${product.id}_default`,
           variantTitle: "標準版",
@@ -348,6 +348,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
       
       {variants.length > 0 && (
         <ProductPurchaseOptions
+          productId={product.id}
           title={product.name}
           variants={variants}
           specOptions={specOptions.map(option => ({

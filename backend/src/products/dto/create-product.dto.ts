@@ -32,7 +32,6 @@ export class CreateProductDto {
   @Min(0)
   stock: number;
 
-
   @IsString()
   @IsOptional()
   categoryId?: string; // 新的分類ID欄位
