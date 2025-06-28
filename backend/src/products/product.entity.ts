@@ -49,7 +49,7 @@ export class Product {
 
   // 主 SKU - 當產品沒有變體時使用
   @Column({ nullable: true })
-  @Index({ unique: true, where: 'master_sku IS NOT NULL' })
+  @Index({ unique: true, where: '"masterSku" IS NOT NULL' })
   masterSku: string;
 
   @Column('text')
