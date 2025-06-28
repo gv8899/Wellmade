@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
-
-// 後端 API 基礎 URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3003';
+import { buildBackendUrl, extractAuthHeader } from '@/utils/api-config';
 
 /**
  * 處理 GET /api/products 請求
@@ -13,13 +11,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
     
-    // 準備請求選項
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    // 準備請求標頭（包含認證）
+    const headers = extractAuthHeader(request);
 
     // 構建完整的後端 URL
-    const backendUrl = `${API_BASE_URL}/products${queryString ? `?${queryString}` : ''}`;
+    const backendUrl = buildBackendUrl(`products${queryString ? `?${queryString}` : ''}`);
     
     console.log('代理產品請求到:', backendUrl);
 
@@ -39,7 +35,57 @@ export async function GET(request: NextRequest) {
       { 
         error: '處理產品請求時發生錯誤',
         details: error.message,
-        backendUrl: `${API_BASE_URL}/products`
+        backendUrl: buildBackendUrl('products')
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * 處理 POST /api/products 請求
+ * 創建新產品
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // 獲取請求 body
+    const body = await request.json();
+    
+    // 準備請求標頭（包含認證）
+    const headers = extractAuthHeader(request);
+
+    // 構建完整的後端 URL
+    const backendUrl = buildBackendUrl('products');
+    
+    console.log('代理創建產品請求到:', backendUrl);
+    console.log('請求資料:', body);
+
+    // 發送請求到後端
+    const response = await axios.post(backendUrl, body, {
+      headers,
+      timeout: 10000,
+    });
+
+    // 返回後端響應
+    return NextResponse.json(response.data, { status: 201 });
+  } catch (error) {
+    console.error('創建產品API路由錯誤:', error);
+    
+    // 如果是 axios 錯誤，保留原始狀態碼
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('後端錯誤響應:', error.response.data);
+      return NextResponse.json(
+        error.response.data,
+        { status: error.response.status }
+      );
+    }
+    
+    console.error('錯誤詳情:', error.message);
+    return NextResponse.json(
+      { 
+        error: '處理創建產品請求時發生錯誤',
+        details: error.message,
+        backendUrl: buildBackendUrl('products')
       }, 
       { status: 500 }
     );
