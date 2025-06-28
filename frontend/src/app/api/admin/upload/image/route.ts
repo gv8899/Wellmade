@@ -30,8 +30,35 @@ export async function POST(request: NextRequest) {
       timeout: 30000, // 圖片上傳可能需要更長時間
     });
 
-    // 返回後端響應
-    return NextResponse.json(response.data, { status: 201 });
+    // 處理返回的圖片 URL，將後端 URL 轉換為前端代理 URL
+    const responseData = response.data;
+    if (responseData) {
+      // 取得前端基礎 URL
+      const frontendUrl = request.headers.get('host') 
+        ? `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host')}` 
+        : 'http://localhost:3000';
+      
+      // 轉換圖片 URL
+      if (responseData.original) {
+        const filename = responseData.original.split('/').pop();
+        responseData.original = `${frontendUrl}/api/uploads/${filename}`;
+      }
+      if (responseData.thumbnail) {
+        const filename = responseData.thumbnail.split('/').pop();
+        responseData.thumbnail = `${frontendUrl}/api/uploads/${filename}`;
+      }
+      if (responseData.medium) {
+        const filename = responseData.medium.split('/').pop();
+        responseData.medium = `${frontendUrl}/api/uploads/${filename}`;
+      }
+      if (responseData.url) {
+        const filename = responseData.url.split('/').pop();
+        responseData.url = `${frontendUrl}/api/uploads/${filename}`;
+      }
+    }
+
+    // 返回修正後的響應
+    return NextResponse.json(responseData, { status: 201 });
   } catch (error) {
     console.error('圖片上傳API路由錯誤:', error);
     
