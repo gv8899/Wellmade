@@ -45,6 +45,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if ((session as any).roles) {
         userRoles = (session as any).roles;
         console.log('UserContext: Got roles from session:', userRoles);
+        console.log('UserContext: Role details:', userRoles.map((role, index) => `[${index}]: "${role}" (type: ${typeof role})`));
       }
       // 如果 session 中沒有角色，嘗試從 JWT token 解析
       else if (backendToken) {
