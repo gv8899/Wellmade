@@ -41,12 +41,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const backendToken = (session as any).backendToken;
       let userRoles: UserRole[] = [UserRole.USER]; // 預設角色
       
-      // 如果有 JWT token，解析獲取角色資訊
-      if (backendToken) {
+      // 優先從 session 中獲取角色資訊
+      if ((session as any).roles) {
+        userRoles = (session as any).roles;
+        console.log('UserContext: Got roles from session:', userRoles);
+      }
+      // 如果 session 中沒有角色，嘗試從 JWT token 解析
+      else if (backendToken) {
         try {
           const payload = parseJWT(backendToken);
           if (payload && payload.roles) {
             userRoles = payload.roles;
+            console.log('UserContext: Got roles from JWT:', userRoles);
           }
         } catch (error) {
           console.error('Failed to parse JWT token:', error);
