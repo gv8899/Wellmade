@@ -64,6 +64,10 @@ export class CreateProductDto {
   @IsOptional()
   status?: ProductStatus;
 
+  @IsBoolean()
+  @IsOptional()
+  isContainer?: boolean;
+
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
