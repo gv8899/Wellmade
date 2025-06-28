@@ -157,31 +157,31 @@ class AdminApiService {
       });
     }
     
-    const response = await api.get(`/api/admin/products?${queryParams}`);
+    const response = await api.get(`/admin/products?${queryParams}`);
     return response.data;
   }
 
   async getProductById(id: string): Promise<Product> {
-    const response = await api.get(`/api/admin/products/${id}`);
+    const response = await api.get(`/admin/products/${id}`);
     return response.data;
   }
 
   async createProduct(data: Partial<Product>): Promise<Product> {
-    const response = await api.post('/api/admin/products', data);
+    const response = await api.post('/admin/products', data);
     return response.data;
   }
 
   async updateProduct(id: string, data: Partial<Product>): Promise<Product> {
-    const response = await api.patch(`/api/admin/products/${id}`, data);
+    const response = await api.patch(`/admin/products/${id}`, data);
     return response.data;
   }
 
   async deleteProduct(id: string): Promise<void> {
-    await api.delete(`/api/admin/products/${id}`);
+    await api.delete(`/admin/products/${id}`);
   }
 
   async toggleProductStatus(id: string): Promise<Product> {
-    const response = await api.patch(`/api/admin/products/${id}/toggle-status`);
+    const response = await api.patch(`/admin/products/${id}/toggle-status`);
     return response.data;
   }
 
@@ -193,21 +193,21 @@ class AdminApiService {
   }
 
   async createBrand(data: Partial<Brand>): Promise<Brand> {
-    const response = await api.post('/api/admin/brands', data);
+    const response = await api.post('/admin/brands', data);
     return response.data;
   }
 
   async updateBrand(id: string, data: Partial<Brand>): Promise<Brand> {
-    const response = await api.patch(`/api/admin/brands/${id}`, data);
+    const response = await api.patch(`/admin/brands/${id}`, data);
     return response.data;
   }
 
   async deleteBrand(id: string): Promise<void> {
-    await api.delete(`/api/admin/brands/${id}`);
+    await api.delete(`/admin/brands/${id}`);
   }
 
   async toggleBrandStatus(id: string): Promise<Brand> {
-    const response = await api.patch(`/api/admin/brands/${id}/toggle-status`);
+    const response = await api.patch(`/admin/brands/${id}/toggle-status`);
     return response.data;
   }
 
@@ -217,7 +217,7 @@ class AdminApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/api/admin/upload/image', formData, {
+    const response = await api.post('/admin/upload/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -231,7 +231,7 @@ class AdminApiService {
       formData.append('files', file);
     });
 
-    const response = await api.post('/api/admin/upload/images', formData, {
+    const response = await api.post('/admin/upload/images', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -249,24 +249,24 @@ class AdminApiService {
   // ========== 用戶管理 ==========
 
   async getAllUsers(page = 1, limit = 20): Promise<UsersResponse> {
-    const response = await api.get(`/api/admin/users?page=${page}&limit=${limit}`);
+    const response = await api.get(`/admin/users?page=${page}&limit=${limit}`);
     return response.data;
   }
 
   async updateUserRoles(userId: string, roles: UserRole[]): Promise<User> {
-    const response = await api.patch(`/api/admin/users/${userId}/roles`, { roles });
+    const response = await api.patch(`/admin/users/${userId}/roles`, { roles });
     return response.data;
   }
 
   // 分類管理
   async getAllCategories(): Promise<Category[]> {
-    const response = await api.get('/api/categories/tree');
+    const response = await api.get('/categories/tree');
     return response.data;
   }
 
   // 產品變體管理
   async getProductVariants(productId: string): Promise<ProductVariant[]> {
-    const response = await api.get(`/api/products/${productId}/variants`);
+    const response = await api.get(`/products/${productId}/variants`);
     return response.data;
   }
 
@@ -274,11 +274,11 @@ class AdminApiService {
     console.log('📤 [AdminAPI] 創建變體請求:', {
       productId,
       variantData,
-      url: `/api/products/${productId}/variants`
+      url: `/products/${productId}/variants`
     });
     
     try {
-      const response = await api.post(`/api/products/${productId}/variants`, variantData);
+      const response = await api.post(`/products/${productId}/variants`, variantData);
       console.log('✅ [AdminAPI] 創建變體成功:', response.data);
       return response.data;
     } catch (error: any) {
@@ -292,16 +292,16 @@ class AdminApiService {
   }
 
   async updateProductVariant(variantId: string, variantData: Partial<ProductVariant>): Promise<ProductVariant> {
-    const response = await api.patch(`/api/products/variants/${variantId}`, variantData);
+    const response = await api.patch(`/products/variants/${variantId}`, variantData);
     return response.data;
   }
 
   async deleteProductVariant(variantId: string): Promise<void> {
-    await api.delete(`/api/products/variants/${variantId}`);
+    await api.delete(`/products/variants/${variantId}`);
   }
 
   async updateVariantSortOrder(updates: { id: string; sortOrder: number }[]): Promise<void> {
-    await api.patch('/api/products/variants/sort-order', updates);
+    await api.patch('/products/variants/sort-order', updates);
   }
 }
 
