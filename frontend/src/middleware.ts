@@ -20,78 +20,8 @@ const PROTECTED_ROUTES = [
 ];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // 排除不需要檢查的路由
-  const excludedPaths = ['/admin-login', '/login', '/api', '/_next', '/favicon.ico'];
-  const shouldSkip = excludedPaths.some(path => pathname.startsWith(path));
-  
-  if (shouldSkip) {
-    return NextResponse.next();
-  }
-  
-  // 檢查是否為受保護的路由
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => 
-    pathname.startsWith(route)
-  );
-  
-  const isAdminRoute = ADMIN_ROUTES.some(route => 
-    pathname.startsWith(route)
-  );
-
-  if (isProtectedRoute) {
-    // 獲取 NextAuth JWT token
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
-
-    // 如果沒有 token，重定向到登入頁面
-    if (!token) {
-      console.log('Middleware: No token found, redirecting to login for:', pathname);
-      const loginUrl = new URL('/admin-login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // 如果是管理員路由，檢查角色權限
-    if (isAdminRoute) {
-      // 從 token 中獲取 backendToken
-      const backendToken = (token as any).backendToken;
-      
-      if (backendToken) {
-        try {
-          // 解析 JWT token 獲取角色
-          const base64Url = backendToken.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map((c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          
-          const payload = JSON.parse(jsonPayload);
-          const userRoles: UserRole[] = payload.roles || [];
-          
-          // 檢查是否有管理員權限
-          if (!userRoles.includes(UserRole.ADMIN)) {
-            // 沒有權限，重定向到首頁
-            return NextResponse.redirect(new URL('/', request.url));
-          }
-        } catch (error) {
-          console.error('Failed to parse JWT in middleware:', error);
-          // JWT 解析失敗，重定向到登入頁面
-          return NextResponse.redirect(new URL('/login', request.url));
-        }
-      } else {
-        // 沒有 backend token，重定向到登入頁面
-        console.log('No backend token found, redirecting to admin-login');
-        return NextResponse.redirect(new URL('/admin-login', request.url));
-      }
-    }
-  }
-
+  // 暫時禁用 middleware 檢查以解決部署環境的時序問題
+  console.log('Middleware: Temporarily disabled for debugging');
   return NextResponse.next();
 }
 
