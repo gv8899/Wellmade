@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { UploadService } from './upload.service';
+import { ScriptExecutorController } from './script-executor.controller';
 import { Product } from '../products/product.entity';
 import { Brand } from '../brands/brand.entity';
 import { User } from '../users/user.entity';
@@ -14,7 +15,7 @@ import { ProductsModule } from '../products/products.module';
     TypeOrmModule.forFeature([Product, Brand, User, Category]),
     ProductsModule, // 導入 ProductsModule 以使用 ProductVariantsService
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, ScriptExecutorController],
   providers: [AdminService, UploadService],
   exports: [AdminService],
 })
