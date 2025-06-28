@@ -126,8 +126,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   // 權限檢查函數
   const checkRole = (requiredRoles: UserRole[]) => {
-    if (!user) return false;
-    return hasRole(user.roles, requiredRoles);
+    if (!user) {
+      console.log('checkRole: No user');
+      return false;
+    }
+    const result = hasRole(user.roles, requiredRoles);
+    console.log('checkRole:', { userRoles: user.roles, requiredRoles, result });
+    return result;
   };
 
   const checkIsAdmin = () => {
