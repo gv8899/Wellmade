@@ -12,6 +12,7 @@ const dataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: [Product, Brand],
   synchronize: false,
+  ssl: process.env.NODE_ENV === 'production',
 });
 
 /**
