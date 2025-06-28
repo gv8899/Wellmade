@@ -54,8 +54,8 @@ NEWEBPAY_MERCHANT_ID=<你的商店代號>
 NEWEBPAY_HASH_KEY=<你的 Hash Key>
 NEWEBPAY_HASH_IV=<你的 Hash IV>
 NEWEBPAY_API_URL=https://ccore.newebpay.com/MPG/mpg_gateway
-NEWEBPAY_RETURN_URL=https://<你的後端域名>.zeabur.app/payment/return
-NEWEBPAY_NOTIFY_URL=https://<你的後端域名>.zeabur.app/payment/notify
+NEWEBPAY_RETURN_URL=https://api.wellmade.select/payment/return
+NEWEBPAY_NOTIFY_URL=https://api.wellmade.select/payment/notify
 NEWEBPAY_CLIENT_BACK_URL=https://wellmade.select/checkout/success
 ```
 
@@ -77,9 +77,9 @@ GOOGLE_CLIENT_ID=<與後端相同>
 GOOGLE_CLIENT_SECRET=<與後端相同>
 
 # API
-API_URL=https://<後端域名>.zeabur.app/api
-NEXT_PUBLIC_API_URL=https://<後端域名>.zeabur.app
-BACKEND_URL=https://<後端域名>.zeabur.app
+API_URL=https://api.wellmade.select/api
+NEXT_PUBLIC_API_URL=https://api.wellmade.select
+BACKEND_URL=https://api.wellmade.select
 ```
 
 4. 綁定自訂域名 `wellmade.select`
