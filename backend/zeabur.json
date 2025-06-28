@@ -6,9 +6,5 @@
   },
   "run": {
     "startCommand": "NODE_OPTIONS=--experimental-global-webcrypto npm run start:prod"
-  },
-  "env": {
-    "NODE_VERSION": "18",
-    "PORT": "3003"
   }
 }
