@@ -39,19 +39,12 @@ const nextConfig = {
         port: '3003',
         pathname: '/uploads/**',
       },
-      // 支援生產環境的圖片上傳
-      {
-        protocol: apiUrlParsed.protocol.replace(':', ''),
-        hostname: apiUrlParsed.hostname,
-        port: apiUrlParsed.port || '',
-        pathname: '/uploads/**',
-      },
-      // 支援前端域名的圖片代理
+      // 支援後端域名的直接圖片 URL（主流做法）
       {
         protocol: 'https',
-        hostname: 'wellmade.select',
+        hostname: 'api.wellmade.select',
         port: '',
-        pathname: '/api/uploads/**',
+        pathname: '/uploads/**',
       },
     ],
   },
