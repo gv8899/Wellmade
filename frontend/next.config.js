@@ -50,16 +50,7 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      // 明確定義需要代理到後端的身份驗證路徑
-      {
-        source: '/api/auth/login',
-        destination: `${apiUrl}/auth/login`, // 代理到 NestJS 的登入 API
-      },
-      {
-        source: '/api/auth/register',
-        destination: `${apiUrl}/auth/register`, // 代理到 NestJS 的註冊 API
-      },
-      // NextAuth 相關路徑不代理
+      // NextAuth 相關路徑不代理（必須在特定路由前面）
       {
         source: '/api/auth/signin',
         destination: '/api/auth/signin',
@@ -80,10 +71,18 @@ const nextConfig = {
         source: '/api/auth/callback/:path*',
         destination: '/api/auth/callback/:path*',
       },
-      // 特別為 NextAuth 路由設置
       {
-        source: '/api/auth/:path*',
-        destination: '/api/auth/:path*',  // 不代理 NextAuth 路由
+        source: '/api/auth/providers',
+        destination: '/api/auth/providers',
+      },
+      // 明確定義需要代理到後端的身份驗證路徑
+      {
+        source: '/api/auth/login',
+        destination: `${apiUrl}/auth/login`, // 代理到 NestJS 的登入 API
+      },
+      {
+        source: '/api/auth/register',
+        destination: `${apiUrl}/auth/register`, // 代理到 NestJS 的註冊 API
       },
       // 其他 API 代理到 NestJS
       {
