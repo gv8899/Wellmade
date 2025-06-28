@@ -39,11 +39,17 @@ export function RequireAuth({
       return;
     }
     
-    // 如果沒有登入（確認 session 和 user 都不存在）
-    if (status === "unauthenticated" && !user) {
+    // 如果確認未登入（session 明確顯示 unauthenticated）
+    if (status === "unauthenticated") {
       console.log('RequireAuth: Redirecting to login - no authentication');
       toast.error('請先登入');
       router.push(redirectTo);
+      return;
+    }
+    
+    // 如果 session 已認證但 UserContext 還沒載入用戶，等待
+    if (status === "authenticated" && !user) {
+      console.log('RequireAuth: Waiting for user data to load...');
       return;
     }
 
@@ -62,8 +68,13 @@ export function RequireAuth({
   }
 
   // 如果沒有登入，顯示 fallback 或 null
-  if (status === "unauthenticated" && !user) {
+  if (status === "unauthenticated") {
     return <>{fallback}</>;
+  }
+  
+  // 如果 session 已認證但用戶數據還沒載入，顯示載入中
+  if (status === "authenticated" && !user) {
+    return <>{fallback || <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div></div>}</>;
   }
 
   // 如果需要特定角色但用戶沒有權限
