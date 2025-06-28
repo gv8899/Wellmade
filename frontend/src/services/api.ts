@@ -357,5 +357,8 @@ export const getProductCategorySlug = (product: Product): string => {
   return '';
 };
 
+// 導出 api 實例
+export { api };
+
 // 導出默認的 api 實例
 export default api;

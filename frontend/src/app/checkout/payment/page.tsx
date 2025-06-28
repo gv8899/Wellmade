@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrder } from '@/contexts/OrderContext';
 import { createPayment } from '@/services/orders';
 import { PaymentMethod } from '@/types/order';
 
-const PaymentPage: React.FC = () => {
+// 將使用 useSearchParams 的部分包裝成組件
+const PaymentPageContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
@@ -208,6 +209,23 @@ const PaymentPage: React.FC = () => {
         )}
       </div>
     </div>
+  );
+};
+
+// 主要的頁面組件，包裝 Suspense
+const PaymentPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">載入中</h1>
+          <p className="text-gray-600">正在準備付款頁面...</p>
+        </div>
+      </div>
+    }>
+      <PaymentPageContent />
+    </Suspense>
   );
 };
 
