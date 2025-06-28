@@ -3,8 +3,9 @@
 /node_modules
 /build
 
-# Logs
+# Logs (但允許源碼中的 logs 目錄)
 logs
+!src/logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*

@@ -22,8 +22,10 @@ backend/tsconfig.build.ts  # 後端可能產生的特定 TypeScript 編譯相關
 # Mac
 *.DS_Store
 
-# Logs
+# Logs (但允許源碼中的 logs 目錄)
 logs
+!src/logs/
+!**/src/logs/
 *.log
 
 # Build output
