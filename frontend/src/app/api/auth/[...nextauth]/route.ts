@@ -31,7 +31,8 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // 向後端 API 發送登入請求
-          const response = await fetch('http://localhost:3003/auth/login', {
+          const backendUrl = process.env.BACKEND_URL || 'http://localhost:3003';
+          const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -87,7 +88,8 @@ export const authOptions: NextAuthOptions = {
           try {
             console.log('正在將用戶資料同步到後端...', { email: user.email, name: user.name, image: user.image });
             // 發送使用者資料到後端 API
-            const response = await fetch('http://localhost:3003/auth/oauth-sync', {
+            const backendUrl = process.env.BACKEND_URL || 'http://localhost:3003';
+            const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
