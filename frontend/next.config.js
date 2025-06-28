@@ -46,6 +46,13 @@ const nextConfig = {
         port: apiUrlParsed.port || '',
         pathname: '/uploads/**',
       },
+      // 支援前端域名的圖片代理
+      {
+        protocol: 'https',
+        hostname: 'wellmade.select',
+        port: '',
+        pathname: '/api/uploads/**',
+      },
     ],
   },
   async rewrites() {
@@ -109,10 +116,7 @@ const nextConfig = {
         source: '/api/admin/:path*',
         destination: `${apiUrl}/admin/:path*`,
       },
-      {
-        source: '/api/uploads/:path*',
-        destination: `${apiUrl}/uploads/:path*`,
-      },
+      // 註解：/api/uploads/:path* 的代理已移除，使用前端 API 路由處理
       // 可以根據需要添加其他特定的 API 代理
     ];
   },
