@@ -45,6 +45,7 @@ import { HealthModule } from './health/health.module';
         console.log(
           `[AppModule] Attempting DB connection with: HOST='${dbHost}', PORT='${dbPort}', USER='${dbUser}', DBNAME='${dbName}'`,
         );
+        const isProduction = process.env.NODE_ENV === 'production';
         return {
           type: 'postgres',
           host: dbHost,
@@ -53,7 +54,9 @@ import { HealthModule } from './health/health.module';
           password: configService.get<string>('DB_PASSWORD'),
           database: dbName,
           entities: [__dirname + '/**/*.entity{.ts,.js}'], // 自動載入所有實體
-          synchronize: true, // 暫時啟用自動同步，以便建立資料表結構
+          synchronize: !isProduction, // 僅在非生產環境啟用自動同步
+          migrations: ['dist/migrations/*{.ts,.js}'],
+          migrationsRun: isProduction, // 生產環境自動執行遷移
         };
       },
       inject: [ConfigService],

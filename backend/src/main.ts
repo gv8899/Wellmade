@@ -7,6 +7,7 @@ import * as crypto from 'crypto'; // Explicitly import crypto
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser'; // 我們也需要 cookie-parser
 import { join } from 'path';
+import { EnvironmentValidator } from './config/environment.validation';
 
 console.log(
   'Is crypto (imported) defined in main.ts?',
@@ -15,6 +16,15 @@ console.log(
 );
 
 async function bootstrap() {
+  // 在應用啟動前驗證環境變數
+  try {
+    EnvironmentValidator.validate();
+    console.log('[Bootstrap] Environment Summary:', EnvironmentValidator.getEnvironmentSummary());
+  } catch (error) {
+    console.error('[Bootstrap] Environment validation failed:', error.message);
+    process.exit(1);
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // 靜態檔案服務已移至 UploadsController 處理

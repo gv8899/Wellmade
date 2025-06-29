@@ -1,12 +1,17 @@
 import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
 import { Response } from 'express';
 import { Public } from '../auth/decorators/public.decorator';
+import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as fs from 'fs';
 
 @Controller('uploads')
 export class UploadsController {
-  private readonly uploadsPath = path.join(process.cwd(), 'uploads');
+  private readonly uploadsPath: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.uploadsPath = this.configService.get<string>('UPLOAD_PATH') || path.join(process.cwd(), 'uploads');
+  }
 
   @Get(':filename')
   @Public()

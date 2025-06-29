@@ -6,7 +6,7 @@ import * as path from 'path';
 
 @Injectable()
 export class UploadService {
-  private readonly uploadPath = path.join(process.cwd(), 'uploads');
+  private readonly uploadPath: string;
   private readonly maxFileSize = 10 * 1024 * 1024; // 10MB
   private readonly allowedMimeTypes = [
     'image/jpeg',
@@ -17,6 +17,8 @@ export class UploadService {
   ];
 
   constructor(private readonly configService: ConfigService) {
+    // 從環境變數或預設路徑設定上傳目錄
+    this.uploadPath = this.configService.get<string>('UPLOAD_PATH') || path.join(process.cwd(), 'uploads');
     this.ensureUploadDirectoryExists();
   }
 
@@ -81,8 +83,10 @@ export class UploadService {
         .webp({ quality: 85 })
         .toFile(mediumPath);
 
-      const baseUrl =
-        this.configService.get<string>('BASE_URL') || 'http://localhost:3003';
+      const baseUrl = this.configService.get<string>('BASE_URL');
+      if (!baseUrl) {
+        throw new BadRequestException('BASE_URL environment variable is required');
+      }
 
       return {
         original: `${baseUrl}/uploads/${path.basename(originalPath)}`,

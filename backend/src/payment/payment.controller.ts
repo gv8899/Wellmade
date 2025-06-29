@@ -60,9 +60,12 @@ export class PaymentController {
     await this.paymentService.handleCallback(callbackDto);
 
     // 重導向到前端結果頁面
-    const clientBackUrl =
-      process.env.NEWEBPAY_CLIENT_BACK_URL ||
-      'http://localhost:3000/checkout/result';
+    const clientBackUrl = process.env.NEWEBPAY_CLIENT_BACK_URL;
+    if (!clientBackUrl) {
+      console.error('NEWEBPAY_CLIENT_BACK_URL environment variable is required');
+      res.status(500).send('Configuration error');
+      return;
+    }
     res.redirect(clientBackUrl);
   }
 
