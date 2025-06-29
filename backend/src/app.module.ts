@@ -56,7 +56,7 @@ import { HealthModule } from './health/health.module';
           entities: [__dirname + '/**/*.entity{.ts,.js}'], // 自動載入所有實體
           synchronize: !isProduction, // 僅在非生產環境啟用自動同步
           migrations: ['dist/migrations/*{.ts,.js}'],
-          migrationsRun: isProduction, // 生產環境自動執行遷移
+          migrationsRun: false, // 暫時禁用自動執行遷移，避免衝突
         };
       },
       inject: [ConfigService],

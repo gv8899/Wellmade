@@ -25,7 +25,8 @@
     "migration:run": "npm run typeorm -- migration:run -d typeorm.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d typeorm.config.ts",
     "migration:show": "npm run typeorm -- migration:show -d typeorm.config.ts",
-    "script:update-image-urls": "ts-node -r tsconfig-paths/register src/scripts/update-image-urls.ts"
+    "script:update-image-urls": "ts-node -r tsconfig-paths/register src/scripts/update-image-urls.ts",
+    "script:analyze-schema": "ts-node -r tsconfig-paths/register src/scripts/analyze-database-schema.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
