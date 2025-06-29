@@ -122,7 +122,7 @@ export class ProductVariantsService {
     }
 
     // 組合最終的變體資料
-    const processedVariants: any[] = [];
+    const processedVariants: (CreateVariantDto & { productId: string })[] = [];
     let skuIndex = 0;
 
     variants.forEach((variantDto) => {
