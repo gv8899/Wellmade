@@ -93,48 +93,81 @@ export class ProductVariantsService {
       throw new NotFoundException(`Product with ID ${productId} not found`);
     }
 
-    // 為每個變體生成或驗證 SKU
-    const processedVariants = await Promise.all(
-      variants.map(async (variantDto) => {
-        let sku = variantDto.sku;
+    // 分離需要生成 SKU 的變體和已有 SKU 的變體
+    const variantsNeedingSku: CreateVariantDto[] = [];
+    const variantsWithSku: CreateVariantDto[] = [];
+    const specsArray: Record<string, string>[] = [];
 
-        // 如果沒有提供 SKU 或標記為自動生成，則生成 SKU
-        if (!sku || variantDto.autoGenerateSku) {
-          sku = await this.skuGenerationService.generateSku(
-            product,
-            variantDto.specs || {},
-          );
-        }
+    variants.forEach((variantDto) => {
+      if (!variantDto.sku || variantDto.autoGenerateSku) {
+        variantsNeedingSku.push(variantDto);
+        specsArray.push(variantDto.specs || {});
+      } else {
+        variantsWithSku.push(variantDto);
+      }
+    });
 
-        return {
+    console.log(`AdminService - 需要生成 SKU 的變體: ${variantsNeedingSku.length}`);
+    console.log(`AdminService - 已有 SKU 的變體: ${variantsWithSku.length}`);
+
+    // 批量生成 SKU，確保無重複
+    let generatedSkus: string[] = [];
+    if (variantsNeedingSku.length > 0) {
+      console.log(`AdminService - 開始批量生成 SKU...`);
+      generatedSkus = await this.skuGenerationService.generateSkusBatch(
+        product,
+        specsArray,
+      );
+      console.log(`AdminService - 生成的 SKU: ${generatedSkus.join(', ')}`);
+    }
+
+    // 組合最終的變體資料
+    const processedVariants: any[] = [];
+    let skuIndex = 0;
+
+    variants.forEach((variantDto) => {
+      if (!variantDto.sku || variantDto.autoGenerateSku) {
+        // 使用生成的 SKU
+        processedVariants.push({
           ...variantDto,
-          sku,
+          sku: generatedSkus[skuIndex],
           productId,
-        };
-      }),
-    );
+        });
+        skuIndex++;
+      } else {
+        // 使用提供的 SKU
+        processedVariants.push({
+          ...variantDto,
+          productId,
+        });
+      }
+    });
 
-    // 檢查處理後的 SKU 是否有重複
-    const skus = processedVariants.map((v) => v.sku);
-    const uniqueSkus = new Set(skus);
-    if (skus.length !== uniqueSkus.size) {
+    // 最終檢查所有 SKU 是否重複
+    const allSkus = processedVariants.map((v) => v.sku);
+    const uniqueSkus = new Set(allSkus);
+    if (allSkus.length !== uniqueSkus.size) {
+      console.error(`AdminService - 最終檢查發現重複 SKU: ${allSkus.join(', ')}`);
       throw new BadRequestException(
-        'Duplicate SKUs found in variants after generation',
+        'Duplicate SKUs found in final variant list',
       );
     }
 
     // 檢查資料庫中是否已存在這些 SKU
     const existingSkuCheck =
-      await this.skuGenerationService.checkSkuExists(skus);
+      await this.skuGenerationService.checkSkuExists(allSkus);
     const existingSkus = Object.entries(existingSkuCheck)
       .filter(([_, exists]) => exists)
       .map(([sku]) => sku);
 
     if (existingSkus.length > 0) {
+      console.error(`AdminService - 發現已存在的 SKU: ${existingSkus.join(', ')}`);
       throw new ConflictException(
         `The following SKUs already exist: ${existingSkus.join(', ')}`,
       );
     }
+
+    console.log(`AdminService - 最終變體資料: ${JSON.stringify(processedVariants.map(v => ({ sku: v.sku, variantTitle: v.variantTitle })), null, 2)}`);
 
     const variantEntities = processedVariants.map((variantData) =>
       this.variantRepository.create(variantData),
