@@ -138,5 +138,6 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3003, '0.0.0.0');
   console.log(`應用已啟動在: http://localhost:${process.env.PORT ?? 3003}`);
+  console.log(`部署時間: ${new Date().toISOString()}`);
 }
 bootstrap();
