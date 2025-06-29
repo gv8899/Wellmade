@@ -20,18 +20,21 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
       );
     }
 
-    // 檢查外鍵是否已存在
-    const foreignKeys = await queryRunner.query(`
-      SELECT constraint_name FROM information_schema.constraint_column_usage 
-      WHERE table_name = 'brands' AND column_name = 'id'
-      AND constraint_name IN (
-        SELECT constraint_name FROM information_schema.constraint_column_usage 
-        WHERE table_name = 'products' AND column_name = 'brandId'
-      )
+    // 檢查外鍵是否已存在 - 使用更準確的查詢
+    const existingForeignKeys = await queryRunner.query(`
+      SELECT tc.constraint_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+      JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
+      WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND tc.table_name = 'products'
+        AND kcu.column_name = 'brandId'
+        AND ccu.table_name = 'brands'
+        AND ccu.column_name = 'id'
     `);
     
     // 如果外鍵不存在，則添加
-    if (!foreignKeys || foreignKeys.length === 0) {
+    if (!existingForeignKeys || existingForeignKeys.length === 0) {
       await queryRunner.createForeignKey(
         "products",
         new TableForeignKey({
@@ -41,6 +44,8 @@ export class ProductBrandRelation1749546100000 implements MigrationInterface {
           onDelete: "SET NULL",
         })
       );
+    } else {
+      console.log('外鍵約束已存在，跳過創建:', existingForeignKeys[0].constraint_name);
     }
   }
 
