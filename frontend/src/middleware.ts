@@ -46,12 +46,11 @@ export async function middleware(request: NextRequest) {
       roles: token?.roles || []
     });
 
-    // 如果沒有 token，重定向到登入頁
+    // 如果沒有 token，記錄但不重定向（讓頁面級保護處理）
     if (!token) {
-      console.log('Middleware: No token, redirecting to login');
-      const redirectUrl = new URL('/login', request.url);
-      redirectUrl.searchParams.set('from', pathname);
-      return NextResponse.redirect(redirectUrl);
+      console.log('Middleware: No token found, allowing page-level protection to handle');
+      // 暫時允許通過，讓頁面級的 RequireAuth 組件處理
+      return NextResponse.next();
     }
 
     // 如果是管理員路由，檢查角色
