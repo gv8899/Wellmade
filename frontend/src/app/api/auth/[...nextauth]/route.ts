@@ -25,34 +25,53 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('NextAuth authorize called:', { 
+          hasEmail: !!credentials?.email, 
+          hasPassword: !!credentials?.password 
+        });
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('NextAuth authorize: Missing credentials');
           return null;
         }
 
         try {
           // 向後端 API 發送登入請求
           const backendUrl = process.env.BACKEND_URL;
+          console.log('NextAuth authorize: Using BACKEND_URL:', backendUrl);
+          
           if (!backendUrl) {
             console.error('BACKEND_URL environment variable is required');
             return null;
           }
+          
+          const requestBody = {
+            email: credentials.email,
+            password: credentials.password,
+          };
+          console.log('NextAuth authorize: Sending request to backend:', requestBody);
+          
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
+            body: JSON.stringify(requestBody),
           });
+
+          console.log('NextAuth authorize: Backend response status:', response.status);
 
           if (response.ok) {
             const data = await response.json();
-            console.log('Backend login successful:', data);
+            console.log('NextAuth authorize: Backend login successful:', {
+              hasUser: !!data.user,
+              hasToken: !!data.access_token,
+              userId: data.user?.id,
+              userRoles: data.user?.roles
+            });
             
             // 返回用戶資料，NextAuth 會將其存儲在 session 中
-            return {
+            const userObject = {
               id: data.user.id,
               email: data.user.email,
               name: data.user.username || data.user.firstName || data.user.email,
@@ -62,12 +81,16 @@ export const authOptions: NextAuthOptions = {
               lastName: data.user.lastName,
               picture: data.user.picture,
             };
+            
+            console.log('NextAuth authorize: Returning user object:', userObject);
+            return userObject;
           } else {
-            console.error('Backend login failed:', response.status, await response.text());
+            const errorText = await response.text();
+            console.error('NextAuth authorize: Backend login failed:', response.status, errorText);
             return null;
           }
         } catch (error) {
-          console.error('Login error:', error);
+          console.error('NextAuth authorize: Error:', error);
           return null;
         }
       }
