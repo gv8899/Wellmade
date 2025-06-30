@@ -75,10 +75,25 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     jwt: async ({ token, account, user }) => {
+      console.log('NextAuth JWT callback called:', { 
+        hasAccount: !!account, 
+        hasUser: !!user,
+        provider: account?.provider,
+        userId: user?.id,
+        tokenSub: token.sub 
+      });
+      
       // Initial sign in
       if (account && user) {
+        console.log('NextAuth: Processing initial sign in');
         // 如果是 Credentials Provider，直接使用後端返回的資料
         if (account.provider === 'credentials') {
+          console.log('NextAuth: Processing credentials login', {
+            userId: user.id,
+            roles: (user as any).roles,
+            backendToken: !!(user as any).backendToken
+          });
+          
           token.backendToken = (user as any).backendToken;
           token.userId = user.id;
           token.roles = (user as any).roles;
@@ -86,6 +101,12 @@ export const authOptions: NextAuthOptions = {
           token.lastName = (user as any).lastName;
           token.picture = (user as any).picture;
           token.provider = 'credentials';
+          
+          console.log('NextAuth: Token updated:', {
+            hasBackendToken: !!token.backendToken,
+            userId: token.userId,
+            roles: token.roles
+          });
         }
         // 如果是 Google Provider，將資料同步到後端
         else if (account.provider === 'google' && user.email) {
@@ -135,6 +156,14 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      console.log('NextAuth session callback called:', {
+        hasSession: !!session,
+        hasToken: !!token,
+        tokenUserId: token.userId,
+        tokenRoles: token.roles,
+        hasBackendToken: !!token.backendToken
+      });
+      
       // 將資訊從 token 傳到 session 中
       (session as any).accessToken = token.accessToken;
       (session as any).idToken = token.idToken;
@@ -149,6 +178,13 @@ export const authOptions: NextAuthOptions = {
       if (token.backendUser) {
         (session as any).backendUser = token.backendUser;
       }
+      
+      console.log('NextAuth: Session prepared:', {
+        userId: (session as any).userId,
+        roles: (session as any).roles,
+        hasBackendToken: !!(session as any).backendToken
+      });
+      
       return session;
     },
   },
