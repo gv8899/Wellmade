@@ -20,9 +20,60 @@ const PROTECTED_ROUTES = [
 ];
 
 export async function middleware(request: NextRequest) {
-  // 暫時禁用 middleware 檢查以解決部署環境的時序問題
-  console.log('Middleware: Temporarily disabled for debugging');
-  return NextResponse.next();
+  const pathname = request.nextUrl.pathname;
+  
+  // 檢查是否為需要保護的路由
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+  const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
+  
+  // 如果不是保護路由，直接放行
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
+
+  try {
+    // 獲取 token
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    
+    console.log('Middleware: Checking route', { 
+      pathname, 
+      isProtectedRoute, 
+      isAdminRoute, 
+      hasToken: !!token,
+      roles: token?.roles || []
+    });
+
+    // 如果沒有 token，重定向到登入頁
+    if (!token) {
+      console.log('Middleware: No token, redirecting to login');
+      const redirectUrl = new URL('/login', request.url);
+      redirectUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // 如果是管理員路由，檢查角色
+    if (isAdminRoute) {
+      const userRoles = (token.roles as string[]) || [];
+      const hasAdminRole = userRoles.includes(UserRole.ADMIN);
+      
+      if (!hasAdminRole) {
+        console.log('Middleware: User lacks admin role, redirecting to home');
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
+
+    // 所有檢查通過，放行
+    return NextResponse.next();
+    
+  } catch (error) {
+    console.error('Middleware error:', error);
+    // 發生錯誤時，為了避免阻塞用戶，直接放行
+    // 頁面級的 RequireAuth 組件會進行二次檢查
+    return NextResponse.next();
+  }
 }
 
 export const config = {

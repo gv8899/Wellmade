@@ -22,16 +22,26 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [syncAttempts, setSyncAttempts] = useState(0);
   const { data: session, status } = useSession();
 
   // 當 NextAuth 會話變化時，同步更新我們的 UserContext
   useEffect(() => {
-    console.log('UserContext: Session status:', status, 'Session:', !!session);
+    console.log('UserContext: Session status:', status, 'Session:', !!session, 'Sync attempts:', syncAttempts);
     
     // 處理載入狀態
     if (status === 'loading') {
       setIsLoading(true);
       return;
+    }
+
+    // Session 載入完成但需要重試
+    if (status === 'authenticated' && !session?.user && syncAttempts < 3) {
+      console.log('UserContext: Session authenticated but no user data, retrying in 500ms...');
+      const timer = setTimeout(() => {
+        setSyncAttempts(prev => prev + 1);
+      }, 500);
+      return () => clearTimeout(timer);
     }
 
     // Session 載入完成，更新載入狀態
@@ -58,6 +68,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           console.error('Failed to parse JWT token:', error);
         }
+      }
+      
+      // 確保角色是陣列格式
+      if (!Array.isArray(userRoles)) {
+        console.error('UserContext: Roles is not an array, using default:', userRoles);
+        userRoles = [UserRole.USER];
       }
       
       // 從 NextAuth 會話中獲取用戶資訊
@@ -101,7 +117,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem('hasShownLoginToast');
     }
-  }, [session, status]);
+    
+    // 重置同步嘗試次數
+    if (status === 'authenticated' && session?.user && user) {
+      setSyncAttempts(0);
+    }
+  }, [session, status, syncAttempts]);
 
   // 保持原有的 login 函數，同時也支援使用 NextAuth
   const login = (user: User) => {
@@ -126,10 +147,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   // 權限檢查函數
   const checkRole = (requiredRoles: UserRole[]) => {
-    if (!user) {
-      console.log('checkRole: No user');
+    // 如果正在載入中，不輸出錯誤訊息
+    if (isLoading || status === 'loading') {
+      console.log('checkRole: Still loading, skipping check');
       return false;
     }
+    
+    if (!user) {
+      // 只有在確認未認證時才輸出訊息
+      if (status === 'unauthenticated') {
+        console.log('checkRole: User not authenticated');
+      } else {
+        console.log('checkRole: User data not yet loaded, session status:', status);
+      }
+      return false;
+    }
+    
     const result = hasRole(user.roles, requiredRoles);
     console.log('checkRole:', { userRoles: user.roles, requiredRoles, result });
     return result;

@@ -2,7 +2,7 @@
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/types/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, ReactNode } from "react";
+import { useEffect, ReactNode, useState } from "react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
@@ -25,17 +25,33 @@ export function RequireAuth({
   const { user, hasRole, isLoading } = useUser();
   const { status } = useSession();
   const router = useRouter();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // 設置載入超時
+  useEffect(() => {
+    if (status === "loading" || isLoading) {
+      const timer = setTimeout(() => {
+        console.log('RequireAuth: Loading timeout reached');
+        setLoadingTimeout(true);
+      }, 5000); // 5秒超時
+      
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [status, isLoading]);
 
   useEffect(() => {
     console.log('RequireAuth: Status check', { 
       status, 
       isLoading, 
       hasUser: !!user, 
-      requiredRoles 
+      requiredRoles,
+      loadingTimeout 
     });
 
-    // 等待完全載入完成
-    if (status === "loading" || isLoading) {
+    // 等待完全載入完成，除非超時
+    if ((status === "loading" || isLoading) && !loadingTimeout) {
       return;
     }
     
@@ -60,11 +76,16 @@ export function RequireAuth({
       router.push('/'); // 重定向到首頁
       return;
     }
-  }, [user, hasRole, requiredRoles, router, redirectTo, status, isLoading]);
+  }, [user, hasRole, requiredRoles, router, redirectTo, status, isLoading, loadingTimeout]);
 
-  // 如果正在載入，顯示載入中
-  if (status === "loading" || isLoading) {
+  // 如果正在載入，顯示載入中（除非已超時）
+  if ((status === "loading" || isLoading) && !loadingTimeout) {
     return <>{fallback || <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div></div>}</>;
+  }
+  
+  // 如果載入超時，顯示錯誤訊息
+  if (loadingTimeout) {
+    return <>{fallback || <div className="p-4 text-center text-red-600">載入逾時，請重新整理頁面</div>}</>;
   }
 
   // 如果沒有登入，顯示 fallback 或 null
