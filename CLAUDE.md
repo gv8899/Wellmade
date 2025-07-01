@@ -4,7 +4,7 @@
 
 ## 專案概述
 
-Wellmade 是一個內容導向的電商平台，採用 Instagram 風格的商品展示。使用 Next.js 前端和 NestJS 後端構建，具備豐富的商品圖庫、購物車功能、訂單管理、支付系統和 Google OAuth 認證。專案已配置支援本機開發和 Zeabur 雲端部署。
+Wellmade 是一個內容導向的電商平台，採用 Instagram 風格的商品展示。使用 Next.js 前端和 NestJS 後端構建，具備完整的電商功能包含商品管理、品牌管理、分類系統、購物車、訂單處理、藍新金流支付整合和 Google OAuth 認證。專案已配置支援本機開發和 Zeabur 雲端部署。
 
 ## 部署環境
 
@@ -58,17 +58,26 @@ npm run format           # Prettier 格式化
 - **狀態管理**: React Context + TanStack Query
 - **認證**: NextAuth.js 搭配 Google 提供者
 - **關鍵模式**:
-  - Context 層級結構: AuthProvider > UserProvider > CartProvider
+  - Context 層級結構: AuthProvider > UserProvider > CartProvider > OrderProvider
   - API 服務層，具備模擬資料回退機制
   - 購物車樂觀更新搭配伺服器同步
+  - 完整的結帳流程整合支付系統
 - **圖片處理**: 使用 Next.js Image 組件，支援遠端圖片最佳化
 
 ### 資料庫結構
-- **商品**: 豐富內容搭配品牌關聯，JSONB 欄位用於功能/常見問題
-- **購物車**: 支援訪客和認證用戶
-- **用戶**: 基於角色 (admin, user, editor) 搭配 Google OAuth 同步
-- **訂單**: 完整的訂單追蹤和狀態管理
-- **支付**: 支付記錄與交易狀態追蹤
+- **商品 (Products)**: 豐富內容搭配品牌關聯，JSONB 欄位用於功能/常見問題，支援多變體管理
+- **分類 (Categories)**: 階層式結構，支援 SEO 優化欄位 (metaTitle, metaDescription)
+- **品牌 (Brands)**: 品牌資訊管理，與商品多對一關聯
+- **購物車 (Carts)**: 支援訪客和認證用戶，自動合併機制
+- **用戶 (Users)**: 基於角色 (admin, user, editor) 搭配 Google OAuth 同步
+- **訂單 (Orders)**: 
+  - 訂單主表：狀態流轉 (pending → processing → paid → shipped → delivered)
+  - 訂單項目：商品快照保存，確保歷史資料完整性
+  - 自動編號生成：ORD-YYYYMMDD-XXXXX
+- **支付記錄 (PaymentRecords)**: 
+  - 交易狀態追蹤 (pending → paid/failed → refunded)
+  - 藍新金流交易資料儲存
+  - 支援重試機制
 
 ## 開發流程
 
@@ -122,13 +131,40 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 ## 關鍵實作細節
 
-- **商品頁面**: 豐富媒體輪播搭配 JSONB 儲存的功能詳情
-- **購物車**: 混合訪客/認證系統搭配樂觀更新
-- **認證**: 雙重 NextAuth.js 前端 + NestJS JWT 後端
-- **API 容錯**: 後端不可用時回退到模擬資料
-- **資料庫**: 遷移優先方式，所有結構變更透過 TypeORM 遷移
-- **圖片上傳**: 自動生成縮圖，支援多種尺寸 (original, medium, thumbnail)
-- **CORS 配置**: 動態支援多個域名，包含 Zeabur 子域名
+- **商品管理**: 
+  - 豐富媒體輪播搭配 JSONB 儲存的功能詳情
+  - 支援多變體管理（尺寸、顏色等）
+  - SKU 自動生成系統
+- **購物車系統**: 
+  - 混合訪客/認證系統搭配樂觀更新
+  - 自動合併機制，登入時合併訪客購物車
+  - 本地儲存備份，離線支援
+- **訂單處理**: 
+  - 完整狀態機管理訂單生命週期
+  - 商品資訊快照，保證歷史資料一致性
+  - 自動編號生成，格式化訂單追蹤
+- **支付整合**: 
+  - 藍新金流 API 整合（信用卡、LINE Pay）
+  - AES 加密與 SHA256 簽章驗證
+  - 支付狀態即時更新與錯誤處理
+  - 支援支付重試機制
+- **認證系統**: 
+  - 雙重架構：NextAuth.js 前端 + NestJS JWT 後端
+  - Google OAuth 無縫整合
+  - 角色基礎權限控制
+- **API 架構**: 
+  - 後端不可用時回退到模擬資料
+  - 統一錯誤處理與日誌記錄
+  - API 代理層處理 CORS 和認證轉發
+- **資料庫管理**: 
+  - 遷移優先方式，所有結構變更透過 TypeORM 遷移
+  - 種子資料支援快速環境設定
+- **檔案處理**: 
+  - 圖片上傳自動生成縮圖 (original, medium, thumbnail)
+  - 支援批次上傳和進度追蹤
+- **跨域支援**: 
+  - 動態 CORS 配置，支援多域名
+  - 包含 Zeabur 子域名自動識別
 
 ## 部署注意事項
 
@@ -162,15 +198,45 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 1. **本機測試優先**: 
    - 在推送前確保本機完整測試
    - 使用相同的環境變數結構，只改變值
+   - 執行完整的支付流程測試（使用測試卡號）
 
 2. **漸進式部署**:
    - 先部署後端，確認 API 正常
    - 再部署前端，確認整體功能
+   - 最後測試支付回調是否正常運作
 
 3. **監控與日誌**:
    - 利用 Zeabur 的日誌功能追蹤問題
    - 後端已配置詳細的錯誤日誌
+   - 支付相關操作需特別注意日誌監控
 
 4. **版本控制**:
    - 使用語意化版本號
    - 重要變更記錄在 git commit 中
+   - 資料庫遷移檔案需妥善管理版本
+
+5. **安全性考量**:
+   - 支付金鑰絕不可提交到版本控制
+   - 定期更換 JWT 和支付相關密鑰
+   - 敏感資料加密存儲
+
+## API 路由結構
+
+### 後端 API 端點
+- `/api/auth/*` - 認證相關（登入、註冊、Google OAuth）
+- `/api/products/*` - 商品管理（CRUD、搜尋、篩選）
+- `/api/brands/*` - 品牌管理
+- `/api/categories/*` - 分類管理
+- `/api/carts/*` - 購物車操作
+- `/api/orders/*` - 訂單管理
+- `/api/payment/*` - 支付處理（創建、回調、查詢）
+- `/api/admin/*` - 管理員功能
+- `/api/uploads/*` - 檔案上傳
+
+### 前端 API 代理
+- `/api/auth/callback/google` - Google OAuth 回調
+- `/api/brands/*` - 品牌資料代理
+- `/api/categories/*` - 分類資料代理
+- `/api/products/*` - 商品資料代理
+- `/api/cart/*` - 購物車操作代理
+- `/api/orders/*` - 訂單操作代理
