@@ -105,6 +105,133 @@ export class UploadService {
     }
   }
 
+  async uploadBannerImage(file: Express.Multer.File): Promise<{
+    original: string;
+    thumbnail: string;
+    medium: string;
+    large: string;
+    desktop: string;
+    mobile: string;
+    url: string;
+    filename: string;
+    size: number;
+  }> {
+    // 驗證檔案
+    this.validateFile(file);
+
+    // 生成唯一檔名
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    const baseFilename = `banner-${timestamp}-${randomString}`;
+
+    // 檔案路徑
+    const originalPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-original${fileExtension}`,
+    );
+    const thumbnailPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-thumb.webp`,
+    );
+    const mediumPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-medium.webp`,
+    );
+    const largePath = path.join(
+      this.uploadPath,
+      `${baseFilename}-large.webp`,
+    );
+    const desktopPath = path.join(
+      this.uploadPath,
+      `${baseFilename}-desktop.webp`,
+    );
+    const mobilePath = path.join(
+      this.uploadPath,
+      `${baseFilename}-mobile.webp`,
+    );
+
+    try {
+      // 保存原圖
+      await fs.writeFile(originalPath, file.buffer);
+
+      // 生成縮圖 (200x100) - Banner 預覽用
+      await sharp(file.buffer)
+        .resize(200, 100, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 85 })
+        .toFile(thumbnailPath);
+
+      // 生成中等尺寸 (1200x600) - 平板用
+      await sharp(file.buffer)
+        .resize(1200, 600, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 90 })
+        .toFile(mediumPath);
+
+      // 生成大尺寸 (1600x800) - 高解析度顯示
+      await sharp(file.buffer)
+        .resize(1600, 800, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 92 })
+        .toFile(largePath);
+
+      // 生成桌面版 (1920x960) - 全幅 Banner
+      await sharp(file.buffer)
+        .resize(1920, 960, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 95 })
+        .toFile(desktopPath);
+
+      // 生成手機版 (750x400) - 移動端優化
+      await sharp(file.buffer)
+        .resize(750, 400, {
+          fit: 'cover',
+          position: 'center',
+        })
+        .webp({ quality: 88 })
+        .toFile(mobilePath);
+
+      const baseUrl = this.configService.get<string>('BASE_URL');
+      if (!baseUrl) {
+        throw new BadRequestException('BASE_URL environment variable is required');
+      }
+
+      return {
+        original: `${baseUrl}/uploads/${path.basename(originalPath)}`,
+        thumbnail: `${baseUrl}/uploads/${path.basename(thumbnailPath)}`,
+        medium: `${baseUrl}/uploads/${path.basename(mediumPath)}`,
+        large: `${baseUrl}/uploads/${path.basename(largePath)}`,
+        desktop: `${baseUrl}/uploads/${path.basename(desktopPath)}`,
+        mobile: `${baseUrl}/uploads/${path.basename(mobilePath)}`,
+        url: `${baseUrl}/uploads/${path.basename(desktopPath)}`, // 預設使用桌面版
+        filename: baseFilename,
+        size: file.size,
+      };
+    } catch (error) {
+      // 清理可能已創建的檔案
+      await this.cleanupFiles([
+        originalPath, 
+        thumbnailPath, 
+        mediumPath, 
+        largePath, 
+        desktopPath, 
+        mobilePath
+      ]);
+      throw new BadRequestException(
+        `Banner image processing failed: ${error.message}`,
+      );
+    }
+  }
+
   async uploadImages(files: Express.Multer.File[]): Promise<{
     images: Array<{
       original: string;
@@ -178,10 +305,14 @@ export class UploadService {
   }
 
   async deleteImage(filename: string): Promise<void> {
+    // 支援一般圖片和 Banner 圖片的刪除模式
     const patterns = [
       `${filename}-original.*`,
       `${filename}-thumb.webp`,
       `${filename}-medium.webp`,
+      `${filename}-large.webp`,    // Banner 專用
+      `${filename}-desktop.webp`,  // Banner 專用
+      `${filename}-mobile.webp`,   // Banner 專用
     ];
 
     try {

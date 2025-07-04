@@ -8,7 +8,8 @@ import {
   FaUsers, 
   FaChartBar,
   FaHome,
-  FaSitemap
+  FaSitemap,
+  FaImage
 } from "react-icons/fa";
 
 const navigationItems = [
@@ -31,6 +32,11 @@ const navigationItems = [
     name: "品牌管理",
     href: "/admin/brands",
     icon: FaTags,
+  },
+  {
+    name: "Banner 管理",
+    href: "/admin/banners",
+    icon: FaImage,
   },
   {
     name: "用戶管理",

@@ -14,6 +14,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    unoptimized: process.env.NODE_ENV === 'development',
+    domains: ['localhost', '127.0.0.1', 'api.wellmade.select'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -39,10 +41,23 @@ const nextConfig = {
         port: '3003',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '3003',
+        pathname: '/uploads/**',
+      },
       // 支援後端域名的直接圖片 URL（主流做法）
       {
         protocol: 'https',
         hostname: 'api.wellmade.select',
+        port: '',
+        pathname: '/uploads/**',
+      },
+      // 支援後端 ngrok 域名的圖片 URL
+      {
+        protocol: 'https',
+        hostname: '02f0-36-224-76-160.ngrok-free.app',
         port: '',
         pathname: '/uploads/**',
       },

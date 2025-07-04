@@ -159,9 +159,21 @@ export const authOptions: NextAuthOptions = {
               console.log('用戶資料已同步到後端:', backendData);
               
               // 將後端返回的資料（包含 JWT 等）合併到 token 中
-              if (backendData.accessToken) {
+              if (backendData.accessToken && backendData.user) {
                 token.backendToken = backendData.accessToken;
                 token.backendUser = backendData.user;
+                // 🔥 關鍵修復：設置 userId 和 roles
+                token.userId = backendData.user.id;
+                token.roles = backendData.user.roles;
+                token.firstName = backendData.user.firstName;
+                token.lastName = backendData.user.lastName;
+                token.picture = backendData.user.picture;
+                
+                console.log('NextAuth: Google OAuth token updated:', {
+                  userId: token.userId,
+                  roles: token.roles,
+                  hasBackendToken: !!token.backendToken
+                });
               }
             } else {
               console.error('同步用戶資料到後端失敗:', await response.text());
@@ -176,6 +188,48 @@ export const authOptions: NextAuthOptions = {
           token.provider = account.provider;
         }
       }
+      
+      // 🔥 處理現有 token 沒有角色資訊的情況（修復現有用戶）
+      if (token.backendToken && !token.roles && token.email) {
+        try {
+          console.log('NextAuth: Detected token without roles, refreshing from backend...');
+          const backendUrl = process.env.BACKEND_URL;
+          if (backendUrl) {
+            const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: token.email,
+                name: token.name,
+                picture: token.picture,
+                provider: token.provider || 'google'
+              }),
+            });
+            
+            if (response.ok) {
+              const backendData = await response.json();
+              console.log('NextAuth: Token refreshed with roles:', backendData.user?.roles);
+              
+              if (backendData.user) {
+                token.userId = backendData.user.id;
+                token.roles = backendData.user.roles;
+                token.firstName = backendData.user.firstName;
+                token.lastName = backendData.user.lastName;
+                token.backendUser = backendData.user;
+                
+                if (backendData.accessToken) {
+                  token.backendToken = backendData.accessToken;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('NextAuth: Failed to refresh token with roles:', error);
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {

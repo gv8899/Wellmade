@@ -375,6 +375,10 @@ export class AdminService {
     return this.uploadService.uploadImages(files);
   }
 
+  async uploadBannerImage(file: Express.Multer.File) {
+    return this.uploadService.uploadBannerImage(file);
+  }
+
   // ========== 統計資料 ==========
 
   async getDashboardStats() {

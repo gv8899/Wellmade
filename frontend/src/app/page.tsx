@@ -8,6 +8,8 @@ import { Product, getProducts, getEnhancedProducts, ProductQueryParams, getActiv
 import { EnhancedProduct, formatPriceRange } from "@/types/product";
 import ProductStatusBadge from "@/components/product/ProductStatusBadge";
 import ProductPriceDisplay from "@/components/product/ProductPriceDisplay";
+import BannerComponent from "@/components/Banner";
+import { BannerPosition } from "@/types/banner";
 
 // 🎯 導入設計系統
 import { Text, Button } from "@/design-system";
@@ -27,8 +29,6 @@ interface DisplayProduct {
 
 
 export default function Home() {
-  // Banner 圖片路徑
-  const [bannerUrl] = useState("/forest-banner.jpg");
   const [colorMode, setColorMode] = useState<ColorMode>('light');
   // 篩選狀態
   const [category, setCategory] = useState("");
@@ -152,21 +152,21 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative font-sans">
-      <div className="max-w-6xl mx-auto py-12 px-4">
-        <section className="w-full relative h-[32vh] rounded-xl overflow-hidden mb-16 shadow-none">
-          <Image
-            src={bannerUrl}
-            alt="banner"
-            fill
-            priority
-            className="object-cover rounded-none"
-            sizes="100vw"
-          />
-        </section>
+      {/* 動態 Banner */}
+      <BannerComponent 
+        position={BannerPosition.HOMEPAGE}
+        height="32vh"
+        className="mb-16"
+        fallbackImage="/forest-banner.jpg"
+        showTitle={false}
+        showDescription={false}
+      />
+      
+      <div className="max-w-6xl mx-auto py-0 px-4">
         {/* 篩選條件區塊 */}
         <section className="mb-12 flex flex-wrap gap-8 items-center justify-between">
           <div className="flex items-center gap-4">
-            <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', letterSpacing: '-0.025em' }}>
+            <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'light', letterSpacing: '-0.025em' }}>
               商品列表
             </Text>
           </div>

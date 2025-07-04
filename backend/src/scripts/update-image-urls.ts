@@ -1,24 +1,28 @@
 import { DataSource } from 'typeorm';
 import { Product } from '../products/product.entity';
 import { Brand } from '../brands/brand.entity';
+import { Category } from '../categories/category.entity';
+
+// 從 .env 文件加載環境變數
+require('dotenv').config();
 
 // 資料庫連接配置
 const dataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST,
+  host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  entities: [Product, Brand],
+  username: process.env.DB_USER || 'wellmade_user',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'wellmade',
+  entities: [Product, Brand, Category],
   synchronize: false,
   ssl: process.env.NODE_ENV === 'production',
 });
 
 /**
- * 更新圖片 URL 從前端代理格式轉換為後端直接 URL 格式
- * 從: https://wellmade.select/api/uploads/filename.ext
- * 到: https://api.wellmade.select/uploads/filename.ext
+ * 更新圖片 URL 從 localhost 格式轉換為 ngrok 格式
+ * 從: http://localhost:3003/uploads/filename.ext
+ * 到: https://02f0-36-224-76-160.ngrok-free.app/uploads/filename.ext
  */
 async function updateImageUrls() {
   try {
@@ -38,10 +42,10 @@ async function updateImageUrls() {
       let needUpdate = false;
       
       // 更新主圖 URL
-      if (product.imageUrl && product.imageUrl.includes('wellmade.select/api/uploads/')) {
+      if (product.imageUrl && product.imageUrl.includes('localhost:3003/uploads/')) {
         product.imageUrl = product.imageUrl.replace(
-          'https://wellmade.select/api/uploads/',
-          'https://api.wellmade.select/uploads/'
+          'http://localhost:3003/uploads/',
+          'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
         );
         needUpdate = true;
       }
@@ -49,10 +53,10 @@ async function updateImageUrls() {
       // 更新額外圖片 URLs
       if (product.images && Array.isArray(product.images)) {
         const updatedImages = product.images.map(url => {
-          if (url && url.includes('wellmade.select/api/uploads/')) {
+          if (url && url.includes('localhost:3003/uploads/')) {
             return url.replace(
-              'https://wellmade.select/api/uploads/',
-              'https://api.wellmade.select/uploads/'
+              'http://localhost:3003/uploads/',
+              'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
             );
           }
           return url;
@@ -67,12 +71,12 @@ async function updateImageUrls() {
       // 更新關鍵特性中的圖片
       if (product.keyFeatures && Array.isArray(product.keyFeatures)) {
         const updatedKeyFeatures = product.keyFeatures.map(feature => {
-          if (feature.image && feature.image.includes('wellmade.select/api/uploads/')) {
+          if (feature.image && feature.image.includes('localhost:3003/uploads/')) {
             return {
               ...feature,
               image: feature.image.replace(
-                'https://wellmade.select/api/uploads/',
-                'https://api.wellmade.select/uploads/'
+                'http://localhost:3003/uploads/',
+                'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
               )
             };
           }
@@ -88,12 +92,12 @@ async function updateImageUrls() {
       // 更新特性詳情中的圖片
       if (product.featureDetails && Array.isArray(product.featureDetails)) {
         const updatedFeatureDetails = product.featureDetails.map(detail => {
-          if (detail.src && detail.src.includes('wellmade.select/api/uploads/')) {
+          if (detail.src && detail.src.includes('localhost:3003/uploads/')) {
             return {
               ...detail,
               src: detail.src.replace(
-                'https://wellmade.select/api/uploads/',
-                'https://api.wellmade.select/uploads/'
+                'http://localhost:3003/uploads/',
+                'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
               )
             };
           }
@@ -122,10 +126,10 @@ async function updateImageUrls() {
     let brandUpdated = 0;
     
     for (const brand of brands) {
-      if (brand.logoUrl && brand.logoUrl.includes('wellmade.select/api/uploads/')) {
+      if (brand.logoUrl && brand.logoUrl.includes('localhost:3003/uploads/')) {
         brand.logoUrl = brand.logoUrl.replace(
-          'https://wellmade.select/api/uploads/',
-          'https://api.wellmade.select/uploads/'
+          'http://localhost:3003/uploads/',
+          'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
         );
         
         await brandRepo.save(brand);

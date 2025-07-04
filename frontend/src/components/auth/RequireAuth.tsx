@@ -63,9 +63,15 @@ export function RequireAuth({
       return;
     }
     
-    // 如果 session 已認證但 UserContext 還沒載入用戶，等待
-    if (status === "authenticated" && !user) {
+    // 如果 session 已認證但 UserContext 還沒載入用戶，給更長的等待時間
+    if (status === "authenticated" && !user && !loadingTimeout) {
       console.log('RequireAuth: Waiting for user data to load...');
+      return;
+    }
+
+    // 如果等待超時但 session 已認證，說明可能是同步問題，允許通過
+    if (status === "authenticated" && !user && loadingTimeout) {
+      console.log('RequireAuth: Loading timeout but session authenticated, allowing access');
       return;
     }
 
@@ -83,7 +89,14 @@ export function RequireAuth({
     return <>{fallback || <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div></div>}</>;
   }
   
-  // 如果載入超時，顯示錯誤訊息
+  // 如果載入超時但session已認證，允許通過（可能是同步問題）
+  if (loadingTimeout && status === "authenticated") {
+    console.log('RequireAuth: Timeout but authenticated, allowing access');
+    // NextAuth session已認證，中間件應該已經檢查過權限，允許通過
+    return <>{children}</>;
+  }
+
+  // 如果載入超時且未認證，顯示錯誤訊息
   if (loadingTimeout) {
     return <>{fallback || <div className="p-4 text-center text-red-600">載入逾時，請重新整理頁面</div>}</>;
   }

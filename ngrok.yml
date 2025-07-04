@@ -1,0 +1,13 @@
+version: "2"
+authtoken: 2zMntwU2KliBI0uN1TY58rDVBBU_3yQeYCanacYSKX7QkZopX
+
+tunnels:
+  frontend:
+    addr: 3000
+    proto: http
+    name: "wellmade-frontend-dev"
+    
+  backend:
+    addr: 3003
+    proto: http
+    name: "wellmade-backend-dev"

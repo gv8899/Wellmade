@@ -140,6 +140,15 @@ export class AdminController {
     return this.adminService.uploadImages(files);
   }
 
+  @ApiOperation({ summary: '管理員 - 上傳 Banner 圖片' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: 'Banner 圖片上傳成功' })
+  @Post('upload/banner')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadBannerImage(@UploadedFile() file: Express.Multer.File) {
+    return this.adminService.uploadBannerImage(file);
+  }
+
   // ========== 統計資料 ==========
 
   @ApiOperation({ summary: '管理員 - 獲取總覽統計' })

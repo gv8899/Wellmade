@@ -10,6 +10,8 @@ export interface FormFieldProps extends Omit<InputProps, 'id'> {
   helpText?: string;
   errorMessage?: string;
   colorMode?: ColorMode;
+  isTextarea?: boolean;
+  rows?: number;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -20,6 +22,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   errorMessage,
   colorMode = 'light',
   error,
+  isTextarea = false,
+  rows = 3,
   ...inputProps
 }) => {
   // 🎯 使用 React 18 的 useId hook 避免 hydration mismatch
@@ -69,12 +73,39 @@ export const FormField: React.FC<FormFieldProps> = ({
         </label>
       )}
       
-      <Input
-        id={fieldId}
-        colorMode={colorMode}
-        error={hasError}
-        {...inputProps}
-      />
+      {isTextarea ? (
+        <textarea
+          id={fieldId}
+          rows={rows}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: `1px solid ${hasError ? colors.danger[colorMode] : colors.neutral.tertiaryLabel[colorMode]}`,
+            borderRadius: '6px',
+            fontSize: '1rem',
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            outline: 'none',
+            transition: 'border-color 0.2s ease',
+            backgroundColor: colorMode === 'light' ? colors.background.systemBackground.light : colors.background.systemBackground.dark,
+            color: colors.neutral.label[colorMode],
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = colors.primary[colorMode];
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = hasError ? colors.danger[colorMode] : colors.neutral.tertiaryLabel[colorMode];
+          }}
+          {...(inputProps as any)}
+        />
+      ) : (
+        <Input
+          id={fieldId}
+          colorMode={colorMode}
+          error={hasError}
+          {...inputProps}
+        />
+      )}
       
       {helpText && !hasError && (
         <Text 

@@ -18,6 +18,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentModule } from './payment/payment.module';
 import { HealthModule } from './health/health.module';
+import { BannersModule } from './banners/banners.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { HealthModule } from './health/health.module';
     }),
     OrdersModule,
     PaymentModule,
+    BannersModule,
   ],
   controllers: [AppController],
   providers: [

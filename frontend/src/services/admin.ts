@@ -125,6 +125,18 @@ export interface MultipleImageUploadResponse {
   };
 }
 
+export interface BannerImageUploadResponse {
+  original: string;
+  thumbnail: string;
+  medium: string;
+  large: string;
+  desktop: string;
+  mobile: string;
+  url: string;
+  filename: string;
+  size: number;
+}
+
 // Admin API 服務類
 class AdminApiService {
   // ========== 產品管理 ==========
@@ -232,6 +244,18 @@ class AdminApiService {
     });
 
     const response = await api.post('/admin/upload/images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async uploadBannerImage(file: File): Promise<BannerImageUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post('/admin/upload/banner', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

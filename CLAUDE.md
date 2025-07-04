@@ -240,3 +240,87 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 - `/api/products/*` - 商品資料代理
 - `/api/cart/*` - 購物車操作代理
 - `/api/orders/*` - 訂單操作代理
+
+## 故障排除
+
+### 常見 500 錯誤和後端連接問題
+
+#### 症狀
+- 前端顯示 "AxiosError: Request failed with status code 500"
+- Categories、Products 或其他 API 端點無法訪問
+- 後端似乎啟動但無法連接
+
+#### 解決步驟
+
+1. **檢查後端服務狀態**:
+   ```bash
+   # 檢查 3003 端口是否被佔用
+   lsof -i :3003
+   netstat -an | grep 3003
+   
+   # 測試後端健康狀態
+   curl http://localhost:3003/health
+   ```
+
+2. **重啟後端服務**:
+   ```bash
+   # 殺掉所有相關進程
+   pkill -f "nest start"
+   pkill -f "npm.*start:dev"
+   lsof -ti:3003 | xargs kill -9
+   
+   # 清理並重啟
+   cd backend
+   npm run start:dev
+   ```
+
+3. **檢查資料庫連接**:
+   ```bash
+   # 確認 PostgreSQL 服務運行
+   brew services list | grep postgresql
+   
+   # 測試資料庫連接
+   psql -h 127.0.0.1 -p 5432 -U wellmade_user -d wellmade -c "SELECT 1;"
+   ```
+
+4. **驗證環境變數**:
+   ```bash
+   # 確認後端環境變數
+   cd backend
+   grep -E "(DB_|BASE_URL|FRONTEND_URL)" .env
+   
+   # 確認前端環境變數
+   cd frontend
+   grep -E "(NEXT_PUBLIC_API_URL|BACKEND_URL)" .env.local
+   ```
+
+5. **端口衝突問題**:
+   ```bash
+   # 確保前端在正確端口
+   lsof -ti:3000 | xargs kill -9
+   cd frontend && npm run dev
+   
+   # 確保後端在正確端口  
+   lsof -ti:3003 | xargs kill -9
+   cd backend && npm run start:dev
+   ```
+
+#### 預防措施
+- 定期重啟開發服務以避免記憶體泄漏
+- 確保資料庫連接池配置適當
+- 監控日誌檔案以提前發現問題
+- 使用健康檢查端點定期驗證服務狀態
+
+#### Banner 管理系統相關
+
+**Banner 上傳和驗證問題**:
+- Banner 創建時的 URL 驗證已放寬，移除了嚴格的 @IsUrl 檢查
+- 圖片上傳使用 Sharp 庫處理，支援多種格式
+- CreateBannerDto 驗證已優化以支援各種圖片 URL 格式
+
+**Banner API 端點**:
+- `GET /banners/admin` - 管理員獲取所有 Banner
+- `POST /banners` - 創建新 Banner  
+- `PATCH /banners/:id` - 更新 Banner
+- `DELETE /banners/:id` - 刪除 Banner
+- `PATCH /banners/:id/toggle` - 切換 Banner 啟用狀態
