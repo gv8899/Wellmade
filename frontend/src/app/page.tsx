@@ -9,6 +9,11 @@ import { EnhancedProduct, formatPriceRange } from "@/types/product";
 import ProductStatusBadge from "@/components/product/ProductStatusBadge";
 import ProductPriceDisplay from "@/components/product/ProductPriceDisplay";
 
+// 🎯 導入設計系統
+import { Text, Button } from "@/design-system";
+import { colors } from "@/design-system";
+import type { ColorMode } from "@/design-system";
+
 // 前端顯示用的產品類型 (與 API 格式可能略有不同)
 interface DisplayProduct {
   id: string;
@@ -24,6 +29,7 @@ interface DisplayProduct {
 export default function Home() {
   // Banner 圖片路徑
   const [bannerUrl] = useState("/forest-banner.jpg");
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
   // 篩選狀態
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
@@ -160,7 +166,9 @@ export default function Home() {
         {/* 篩選條件區塊 */}
         <section className="mb-12 flex flex-wrap gap-8 items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="font-extrabold text-3xl tracking-tight text-gray-900">商品列表</div>
+            <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', letterSpacing: '-0.025em' }}>
+              商品列表
+            </Text>
           </div>
           <div className="flex gap-3 items-center">
             <div className="flex gap-4 items-center">
@@ -197,16 +205,28 @@ export default function Home() {
         </section>
         {/* 商品列表前顯示 loading/error 狀態 */}
         {loading && (
-          <div className="text-center text-gray-400 py-16 text-lg">載入中...</div>
+          <div className="text-center py-16">
+            <Text variant="title3" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+              載入中...
+            </Text>
+          </div>
         )}
         {error && !loading && (
-          <div className="text-center text-red-500 py-16 text-lg">{error}</div>
+          <div className="text-center py-16">
+            <Text variant="title3" color={colors.danger} colorMode={colorMode}>
+              {error}
+            </Text>
+          </div>
         )}
         {!loading && !error && (
           <>
             <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
               {products.length === 0 && (
-                <div className="col-span-full text-center text-gray-400 py-12 text-lg">查無符合條件的商品</div>
+                <div className="col-span-full text-center py-12">
+                  <Text variant="title3" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
+                    查無符合條件的商品
+                  </Text>
+                </div>
               )}
               {products.map((p) => {
                 // 尋找對應的增強產品信息
@@ -239,7 +259,9 @@ export default function Home() {
                       )}
                     </div>
                     <div className="p-6 flex flex-col gap-2 items-center">
-                      <div className="font-bold text-lg text-gray-900 line-clamp-1 text-center">{p.name}</div>
+                      <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', textAlign: 'center', lineClamp: 1 }}>
+                        {p.name}
+                      </Text>
                       
                       {/* 價格顯示 - 使用增強信息或基本價格 */}
                       {enhancedProduct ? (
@@ -249,14 +271,20 @@ export default function Home() {
                           className="text-center"
                         />
                       ) : (
-                        <div className="font-bold text-xl text-gray-900 text-center">${p.price}</div>
+                        <Text variant="title2" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', textAlign: 'center' }}>
+                          ${p.price}
+                        </Text>
                       )}
                       
-                      <div className="text-sm text-gray-500">{p.category}</div>
+                      <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+                        {p.category}
+                      </Text>
                       
                       {/* 庫存狀態提示 */}
                       {enhancedProduct && enhancedProduct.availableVariantsCount === 0 && (
-                        <div className="text-xs text-red-500 font-medium">暫時缺貨</div>
+                        <Text variant="footnote" color={colors.danger} colorMode={colorMode} style={{ fontWeight: 'medium' }}>
+                          暫時缺貨
+                        </Text>
                       )}
                     </div>
                   </Link>
@@ -267,25 +295,31 @@ export default function Home() {
             {/* 分頁控制 */}
             {totalProducts > pageSize && (
               <div className="flex justify-center mt-10 gap-2">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                <Button 
+                  variant={currentPage === 0 ? "secondary" : "primary"}
+                  size="medium"
+                  colorMode={colorMode}
                   disabled={currentPage === 0}
-                  className={`px-4 py-2 rounded-md ${currentPage === 0 ? 'bg-gray-200 text-gray-500' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                 >
                   上一頁
-                </button>
+                </Button>
                 
-                <span className="px-4 py-2 bg-gray-100 rounded-md">
-                  第 {currentPage + 1} 頁，共 {Math.ceil(totalProducts / pageSize)} 頁
-                </span>
+                <div className="px-4 py-2 bg-gray-100 rounded-md flex items-center">
+                  <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode}>
+                    第 {currentPage + 1} 頁，共 {Math.ceil(totalProducts / pageSize)} 頁
+                  </Text>
+                </div>
                 
-                <button 
-                  onClick={() => setCurrentPage(prev => prev + 1)}
+                <Button 
+                  variant={currentPage >= Math.ceil(totalProducts / pageSize) - 1 ? "secondary" : "primary"}
+                  size="medium"
+                  colorMode={colorMode}
                   disabled={currentPage >= Math.ceil(totalProducts / pageSize) - 1}
-                  className={`px-4 py-2 rounded-md ${currentPage >= Math.ceil(totalProducts / pageSize) - 1 ? 'bg-gray-200 text-gray-500' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
                 >
                   下一頁
-                </button>
+                </Button>
               </div>
             )}
           </>

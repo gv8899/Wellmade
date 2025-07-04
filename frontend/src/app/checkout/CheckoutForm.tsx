@@ -6,6 +6,11 @@ import { useCart } from '@/CartContext';
 import { useOrder } from '@/contexts/OrderContext';
 import { PaymentMethod } from '@/types/order';
 
+// 🎯 導入設計系統
+import { Text, Button, FormField } from '@/design-system';
+import { colors } from '@/design-system';
+import type { ColorMode } from '@/design-system';
+
 interface CheckoutFormData {
   name: string;
   email: string;
@@ -18,6 +23,7 @@ const CheckoutForm: React.FC = () => {
   const router = useRouter();
   const { cartItems, totalAmount, clearCart } = useCart();
   const { createOrder, isLoading: orderLoading, error: orderError } = useOrder();
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
   
   const [formData, setFormData] = useState<CheckoutFormData>({
     name: '',
@@ -96,74 +102,65 @@ const CheckoutForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">結帳</h1>
+        <Text variant="largeTitle" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2rem' }}>
+          結帳
+        </Text>
 
         {cartItems.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">購物車是空的</p>
-            <button
+            <Text variant="headline" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginBottom: '1rem' }}>
+              購物車是空的
+            </Text>
+            <Button
+              variant="secondary"
+              size="medium"
+              colorMode={colorMode}
               onClick={() => router.push('/')}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               返回首頁
-            </button>
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* 基本資訊 */}
             <div className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  收件人姓名 *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12 px-3"
-                  placeholder="請輸入收件人姓名"
-                />
-              </div>
+              <FormField
+                label="收件人姓名 *"
+                name="name"
+                type="text"
+                placeholder="請輸入收件人姓名"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                colorMode={colorMode}
+              />
+
+              <FormField
+                label="電子郵件 *"
+                name="email"
+                type="email"
+                placeholder="example@email.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                colorMode={colorMode}
+              />
+
+              <FormField
+                label="手機號碼 *"
+                name="phone"
+                type="tel"
+                placeholder="09xxxxxxxx"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                colorMode={colorMode}
+              />
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  電子郵件 *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12 px-3"
-                  placeholder="example@email.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  手機號碼 *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm h-12 px-3"
-                  placeholder="09xxxxxxxx"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode} style={{ display: 'block', fontWeight: 'medium', marginBottom: '0.25rem' }}>
                   送貨地址 *
-                </label>
+                </Text>
                 <textarea
                   id="address"
                   name="address"
@@ -173,13 +170,19 @@ const CheckoutForm: React.FC = () => {
                   rows={3}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm p-3"
                   placeholder="請輸入完整送貨地址"
+                  style={{
+                    borderColor: colors.neutral.tertiaryLabel.light,
+                    focusBorderColor: colors.primary.light
+                  }}
                 />
               </div>
             </div>
 
             {/* 付款方式 */}
             <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">付款方式</h2>
+              <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'medium', marginBottom: '1rem' }}>
+                付款方式
+              </Text>
               <div className="space-y-4">
                 <div className="relative flex items-start">
                   <div className="flex items-center h-5">
@@ -257,33 +260,32 @@ const CheckoutForm: React.FC = () => {
 
             {/* 錯誤訊息 */}
             {finalError && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      發生錯誤
-                    </h3>
-                    <div className="mt-2 text-sm text-red-700">
-                      <p>{finalError}</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="rounded-md p-4" style={{ backgroundColor: `${colors.danger.light}10` }}>
+                <Text variant="subhead" color={colors.danger} colorMode={colorMode} style={{ fontWeight: 'medium', marginBottom: '0.5rem' }}>
+                  發生錯誤
+                </Text>
+                <Text variant="subhead" color={colors.danger} colorMode={colorMode}>
+                  {finalError}
+                </Text>
               </div>
             )}
 
             {/* 提交按鈕 */}
             <div>
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="large"
+                colorMode={colorMode}
                 disabled={isLoading || orderLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ width: '100%' }}
               >
                 {isLoading || orderLoading ? '處理中...' : '確認訂單'}
-              </button>
+              </Button>
               
-              <p className="mt-2 text-xs text-gray-500 text-center">
+              <Text variant="footnote" color={colors.neutral.tertiaryLabel} colorMode={colorMode} style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                 點擊「確認訂單」即表示您同意我們的服務條款
-              </p>
+              </Text>
             </div>
           </form>
         )}

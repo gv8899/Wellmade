@@ -6,6 +6,11 @@ import { ProductStatus, InventoryType, ProductVariant as GlobalProductVariant, c
 import ProductStatusBadge from "@/components/product/ProductStatusBadge";
 import PreorderInfo from "@/components/product/PreorderInfo";
 
+// 🎯 導入設計系統
+import { Text, Button } from "@/design-system";
+import { colors } from "@/design-system";
+import type { ColorMode } from "@/design-system";
+
 export type StockStatus = "in_stock" | "out_of_stock" | "preorder";
 
 export interface ProductSpecOption {
@@ -37,6 +42,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   isContainer = false,
 }) => {
   const { addToCart, addCartClick } = useCart();
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
   
   // 狀態管理
   const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +122,17 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   
   if (!currentVariant) {
     statusLabel = "無此規格";
-    actionButtons = <button disabled className="w-full py-3 rounded-lg bg-gray-200 text-gray-400 font-bold mt-4">無法購買</button>;
+    actionButtons = (
+      <Button
+        variant="secondary"
+        size="large"
+        colorMode={colorMode}
+        disabled
+        style={{ width: '100%', marginTop: '1rem' }}
+      >
+        無法購買
+      </Button>
+    );
   } else {
     // 使用新的狀態系統
     const isInStock = currentVariant.stockStatus === "in_stock" || 
@@ -130,9 +146,12 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
     if (isInStock) {
       statusLabel = "現貨";
       actionButtons = (
-        <button
-          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-black rounded-[20px] text-xl font-bold text-black bg-white hover:bg-black hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black"
+        <Button
+          variant="primary"
+          size="large"
+          colorMode={colorMode}
           disabled={!canPurchase || isAddingToCart}
+          style={{ width: '100%', height: '4rem', fontSize: '1.25rem' }}
           onClick={async () => {
             if (!currentVariant) return;
             
@@ -158,14 +177,17 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
           }}
         >
           {isAddingToCart ? '處理中...' : '加入購物車'}
-        </button>
+        </Button>
       );
     } else if (isPreorder) {
       statusLabel = "預購";
       actionButtons = (
-        <button
-          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-blue-600 rounded-[20px] text-xl font-bold text-blue-600 bg-white hover:bg-blue-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-blue-600"
+        <Button
+          variant="info"
+          size="large"
+          colorMode={colorMode}
           disabled={!canPurchase || isAddingToCart}
+          style={{ width: '100%', height: '4rem', fontSize: '1.25rem' }}
           onClick={async () => {
             if (!currentVariant) return;
             
@@ -191,17 +213,20 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
           }}
         >
           {isAddingToCart ? '處理中...' : '立即預購'}
-        </button>
+        </Button>
       );
     } else {
       statusLabel = "缺貨";
       actionButtons = (
-        <button
-          className="w-full h-16 min-h-[64px] py-0 px-4 border-2 border-orange-500 rounded-[20px] text-xl font-bold text-orange-500 bg-white hover:bg-orange-50 transition"
+        <Button
+          variant="warning"
+          size="large"
+          colorMode={colorMode}
+          style={{ width: '100%', height: '4rem', fontSize: '1.25rem' }}
           onClick={() => setNotifyOpen(true)}
         >
           貨到通知
-        </button>
+        </Button>
       );
     }
   }
@@ -210,9 +235,17 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (isLoading) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
+          購買選項
+        </Text>
         <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+          <div 
+            className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+            style={{
+              borderTopColor: colors.primary.light,
+              borderBottomColor: colors.primary.light
+            }}
+          ></div>
         </div>
       </div>
     );
@@ -222,15 +255,21 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (error) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
+          購買選項
+        </Text>
         <div className="flex justify-center items-center h-40 flex-col">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button 
-            className="px-4 py-2 bg-black text-white rounded-lg"
+          <Text variant="headline" color={colors.danger} colorMode={colorMode} style={{ marginBottom: '1rem' }}>
+            {error}
+          </Text>
+          <Button 
+            variant="primary"
+            size="medium"
+            colorMode={colorMode}
             onClick={() => window.location.reload()}
           >
             重新整理
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -240,13 +279,17 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (isContainer && (!currentVariant || variants.length === 0)) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
+          購買選項
+        </Text>
         <div className="flex justify-center items-center h-40 flex-col">
           <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">請選擇規格：</p>
-            <div className="text-sm text-gray-500">
+            <Text variant="headline" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginBottom: '1rem' }}>
+              請選擇規格：
+            </Text>
+            <Text variant="subhead" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
               此產品需要選擇具體規格才能購買
-            </div>
+            </Text>
           </div>
         </div>
       </div>
@@ -255,7 +298,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   
   return (
     <div className="w-full max-w-5xl mx-auto my-10">
-      <h2 className="text-3xl font-bold mb-10 text-center text-gray-900 tracking-wide">購買選項</h2>
+      <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
+        購買選項
+      </Text>
       <div className="flex flex-col items-center w-full">
         {/* 商品圖+名稱+價格+狀態 */}
         <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
@@ -267,12 +312,12 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
             />
           </div>
           <div className="flex flex-col items-start justify-center ml-2">
-            <div className="text-base font-semibold text-gray-800 mb-1">
+            <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'semibold', marginBottom: '0.25rem' }}>
               {currentVariant?.variantTitle || title}
-            </div>
-            <div className="text-lg font-bold text-gray-800 mb-1">
+            </Text>
+            <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
               ${currentPrice}
-            </div>
+            </Text>
             {currentVariant?.status && (
               <ProductStatusBadge status={currentVariant.status} size="sm" />
             )}
@@ -282,7 +327,9 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
         <div className="flex flex-col gap-6 w-full max-w-xs items-center mx-auto">
           {primarySpecOption && (
             <div className="w-full">
-              <div className="text-center text-gray-700 text-base font-medium mb-2">{primarySpecOption.name}</div>
+              <Text variant="headline" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ textAlign: 'center', fontWeight: 'medium', marginBottom: '0.5rem' }}>
+                {primarySpecOption.name}
+              </Text>
               <div className="flex flex-wrap gap-2 justify-center">
                 {primarySpecOption.options.map((opt) => {
                   const isSelected = selectedSpecs[primarySpecOption.name] === opt;

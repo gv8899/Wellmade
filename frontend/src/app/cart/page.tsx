@@ -7,9 +7,15 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 
+// 🎯 導入設計系統
+import { Text, Button } from '@/design-system';
+import { colors } from '@/design-system';
+import type { ColorMode } from '@/design-system';
+
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, totalAmount, isLoading, refreshCart, isAuthenticated } = useCart();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
   // 將 useState hook 移到條件判斷之前，避免 React Hooks 順序問題
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
 
@@ -123,19 +129,28 @@ export default function CartPage() {
         )}
       {/* 標題與右上角商品數量 */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-extrabold text-black">購物車明細</h1>
-        <span className="text-sm text-black">共 {totalItems} 件商品</span>
+        <Text variant="title2" color={colors.neutral.label} colorMode={colorMode}>
+          購物車明細
+        </Text>
+        <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode}>
+          共 {totalItems} 件商品
+        </Text>
       </div>
 
       {cartItems.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg mb-18">購物車目前是空的</p>
-          <Link
-            href="/checkout"
-            className="w-full flex justify-center py-3 px-4 text-base font-semibold text-white bg-gray-900 hover:bg-gray-700 transition"
+          <Text variant="callout" color={colors.neutral.tertiaryLabel} colorMode={colorMode} style={{ marginBottom: '2rem' }}>
+            購物車目前是空的
+          </Text>
+          <Button
+            variant="primary"
+            size="large"
+            colorMode={colorMode}
+            style={{ width: '100%' }}
+            onClick={() => window.location.href = '/'}
           >
-            前往結帳
-          </Link>
+            繼續購物
+          </Button>
         </div>
       ) : (
         <>
@@ -172,7 +187,9 @@ export default function CartPage() {
                 <div className="flex-1 ml-5">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="font-semibold text-base text-gray-900 leading-tight mb-1">{item.name}</div>
+                      <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ marginBottom: '0.25rem' }}>
+                        {item.name}
+                      </Text>
                       
                       {/* 預購狀態顯示 */}
                       {item.isPreorder && (
@@ -182,20 +199,24 @@ export default function CartPage() {
                       )}
                       
                       {/* 商品規格顯示 */}
-                      <div className="text-xs text-gray-500 mb-2">
+                      <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginBottom: '0.5rem' }}>
                         {item.specs && Object.keys(item.specs).length > 0
                           ? Object.values(item.specs).join('・')
                           : '—'}
-                      </div>
+                      </Text>
                       
                       {/* 預購信息顯示 */}
                       {item.isPreorder && item.preorderInfo && (
-                        <div className="text-xs text-gray-600 space-y-1">
+                        <div style={{ marginTop: '0.25rem' }}>
                           {item.preorderInfo.expectedShipDate && (
-                            <div>預計出貨: {new Date(item.preorderInfo.expectedShipDate).toLocaleDateString('zh-TW')}</div>
+                            <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+                              預計出貨: {new Date(item.preorderInfo.expectedShipDate).toLocaleDateString('zh-TW')}
+                            </Text>
                           )}
                           {item.preorderInfo.preorderDescription && (
-                            <div className="text-blue-700">{item.preorderInfo.preorderDescription}</div>
+                            <Text variant="footnote" color={colors.info} colorMode={colorMode}>
+                              {item.preorderInfo.preorderDescription}
+                            </Text>
                           )}
                         </div>
                       )}
@@ -219,7 +240,9 @@ export default function CartPage() {
                     >
                       -
                     </button>
-                    <span className="w-8 text-center font-semibold text-base text-gray-900 select-none mx-2" style={{lineHeight:'2rem'}}>{item.quantity}</span>
+                    <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ width: '32px', textAlign: 'center', userSelect: 'none', margin: '0 0.5rem', lineHeight: '2rem' }}>
+                      {item.quantity}
+                    </Text>
                     <button
                       className="w-8 h-8 flex items-center justify-center text-lg text-gray-700"
                       onClick={async () => {
@@ -234,7 +257,9 @@ export default function CartPage() {
                     >
                       +
                     </button>
-                    <span className="text-gray-700 font-semibold text-base ml-2">NT$ {(typeof item.price === 'number' ? item.price : 0).toFixed(0)}</span>
+                    <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ marginLeft: '0.5rem' }}>
+                      NT$ {(typeof item.price === 'number' ? item.price : 0).toFixed(0)}
+                    </Text>
                   </div>
                 </div>
                 {/* 垃圾桶 icon（最右側，垂直置中） */}
@@ -262,20 +287,26 @@ export default function CartPage() {
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
             {/* 基本總計 */}
             <div className="flex justify-between items-center mb-2">
-              <span className="text-lg font-bold text-black">總計</span>
-              <span className="text-2xl font-extrabold text-black">NT$ {subtotal.toFixed(0)}</span>
+              <Text variant="title3" color={colors.neutral.label} colorMode={colorMode}>
+                總計
+              </Text>
+              <Text variant="title1" color={colors.neutral.label} colorMode={colorMode}>
+                NT$ {subtotal.toFixed(0)}
+              </Text>
             </div>
             
             {/* 預購商品提示 */}
             {hasPreorderItems && (
               <div className="border-t pt-2 mt-2">
-                <div className="text-sm text-blue-700 bg-blue-50 p-2 rounded">
-                  📅 您的購物車包含 {preorderItems.length} 件預購商品，將按預計時間分批出貨。
+                <div className="bg-blue-50 p-2 rounded">
+                  <Text variant="subhead" color={colors.info} colorMode={colorMode}>
+                    📅 您的購物車包含 {preorderItems.length} 件預購商品，將按預計時間分批出貨。
+                  </Text>
                 </div>
                 {regularItems.length > 0 && (
-                  <div className="text-xs text-gray-600 mt-1">
+                  <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginTop: '0.25rem' }}>
                     現貨商品 {regularItems.length} 件將優先出貨
-                  </div>
+                  </Text>
                 )}
               </div>
             )}
@@ -293,9 +324,12 @@ export default function CartPage() {
                 )}
               </div>
             )}
-            <button
-              className="w-full bg-gray-900 text-white text-lg font-bold py-4 mt-6 mb-2 transition hover:bg-gray-700 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+            <Button
+              variant="primary"
+              size="large"
+              colorMode={colorMode}
               disabled={checkedItems.length === 0 || (!isAuthenticated && hasPreorderItems)}
+              style={{ width: '100%', marginTop: '1.5rem', marginBottom: '0.5rem' }}
               onClick={() => {
                 // 如果有預購商品但未登入，強制要求登入
                 if (!isAuthenticated && hasPreorderItems) {
@@ -319,7 +353,7 @@ export default function CartPage() {
                   ? '預購商品需要會員身份'
                   : '前往結帳'
               }
-            </button>
+            </Button>
           </div>
         </>
       )}

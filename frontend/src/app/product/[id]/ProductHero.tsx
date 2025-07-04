@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+
+// 🎯 導入設計系統
+import { Text } from "@/design-system";
+import { colors } from "@/design-system";
+import type { ColorMode } from "@/design-system";
 
 interface ProductHeroProps {
   subtitle: string;
@@ -28,6 +33,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
   variantImages = [],
   onImageChange
 }) => {
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
   return (
     <section className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden">
       {/* 背景主圖 */}
@@ -45,17 +51,44 @@ const ProductHero: React.FC<ProductHeroProps> = ({
       {/* 置中文字區塊 */}
       <div className="relative z-20 w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center px-4 py-12 h-full pt-2">
         {subtitle && (
-          <div className="text-base md:text-lg text-blue-200 mb-2 tracking-wide font-medium ">
+          <Text 
+            variant="headline" 
+            color={colors.info} 
+            colorMode={colorMode}
+            style={{ 
+              marginBottom: '0.5rem', 
+              letterSpacing: '0.025em', 
+              fontWeight: 'medium' 
+            }}
+          >
             {subtitle}
-          </div>
+          </Text>
         )}
-        <h1 className="text-3xl md:text-5xl font-extrabold text-black mb-4 leading-tight ">
+        <Text 
+          variant="largeTitle" 
+          color={colors.neutral.label} 
+          colorMode={colorMode}
+          style={{ 
+            fontSize: 'clamp(2rem, 5vw, 3rem)',
+            fontWeight: 'bold', 
+            marginBottom: '1rem', 
+            lineHeight: '1.1' 
+          }}
+        >
           {title}
-        </h1>
+        </Text>
         {description && (
-          <div className="text-lg md:text-xl text-black/90 mb-8 whitespace-pre-line ">
+          <Text 
+            variant="title3" 
+            color={colors.neutral.secondaryLabel} 
+            colorMode={colorMode}
+            style={{ 
+              marginBottom: '2rem', 
+              whiteSpace: 'pre-line' 
+            }}
+          >
             {description}
-          </div>
+          </Text>
         )}
 
       </div>
@@ -69,11 +102,15 @@ const ProductHero: React.FC<ProductHeroProps> = ({
                 <button
                   key={index}
                   onClick={() => onImageChange?.(image)}
-                  className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                    image === imageUrl 
-                      ? 'border-blue-500 ring-2 ring-blue-200' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className="w-12 h-12 rounded-lg overflow-hidden border-2 transition-all"
+                  style={{
+                    borderColor: image === imageUrl 
+                      ? colors.primary.light 
+                      : colors.neutral.tertiaryLabel.light,
+                    boxShadow: image === imageUrl 
+                      ? `0 0 0 2px ${colors.primary.light}20`
+                      : 'none'
+                  }}
                 >
                   <Image
                     src={image}

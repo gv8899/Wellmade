@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import ProductHero from "./ProductHero";
 import KeyFeatures from "./KeyFeatures";
 import { KeyFeatureCard } from "./KeyFeatures";
@@ -12,6 +12,11 @@ import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 import { Product as ApiProduct, getProductById, getProductCategoryName, FAQItem as ApiFAQItem } from '@/services/api';
+
+// 🎯 導入設計系統
+import { Text } from "@/design-system";
+import { colors } from "@/design-system";
+import type { ColorMode } from "@/design-system";
 
 // 前端顯示用的產品類型
 interface Product {
@@ -46,6 +51,7 @@ interface ProductDetailClientProps {
 const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   // KeyFeatures 橫向滾動區塊的 scrollRef
   const keyFeaturesScrollRef = useRef<HTMLDivElement>(null);
+  const [colorMode, setColorMode] = useState<ColorMode>('light');
 
   const [product, setProduct] = React.useState<Product | null>(null);
   const [collected, setCollected] = React.useState(false);
@@ -246,7 +252,13 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   if (!product) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+        <div 
+          className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2"
+          style={{
+            borderTopColor: colors.primary.light,
+            borderBottomColor: colors.primary.light
+          }}
+        ></div>
       </div>
     );
   }
