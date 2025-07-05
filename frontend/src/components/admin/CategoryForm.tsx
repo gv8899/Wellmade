@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Category, CreateCategoryDto, UpdateCategoryDto, categoryApi } from "@/services/categories";
 import { FaSave, FaTimes, FaImage } from "react-icons/fa";
 import toast from "react-hot-toast";
+import ImageUpload from "./ImageUpload";
 
 interface CategoryFormProps {
   category?: Category;
@@ -235,29 +236,50 @@ export default function CategoryForm({
           分類圖片
         </h3>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            圖片URL
-          </label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black"
-            placeholder="https://example.com/image.jpg"
-          />
+        <div className="space-y-6">
+          {/* 圖片上傳 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              上傳圖片
+            </label>
+            <ImageUpload
+              value={imageUrl}
+              onChange={(url) => setImageUrl(url)}
+              onClear={() => setImageUrl('')}
+            />
+          </div>
+
+          {/* 手動輸入 URL（備用選項） */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              或手動輸入圖片 URL
+            </label>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-black"
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
           
+          {/* 圖片預覽 */}
           {imageUrl && (
-            <div className="mt-4">
-              <p className="text-sm text-gray-700 mb-2">預覽：</p>
-              <img
-                src={imageUrl}
-                alt="分類圖片預覽"
-                className="w-32 h-32 object-cover rounded-lg border"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">圖片預覽：</p>
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <img
+                  src={imageUrl}
+                  alt="分類圖片預覽"
+                  className="w-48 h-32 object-cover rounded-lg border mx-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDIwMCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NSA3NEw3NSA2NEw2NSA3NEw3NSA4NEw4NSA3NFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggM0M5LjU5IDMgMTEuMDMgNC4yMSAxMS4wMyA1LjgzUzEwLjc5IDguNjcgOSA4LjY3UzYuOTcgNy40NiA2Ljk3IDUuODNTNy40MSAzIDggM1pNOCA1QzcuNDQgNSA3IDUuNDUgNyA2UzcuNDQgNyA4IDdTOSA2LjU1IDkgNlM4LjU2IDUgOCA1Wk04IDlDNS43OCA5IDQgMTAuNzkgNCAxM0gxMkMxMiAxMC43OSAxMC4yMiA5IDggOVoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2Zz4KPC9zdmc+';
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  建議尺寸：400x300 像素，支援 JPEG、PNG、WebP 格式
+                </p>
+              </div>
             </div>
           )}
         </div>

@@ -26,7 +26,9 @@ export default function ProductPriceDisplay({
     if (price === null || price === undefined) {
       return showCurrency ? '$0' : '0';
     }
-    return showCurrency ? `$${price.toLocaleString()}` : price.toLocaleString();
+    // 移除小數點，確保顯示整數
+    const integerPrice = Math.round(price);
+    return showCurrency ? `$${integerPrice.toLocaleString()}` : integerPrice.toLocaleString();
   };
 
   const renderPriceRange = () => {

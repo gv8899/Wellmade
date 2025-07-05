@@ -192,9 +192,17 @@ export default function PrivacyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '0.5rem' }}
+          >
+            我們不會將您的個人資料出售給第三方。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.7', marginBottom: '1rem' }}
           >
-            我們不會將您的個人資料出售給第三方。但在以下情況下，我們可能會分享您的資料：
+            但在以下情況下，我們可能會分享您的資料：
           </Text>
           <div className="space-y-4">
             <div>
@@ -268,9 +276,17 @@ export default function PrivacyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '0.5rem' }}
+          >
+            我們採用適當的技術和組織措施來保護您的個人資料。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.7' }}
           >
-            我們採用適當的技術和組織措施來保護您的個人資料，包含：
+            包含：
           </Text>
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-3">
@@ -306,9 +322,17 @@ export default function PrivacyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '0.5rem' }}
+          >
+            我們使用 Cookie 和類似技術來改善您的網站體驗。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.7', marginBottom: '1rem' }}
           >
-            我們使用 Cookie 和類似技術來改善您的網站體驗。Cookie 類型包含：
+            Cookie 類型包含：
           </Text>
           <div className="space-y-3">
             <div>
@@ -352,7 +376,7 @@ export default function PrivacyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
-            style={{ lineHeight: '1.6', marginBottom: '1rem' }}
+            style={{ lineHeight: '1.6', display: 'block', marginBottom: '0.5rem' }}
           >
             依據相關法律，您對自己的個人資料享有以下權利：
           </Text>
@@ -410,10 +434,17 @@ export default function PrivacyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '0.5rem' }}
+          >
+            我們可能會不定期更新本隱私權政策。重大變更將在網站上公告，並可能透過電子郵件通知您。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.7' }}
           >
-            我們可能會不定期更新本隱私權政策。重大變更將在網站上公告，
-            並可能透過電子郵件通知您。請定期查看本政策以了解最新資訊。
+            請定期查看本政策以了解最新資訊。
           </Text>
         </Card>
 

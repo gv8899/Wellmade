@@ -106,7 +106,7 @@ const Footer: React.FC = () => {
                 {categories.map((category) => (
                   <li key={category.id}>
                     <Link 
-                      href={`/products?category=${category.slug}`}
+                      href={`/categories/${category.slug}`}
                       className="transition-colors hover:opacity-80"
                     >
                       <Text 
@@ -136,7 +136,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-1">
               <li>
                 <a 
-                  href="mailto:support@wellmade.select"
+                  href="mailto:wellmadegood@gmail.com"
                   className="transition-colors hover:opacity-80"
                 >
                   <Text 

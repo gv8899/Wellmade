@@ -143,16 +143,6 @@ export default function LoginPage() {
           colorMode={colorMode}
           style={{ minHeight: '520px' }}
         >
-          {/* 🎯 使用設計系統的 Text 組件 */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <Text variant="title1" colorMode={colorMode} style={{ marginBottom: '0.5rem' }}>
-              歡迎回來
-            </Text>
-            <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
-              {mode === 'login' ? '請登入您的帳戶' : '建立您的新帳戶'}
-            </Text>
-          </div>
-
           {/* 🎯 標籤切換 - 保持原有樣式但使用 Text 組件 */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
             <button
@@ -181,6 +171,37 @@ export default function LoginPage() {
                 註冊
               </Text>
             </button>
+          </div>
+
+          {/* 🎯 Google 登入按鈕 - 移到表單上方 */}
+          <div style={{ marginBottom: '2rem' }}>
+            <GoogleLoginButton colorMode={colorMode} />
+          </div>
+
+          {/* 🎯 分隔線 */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            margin: '2rem 0',
+            gap: '1rem'
+          }}>
+            <div style={{ 
+              flex: 1, 
+              height: '1px', 
+              backgroundColor: colorMode === 'light' 
+                ? colors.neutral.tertiaryLabel.light 
+                : colors.neutral.tertiaryLabel.dark 
+            }} />
+            <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+              或
+            </Text>
+            <div style={{ 
+              flex: 1, 
+              height: '1px', 
+              backgroundColor: colorMode === 'light' 
+                ? colors.neutral.tertiaryLabel.light 
+                : colors.neutral.tertiaryLabel.dark 
+            }} />
           </div>
           
           {/* 🎯 使用設計系統的表單 */}
@@ -252,35 +273,6 @@ export default function LoginPage() {
               {loading ? (mode === 'login' ? "登入中..." : "註冊中...") : (mode === 'login' ? "登入" : "註冊")}
             </Button>
           </form>
-
-          {/* 🎯 分隔線 */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            margin: '2rem 0',
-            gap: '1rem'
-          }}>
-            <div style={{ 
-              flex: 1, 
-              height: '1px', 
-              backgroundColor: colorMode === 'light' 
-                ? colors.neutral.tertiaryLabel.light 
-                : colors.neutral.tertiaryLabel.dark 
-            }} />
-            <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
-              或
-            </Text>
-            <div style={{ 
-              flex: 1, 
-              height: '1px', 
-              backgroundColor: colorMode === 'light' 
-                ? colors.neutral.tertiaryLabel.light 
-                : colors.neutral.tertiaryLabel.dark 
-            }} />
-          </div>
-
-          {/* 🎯 Google 登入按鈕 */}
-          <GoogleLoginButton colorMode={colorMode} />
 
           {/* 🎯 底部提示 - 使用 Text 組件 */}
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>

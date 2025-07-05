@@ -297,9 +297,16 @@ export default function TermsPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
-            style={{ lineHeight: '1.7' }}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '1rem' }}
           >
             本網站的所有內容，包含但不限於文字、圖片、商標、設計等，均受智慧財產權法保護。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
+            style={{ lineHeight: '1.7' }}
+          >
             未經我們書面同意，您不得複製、修改、分發或以其他方式使用這些內容。
           </Text>
         </Card>
@@ -318,10 +325,17 @@ export default function TermsPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '1rem' }}
+          >
+            在法律允許的最大範圍內，我們不對因使用本服務而產生的任何直接、間接、偶然或特殊損害承擔責任。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.7' }}
           >
-            在法律允許的最大範圍內，我們不對因使用本服務而產生的任何直接、間接、
-            偶然或特殊損害承擔責任。我們的責任限制不超過您為相關服務支付的金額。
+            我們的責任限制不超過您為相關服務支付的金額。
           </Text>
         </Card>
 
@@ -339,9 +353,16 @@ export default function TermsPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
-            style={{ lineHeight: '1.7' }}
+            style={{ lineHeight: '1.7', display: 'block', marginBottom: '1rem' }}
           >
             我們保留隨時修訂本條款的權利。重大變更將透過網站公告或電子郵件通知您。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
+            style={{ lineHeight: '1.7' }}
+          >
             繼續使用本服務即表示您接受修訂後的條款。
           </Text>
         </Card>

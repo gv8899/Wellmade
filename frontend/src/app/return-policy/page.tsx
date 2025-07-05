@@ -47,7 +47,7 @@ export default function ReturnPolicyPage() {
           variant="title3" 
           color={colors.neutral.secondaryLabel} 
           colorMode={colorMode}
-          style={{ maxWidth: '600px', margin: '0 auto' }}
+          style={{ maxWidth: '600px', margin: '0 auto', display: 'block', marginBottom: '0.5rem' }}
         >
           為確保您的購物權益，請詳閱以下退換貨相關規定
         </Text>
@@ -125,97 +125,77 @@ export default function ReturnPolicyPage() {
             退貨流程
           </Text>
           <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                •
-              </div>
-              <div>
-                <Text 
-                  variant="headline" 
-                  color={colors.neutral.label} 
-                  colorMode={colorMode}
-                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
-                >
-                  聯絡客服
-                </Text>
-                <Text 
-                  variant="body" 
-                  color={colors.neutral.secondaryLabel} 
-                  colorMode={colorMode}
-                  style={{ lineHeight: '1.6' }}
-                >
-                  寄信至 wellmadegood@gmail.com，說明退貨原因並提供訂單編號
-                </Text>
-              </div>
+            <div>
+              <Text 
+                variant="headline" 
+                color={colors.neutral.label} 
+                colorMode={colorMode}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
+              >
+                聯絡客服
+              </Text>
+              <Text 
+                variant="body" 
+                color={colors.neutral.secondaryLabel} 
+                colorMode={colorMode}
+                style={{ lineHeight: '1.6' }}
+              >
+                寄信至 wellmadegood@gmail.com，說明退貨原因並提供訂單編號
+              </Text>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                •
-              </div>
-              <div>
-                <Text 
-                  variant="headline" 
-                  color={colors.neutral.label} 
-                  colorMode={colorMode}
-                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
-                >
-                  審核申請
-                </Text>
-                <Text 
-                  variant="body" 
-                  color={colors.neutral.secondaryLabel} 
-                  colorMode={colorMode}
-                  style={{ lineHeight: '1.6' }}
-                >
-                  我們將在 1-2 個工作天內審核您的退貨申請
-                </Text>
-              </div>
+            <div>
+              <Text 
+                variant="headline" 
+                color={colors.neutral.label} 
+                colorMode={colorMode}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
+              >
+                審核申請
+              </Text>
+              <Text 
+                variant="body" 
+                color={colors.neutral.secondaryLabel} 
+                colorMode={colorMode}
+                style={{ lineHeight: '1.6' }}
+              >
+                我們將在 1-2 個工作天內審核您的退貨申請
+              </Text>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                •
-              </div>
-              <div>
-                <Text 
-                  variant="headline" 
-                  color={colors.neutral.label} 
-                  colorMode={colorMode}
-                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
-                >
-                  寄回商品
-                </Text>
-                <Text 
-                  variant="body" 
-                  color={colors.neutral.secondaryLabel} 
-                  colorMode={colorMode}
-                  style={{ lineHeight: '1.6' }}
-                >
-                  審核通過後，我們將提供退貨地址，請妥善包裝商品並寄回
-                </Text>
-              </div>
+            <div>
+              <Text 
+                variant="headline" 
+                color={colors.neutral.label} 
+                colorMode={colorMode}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
+              >
+                寄回商品
+              </Text>
+              <Text 
+                variant="body" 
+                color={colors.neutral.secondaryLabel} 
+                colorMode={colorMode}
+                style={{ lineHeight: '1.6' }}
+              >
+                審核通過後，我們將提供退貨地址，請妥善包裝商品並寄回
+              </Text>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                •
-              </div>
-              <div>
-                <Text 
-                  variant="headline" 
-                  color={colors.neutral.label} 
-                  colorMode={colorMode}
-                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
-                >
-                  退款處理
-                </Text>
-                <Text 
-                  variant="body" 
-                  color={colors.neutral.secondaryLabel} 
-                  colorMode={colorMode}
-                  style={{ lineHeight: '1.6' }}
-                >
-                  收到商品並確認無誤後，將於 3-5 個工作天內退款至原付款方式
-                </Text>
-              </div>
+            <div>
+              <Text 
+                variant="headline" 
+                color={colors.neutral.label} 
+                colorMode={colorMode}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
+              >
+                退款處理
+              </Text>
+              <Text 
+                variant="body" 
+                color={colors.neutral.secondaryLabel} 
+                colorMode={colorMode}
+                style={{ lineHeight: '1.6' }}
+              >
+                收到商品並確認無誤後，將於 3-5 個工作天內退款至原付款方式
+              </Text>
             </div>
           </div>
         </Card>
@@ -234,10 +214,17 @@ export default function ReturnPolicyPage() {
             variant="body" 
             color={colors.neutral.label} 
             colorMode={colorMode}
+            style={{ lineHeight: '1.6', display: 'block', marginBottom: '0.5rem' }}
+          >
+            如需換貨（例如尺寸、顏色不符），請按退貨流程辦理退貨，並重新下單購買所需商品。
+          </Text>
+          <Text 
+            variant="body" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
             style={{ lineHeight: '1.6', marginBottom: '1rem' }}
           >
-            如需換貨（例如尺寸、顏色不符），請按退貨流程辦理退貨，
-            並重新下單購買所需商品。換貨運費由客戶自行負擔。
+            換貨運費由客戶自行負擔。
           </Text>
         </Card>
 

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "./UserContext";
 import "./hamburger-anim.css";
 export default function HamburgerMenu() {
@@ -24,9 +25,16 @@ export default function HamburgerMenu() {
         aria-label="會員選單"
         onClick={() => setOpen(true)}
       >
-        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-black">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <Image
+          src="/icons/hamburger.png"
+          alt="選單"
+          width={24}
+          height={24}
+          className="w-6 h-6"
+          style={{ 
+            filter: `brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%)`,
+          }}
+        />
       </button>
       {open && (
         <div className="fixed z-[100] left-0 right-0 top-16 h-[calc(100vh-4rem)] bg-black/20 flex items-start justify-center animate-fadein">

@@ -12,7 +12,7 @@ import BannerComponent from "@/components/Banner";
 import { BannerPosition } from "@/types/banner";
 
 // 🎯 導入設計系統
-import { Text, Button } from "@/design-system";
+import { Text, Button, Card } from "@/design-system";
 import { colors } from "@/design-system";
 import type { ColorMode } from "@/design-system";
 
@@ -220,7 +220,7 @@ export default function Home() {
         )}
         {!loading && !error && (
           <>
-            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
               {products.length === 0 && (
                 <div className="col-span-full text-center py-12">
                   <Text variant="title3" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
@@ -236,9 +236,12 @@ export default function Home() {
                   <Link
                     key={p.id}
                     href={`/product/${p.id}`}
-                    className="block group rounded-2xl bg-white hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
-                    style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
+                    className="block group"
                   >
+                    <div 
+                      className="bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                      style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
+                    >
                     <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
                       <Image
                         src={p.cover}
@@ -258,27 +261,41 @@ export default function Home() {
                         </div>
                       )}
                     </div>
-                    <div className="p-6 flex flex-col gap-2 items-center">
-                      <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', textAlign: 'center', lineClamp: 1 }}>
+                    <div className="p-4 flex flex-col gap-2">
+                      <Text 
+                        variant="subhead" 
+                        color={colors.neutral.label} 
+                        colorMode={colorMode} 
+                        style={{ fontWeight: 'bold', lineHeight: '1.2' }}
+                      >
                         {p.name}
                       </Text>
                       
-                      {/* 價格顯示 - 使用增強信息或基本價格 */}
-                      {enhancedProduct ? (
-                        <ProductPriceDisplay 
-                          priceRange={enhancedProduct.priceRange}
-                          size="lg"
-                          className="text-center"
-                        />
-                      ) : (
-                        <Text variant="title2" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', textAlign: 'center' }}>
-                          ${p.price}
-                        </Text>
-                      )}
-                      
-                      <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
-                        {p.category}
-                      </Text>
+                      <div className="flex justify-end">
+                        {/* 價格顯示 - 使用增強信息或基本價格 */}
+                        {enhancedProduct ? (
+                          <Text 
+                            variant="subhead" 
+                            color={colors.neutral.label} 
+                            colorMode={colorMode} 
+                            style={{ fontWeight: 'normal' }}
+                          >
+                            ${'price' in enhancedProduct.priceRange ? 
+                              Math.round(enhancedProduct.priceRange.price).toLocaleString() : 
+                              `${Math.round(enhancedProduct.priceRange.minPrice).toLocaleString()} - ${Math.round(enhancedProduct.priceRange.maxPrice).toLocaleString()}`
+                            }
+                          </Text>
+                        ) : (
+                          <Text 
+                            variant="subhead" 
+                            color={colors.neutral.label} 
+                            colorMode={colorMode} 
+                            style={{ fontWeight: 'normal' }}
+                          >
+                            ${Math.round(p.price).toLocaleString()}
+                          </Text>
+                        )}
+                      </div>
                       
                       {/* 庫存狀態提示 */}
                       {enhancedProduct && enhancedProduct.availableVariantsCount === 0 && (
@@ -287,6 +304,7 @@ export default function Home() {
                         </Text>
                       )}
                     </div>
+                    </div>
                   </Link>
                 );
               })}
@@ -294,7 +312,7 @@ export default function Home() {
             
             {/* 分頁控制 */}
             {totalProducts > pageSize && (
-              <div className="flex justify-center mt-10 gap-2">
+              <div className="flex justify-center mt-10 mb-16 gap-2">
                 <Button 
                   variant={currentPage === 0 ? "secondary" : "primary"}
                   size="medium"
@@ -305,11 +323,16 @@ export default function Home() {
                   上一頁
                 </Button>
                 
-                <div className="px-4 py-2 bg-gray-100 rounded-md flex items-center">
+                <Card 
+                  variant="borderless" 
+                  padding="medium" 
+                  colorMode={colorMode}
+                  className="bg-gray-100"
+                >
                   <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode}>
                     第 {currentPage + 1} 頁，共 {Math.ceil(totalProducts / pageSize)} 頁
                   </Text>
-                </div>
+                </Card>
                 
                 <Button 
                   variant={currentPage >= Math.ceil(totalProducts / pageSize) - 1 ? "secondary" : "primary"}

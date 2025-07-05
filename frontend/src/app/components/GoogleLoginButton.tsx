@@ -25,7 +25,7 @@ export default function GoogleLoginButton({
     }
   };
 
-  // 🎯 使用設計系統的樣式
+  // 🎯 使用設計系統的樣式 - 陰影版本
   const buttonStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -38,32 +38,18 @@ export default function GoogleLoginButton({
     color: colorMode === 'light' 
       ? colors.neutral.label.light 
       : colors.neutral.label.dark,
-    border: `1px solid ${colorMode === 'light' 
-      ? colors.neutral.tertiaryLabel.light 
-      : colors.neutral.tertiaryLabel.dark}`,
-    borderRadius: '8px',
+    border: 'none',
+    borderRadius: '12px',
     padding: `${spacing.scale400} ${spacing.scale500}`,
     fontFamily: 'UberMoveText, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif',
     fontSize: '16px',
     fontWeight: '500',
     lineHeight: '24px',
     cursor: loading ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.3s ease',
     opacity: loading ? 0.6 : 1,
     outline: 'none',
-    
-    // Hover 效果
-    ':hover': !loading ? {
-      backgroundColor: colorMode === 'light' 
-        ? colors.background.secondarySystemBackground.light 
-        : colors.background.secondarySystemBackground.dark,
-    } : {},
-    
-    // Focus 效果
-    ':focus': {
-      borderColor: colors.primary.light,
-      boxShadow: `0 0 0 3px ${colors.primary.light}20`,
-    }
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)',
   };
 
   return (
@@ -77,22 +63,22 @@ export default function GoogleLoginButton({
           e.currentTarget.style.backgroundColor = colorMode === 'light' 
             ? colors.background.secondarySystemBackground.light 
             : colors.background.secondarySystemBackground.dark;
+          e.currentTarget.style.boxShadow = '0 8px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.15)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = colorMode === 'light' 
           ? colors.background.systemBackground.light 
           : colors.background.systemBackground.dark;
+        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)';
+        e.currentTarget.style.transform = 'translateY(0)';
       }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = colors.primary.light;
-        e.currentTarget.style.boxShadow = `0 0 0 3px ${colors.primary.light}20`;
+        e.currentTarget.style.boxShadow = `0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px ${colors.primary.light}20`;
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = colorMode === 'light' 
-          ? colors.neutral.tertiaryLabel.light 
-          : colors.neutral.tertiaryLabel.dark;
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)';
       }}
     >
       <svg 

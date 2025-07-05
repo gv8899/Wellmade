@@ -1,4 +1,5 @@
 import api from "./api";
+import axios from 'axios';
 
 // 分類介面定義
 export interface Category {
@@ -64,6 +65,17 @@ export interface CategoryListResponse {
   totalPages: number;
 }
 
+// 判斷是否在服務器端
+const isServer = typeof window === 'undefined';
+
+// 獲取後端基礎 URL
+const getBackendUrl = () => {
+  if (isServer) {
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
+  }
+  return '/api'; // 客戶端使用代理
+};
+
 // 分類API服務
 export const categoryApi = {
   // 獲取分類列表（分頁）
@@ -74,26 +86,60 @@ export const categoryApi = {
         .map(([key, value]) => [key, String(value)])
     ).toString();
     
-    const response = await api.get(`/categories${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    if (isServer) {
+      // 服務器端直接調用後端
+      const backendUrl = getBackendUrl();
+      const response = await axios.get(`${backendUrl}/categories${queryString ? `?${queryString}` : ''}`, {
+        timeout: 10000,
+      });
+      return response.data;
+    } else {
+      // 客戶端使用代理
+      const response = await api.get(`/categories${queryString ? `?${queryString}` : ''}`);
+      return response.data;
+    }
   },
 
   // 獲取分類樹狀結構
   async getTree(): Promise<Category[]> {
-    const response = await api.get('/categories/tree');
-    return response.data;
+    if (isServer) {
+      const backendUrl = getBackendUrl();
+      const response = await axios.get(`${backendUrl}/categories/tree`, {
+        timeout: 10000,
+      });
+      return response.data;
+    } else {
+      const response = await api.get('/categories/tree');
+      return response.data;
+    }
   },
 
   // 獲取單一分類
   async getOne(id: string): Promise<Category> {
-    const response = await api.get(`/categories/${id}`);
-    return response.data;
+    if (isServer) {
+      const backendUrl = getBackendUrl();
+      const response = await axios.get(`${backendUrl}/categories/${id}`, {
+        timeout: 10000,
+      });
+      return response.data;
+    } else {
+      const response = await api.get(`/categories/${id}`);
+      return response.data;
+    }
   },
 
   // 根據slug獲取分類
   async getBySlug(slug: string): Promise<Category> {
-    const response = await api.get(`/categories/slug/${slug}`);
-    return response.data;
+    if (isServer) {
+      const backendUrl = getBackendUrl();
+      const response = await axios.get(`${backendUrl}/categories/slug/${slug}`, {
+        timeout: 10000,
+      });
+      return response.data;
+    } else {
+      const response = await api.get(`/categories/slug/${slug}`);
+      return response.data;
+    }
   },
 
   // 創建分類

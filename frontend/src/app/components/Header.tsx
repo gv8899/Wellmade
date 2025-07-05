@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { FaShoppingCart, FaUserCircle, FaCog } from "react-icons/fa";
+import Image from "next/image";
+import { FaUserCircle } from "react-icons/fa";
 import { useCart } from "@/CartContext";
 import { useUser } from "./UserContext";
 import { AdminOnly } from "@/components/auth/ConditionalRender";
@@ -20,28 +21,27 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 w-full z-30 bg-white border-b border-gray-100 shadow-sm h-16 flex items-center">
       <div className="container mx-auto px-4 flex items-center justify-between h-full">
-        {/* Logo & 漢堡選單 */}
-        <div className="flex items-center gap-4">
-          {/* 漢堡選單 */}
-          <div className="relative">
-            {/* 點擊展開 dropdown 狀態管理 */}
-            <HamburgerMenu />
-          </div>
+        {/* Logo */}
+        <div className="flex items-center">
           <Link href="/">
             <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'light', letterSpacing: '0.025em' }}>
               Wellmade
             </Text>
           </Link>
         </div>
-        {/* Right side: Admin + Cart */}
+        {/* Right side: Admin + Cart + Hamburger */}
         <div className="flex items-center gap-6">
           {/* 管理員後台入口 - 僅管理員可見 */}
           <AdminOnly>
             <Link href="/admin" className="relative group">
-              <FaCog 
-                className="w-6 h-6 transition" 
+              <Image
+                src="/icons/settings.png"
+                alt="設定"
+                width={24}
+                height={24}
+                className="w-6 h-6 transition"
                 style={{ 
-                  color: colors.neutral.secondaryLabel.light,
+                  filter: `brightness(0) saturate(100%) invert(29%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(75%) contrast(90%)`,
                 }}
               />
               <span 
@@ -57,10 +57,14 @@ export default function Header() {
           </AdminOnly>
           
           <Link href="/cart" className="relative group">
-            <FaShoppingCart 
-              className="w-6 h-6 transition" 
+            <Image
+              src="/icons/shopping-cart.png"
+              alt="購物車"
+              width={24}
+              height={24}
+              className="w-6 h-6 transition"
               style={{ 
-                color: colors.neutral.secondaryLabel.light,
+                filter: `brightness(0) saturate(100%) invert(29%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(75%) contrast(90%)`,
               }}
             />
             {cartCount > 0 && (
@@ -75,6 +79,11 @@ export default function Header() {
               </span>
             )}
           </Link>
+
+          {/* 漢堡選單 */}
+          <div className="relative">
+            <HamburgerMenu />
+          </div>
         </div>
       </div>
     </header>
