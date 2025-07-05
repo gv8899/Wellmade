@@ -16,6 +16,8 @@ const nextConfig = {
   images: {
     unoptimized: process.env.NODE_ENV === 'development',
     domains: ['localhost', '127.0.0.1', 'api.wellmade.select'],
+    minimumCacheTTL: 60,
+    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: 'https',

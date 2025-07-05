@@ -239,6 +239,7 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, mode }) => {
               src={imageUrl}
               alt={`${label} 預覽`}
               fill
+              quality={95}
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
             />

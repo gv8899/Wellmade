@@ -71,7 +71,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 80 })
+        .webp({ quality: 90 })
         .toFile(thumbnailPath);
 
       // 生成中等尺寸 (800x800)
@@ -80,7 +80,7 @@ export class UploadService {
           fit: 'inside',
           withoutEnlargement: true,
         })
-        .webp({ quality: 85 })
+        .webp({ quality: 95 })
         .toFile(mediumPath);
 
       const baseUrl = this.configService.get<string>('BASE_URL');
@@ -161,7 +161,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 85 })
+        .webp({ quality: 90 })
         .toFile(thumbnailPath);
 
       // 生成中等尺寸 (1200x600) - 平板用
@@ -170,7 +170,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 90 })
+        .webp({ quality: 96 })
         .toFile(mediumPath);
 
       // 生成大尺寸 (1600x800) - 高解析度顯示
@@ -179,7 +179,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 92 })
+        .webp({ quality: 97 })
         .toFile(largePath);
 
       // 生成桌面版 (1920x960) - 全幅 Banner
@@ -188,7 +188,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 95 })
+        .webp({ quality: 98 })
         .toFile(desktopPath);
 
       // 生成手機版 (750x400) - 移動端優化
@@ -197,7 +197,7 @@ export class UploadService {
           fit: 'cover',
           position: 'center',
         })
-        .webp({ quality: 88 })
+        .webp({ quality: 95 })
         .toFile(mobilePath);
 
       const baseUrl = this.configService.get<string>('BASE_URL');

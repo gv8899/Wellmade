@@ -153,6 +153,7 @@ const BannerList: React.FC<BannerListProps> = ({
                           src={banner.imageUrl}
                           alt={banner.title}
                           fill
+                          quality={90}
                           className="object-cover"
                           sizes="96px"
                           onError={(e) => {

@@ -109,6 +109,7 @@ const BannerComponent: React.FC<BannerComponentProps> = ({
         alt={currentBanner?.title || 'Banner'}
         fill
         priority
+        quality={95}
         className="object-cover"
         sizes="100vw"
         onError={(e) => {
