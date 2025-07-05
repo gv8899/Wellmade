@@ -91,7 +91,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* 搜尋和篩選 */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+      <div className="bg-white rounded-lg p-4 mb-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -119,7 +119,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* 產品列表 */}
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white rounded-lg" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

@@ -135,7 +135,7 @@ export default function CategoryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* 基本資訊 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">基本資訊</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -229,7 +229,7 @@ export default function CategoryForm({
       </div>
 
       {/* 圖片設定 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FaImage className="w-5 h-5" />
           分類圖片
@@ -264,7 +264,7 @@ export default function CategoryForm({
       </div>
 
       {/* SEO設定 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO設定</h3>
         
         <div className="space-y-4">

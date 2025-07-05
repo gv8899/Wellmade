@@ -74,7 +74,7 @@ const EditBannerPage: React.FC = () => {
           </Link>
           
           <div>
-            <Text variant="largeTitle" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+            <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
               編輯 Banner
             </Text>
           </div>
@@ -106,7 +106,7 @@ const EditBannerPage: React.FC = () => {
         </Link>
         
         <div>
-          <Text variant="largeTitle" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+          <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
             編輯 Banner
           </Text>
           <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>

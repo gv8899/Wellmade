@@ -236,8 +236,8 @@ export default function Home() {
                   <Link
                     key={p.id}
                     href={`/product/${p.id}`}
-                    className="block group rounded-2xl shadow-sm bg-white border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden"
-                    style={{ boxShadow: '0 2px 16px 0 rgba(0,0,0,0.05)' }}
+                    className="block group rounded-2xl bg-white hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+                    style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
                   >
                     <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
                       <Image

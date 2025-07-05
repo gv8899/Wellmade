@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Text } from '../atoms/Text';
 import { colors, ColorMode } from '../../tokens/colors';
@@ -7,7 +9,7 @@ export interface CardProps {
   subtitle?: string;
   children: React.ReactNode;
   colorMode?: ColorMode;
-  variant?: 'default' | 'elevated' | 'outlined';
+  variant?: 'default' | 'elevated' | 'outlined' | 'borderless';
   padding?: 'none' | 'small' | 'medium' | 'large';
   className?: string;
   style?: React.CSSProperties;
@@ -19,7 +21,7 @@ export const Card: React.FC<CardProps> = ({
   subtitle,
   children,
   colorMode = 'light',
-  variant = 'default',
+  variant = 'elevated',
   padding = 'medium',
   className,
   style,
@@ -61,6 +63,11 @@ export const Card: React.FC<CardProps> = ({
         border: `1px solid ${colorMode === 'light' 
           ? 'rgba(60, 60, 67, 0.1)' 
           : 'rgba(235, 235, 245, 0.1)'}`,
+      },
+      borderless: {
+        backgroundColor: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
       },
     };
 

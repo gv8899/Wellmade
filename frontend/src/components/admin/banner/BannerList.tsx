@@ -128,7 +128,7 @@ const BannerList: React.FC<BannerListProps> = ({
         if (positionBanners.length === 0) return null;
 
         return (
-          <div key={position} className="bg-white rounded-lg shadow-sm border">
+          <div key={position} className="bg-white rounded-lg" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
             <div className="px-6 py-4 border-b border-gray-200">
               <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
                 {BannerPositionLabels[position]} ({positionBanners.length})

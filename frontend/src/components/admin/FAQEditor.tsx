@@ -55,7 +55,7 @@ export default function FAQEditor({ faqs, onChange }: FAQEditorProps) {
       ) : (
         <>
           {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div key={index} className="rounded-lg p-4 bg-gray-50" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)' }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FaGripVertical className="text-gray-400" />

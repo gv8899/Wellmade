@@ -289,7 +289,7 @@ export default function ProductForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* 基本資訊 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">基本資訊</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -457,7 +457,7 @@ export default function ProductForm({
       </div>
 
       {/* 圖片上傳 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">產品圖片</h3>
         <ImageUploader
           mainImage={imageUrl}
@@ -468,7 +468,7 @@ export default function ProductForm({
       </div>
 
       {/* 關鍵特色 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">關鍵特色</h3>
         <KeyFeaturesEditor
           features={keyFeatures}
@@ -477,7 +477,7 @@ export default function ProductForm({
       </div>
 
       {/* 功能詳細說明 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">功能詳細說明</h3>
         <FeatureDetailsEditor
           featureDetails={featureDetails}
@@ -486,7 +486,7 @@ export default function ProductForm({
       </div>
 
       {/* 常見問答 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">常見問答</h3>
         <FAQEditor
           faqs={faqs}
@@ -495,7 +495,7 @@ export default function ProductForm({
       </div>
 
       {/* 產品規格模板 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">產品規格模板</h3>
         <p className="text-sm text-gray-600 mb-4">
           定義此產品的規格項目（如：顏色、尺寸、材質等）。這些規格將用於產品變體。
@@ -540,7 +540,7 @@ export default function ProductForm({
       </div>
 
       {/* 產品變體 */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">產品變體</h3>
         <p className="text-sm text-gray-600 mb-4">
           如果產品有不同的規格、顏色或尺寸，可以在此設定產品變體。每個變體都可以有獨立的價格、庫存和規格。

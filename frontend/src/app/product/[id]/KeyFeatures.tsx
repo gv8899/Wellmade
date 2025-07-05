@@ -29,8 +29,11 @@ const KeyFeatures: React.FC<KeyFeaturesProps> = ({ features, scrollRef }) => {
           {features.map((f, i) => (
             <div
               key={i}
-              className="min-w-[280px] max-w-xs flex-shrink-0 bg-white rounded-3xl shadow-md hover:shadow-xl transition p-0 snap-center flex flex-col overflow-hidden"
-              style={{ height: 420 }}
+              className="min-w-[280px] max-w-xs flex-shrink-0 bg-white rounded-3xl hover:shadow-xl transition p-0 snap-center flex flex-col overflow-hidden"
+              style={{ 
+                height: 420,
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}
             >
               <div className="w-full h-[300px] relative overflow-hidden">
                 {/* 圖片完全填滿卡片頂部 */}

@@ -126,7 +126,7 @@ const BannerComponent: React.FC<BannerComponentProps> = ({
           <div className="text-center text-white px-4 max-w-4xl">
             {showTitle && currentBanner.title && (
               <Text 
-                variant="largeTitle" 
+                variant="title1" 
                 color={colors.background.systemBackground} 
                 colorMode="dark"
                 style={{ 

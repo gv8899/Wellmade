@@ -108,7 +108,8 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <a
             href="/admin/products/new"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+            className="flex flex-col items-center p-4 rounded-lg hover:bg-blue-50 transition-colors"
+            style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
           >
             <FaBoxes className="w-8 h-8 text-blue-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">新增產品</span>
@@ -116,7 +117,8 @@ export default function AdminDashboard() {
           
           <a
             href="/admin/brands/new"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
+            className="flex flex-col items-center p-4 rounded-lg hover:bg-purple-50 transition-colors"
+            style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
           >
             <FaTags className="w-8 h-8 text-purple-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">新增品牌</span>
@@ -124,7 +126,8 @@ export default function AdminDashboard() {
           
           <a
             href="/admin/products"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+            className="flex flex-col items-center p-4 rounded-lg hover:bg-green-50 transition-colors"
+            style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
           >
             <FaBoxes className="w-8 h-8 text-green-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">管理產品</span>
@@ -132,7 +135,8 @@ export default function AdminDashboard() {
           
           <a
             href="/admin/users"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors"
+            className="flex flex-col items-center p-4 rounded-lg hover:bg-orange-50 transition-colors"
+            style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
           >
             <FaUsers className="w-8 h-8 text-orange-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">管理用戶</span>

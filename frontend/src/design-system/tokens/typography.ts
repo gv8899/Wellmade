@@ -22,7 +22,6 @@ export interface TypographyToken {
 }
 
 export interface TypographyScale {
-  largeTitle: TypographyToken;
   title1: TypographyToken;
   title2: TypographyToken;
   title3: TypographyToken;
@@ -73,14 +72,6 @@ export const fontFamily = {
 
 // === 映射到原有的設計系統結構 ===
 export const typography: TypographyScale = {
-  // 對應 DisplayLarge
-  largeTitle: {
-    fontFamily: uberTypography.displayLarge.fontFamily,
-    fontSize: uberTypography.displayLarge.fontSize,
-    fontWeight: uberTypography.displayLarge.fontWeight,
-    lineHeight: uberTypography.displayLarge.lineHeight,
-  },
-  
   // 對應 HeadingXLarge  
   title1: {
     fontFamily: uberTypography.headingXLarge.fontFamily,

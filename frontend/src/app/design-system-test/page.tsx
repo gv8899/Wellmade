@@ -33,7 +33,7 @@ export default function DesignSystemTestPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <Text variant="largeTitle" colorMode={colorMode}>
+            <Text variant="title1" colorMode={colorMode}>
               🚗 Uber 設計系統測試
             </Text>
             <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -52,7 +52,7 @@ export default function DesignSystemTestPage() {
           </Text>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <Text variant="largeTitle" colorMode={colorMode}>Large Title - 34pt</Text>
+            <Text variant="title1" colorMode={colorMode}>Title 1 - 28pt (Previously Large Title)</Text>
             <Text variant="title1" colorMode={colorMode}>Title 1 - 28pt</Text>
             <Text variant="title2" colorMode={colorMode}>Title 2 - 22pt</Text>
             <Text variant="title3" colorMode={colorMode}>Title 3 - 20pt</Text>

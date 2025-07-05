@@ -134,7 +134,8 @@ const OrdersPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">我的訂單</h1>
           <button
             onClick={() => router.push('/')}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)' }}
           >
             繼續購物
           </button>
@@ -177,7 +178,7 @@ const OrdersPage: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order.id} className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+              <div key={order.id} className="bg-gray-50 rounded-lg overflow-hidden" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="px-6 py-4 border-b border-gray-200 bg-white">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex-1">
@@ -260,7 +261,8 @@ const OrdersPage: React.FC = () => {
                   <div className="mt-6 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => router.push(`/orders/${order.id}`)}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)' }}
                     >
                       查看詳情
                     </button>
@@ -268,7 +270,8 @@ const OrdersPage: React.FC = () => {
                     {(order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING) && (
                       <button
                         onClick={() => handleCancelOrder(order.id)}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+                        style={{ boxShadow: '0 2px 4px rgba(220, 38, 38, 0.1), 0 1px 2px rgba(220, 38, 38, 0.2)' }}
                       >
                         取消訂單
                       </button>

@@ -302,7 +302,7 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, mode }) => {
     <div className="max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* 基本資訊 */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
           <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}>
             基本資訊
           </Text>
@@ -379,7 +379,7 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, mode }) => {
         </div>
 
         {/* 圖片設定 */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
           <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}>
             圖片設定
           </Text>
@@ -400,7 +400,7 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, mode }) => {
         </div>
 
         {/* 連結設定 */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
           <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}>
             連結設定
           </Text>
@@ -440,7 +440,7 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, mode }) => {
         </div>
 
         {/* 時間設定 */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
           <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}>
             時間設定
           </Text>

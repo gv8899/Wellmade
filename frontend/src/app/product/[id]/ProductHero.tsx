@@ -65,7 +65,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
           </Text>
         )}
         <Text 
-          variant="largeTitle" 
+          variant="title1" 
           color={colors.neutral.label} 
           colorMode={colorMode}
           style={{ 

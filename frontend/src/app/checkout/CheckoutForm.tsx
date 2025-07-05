@@ -102,7 +102,7 @@ const CheckoutForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <Text variant="largeTitle" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2rem' }}>
+        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2rem' }}>
           結帳
         </Text>
 

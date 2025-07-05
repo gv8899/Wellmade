@@ -22,6 +22,7 @@ import { CartProvider } from '@/CartContext';
 import { UserProvider } from "@/app/components/UserContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import Header from "@/app/components/Header";
+import Footer from "@/components/Footer";
 import { AuthProvider } from "@/app/AuthProvider";
 import LoggerProvider from "@/components/LoggerProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -35,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant">
       <body
-        className={`min-h-screen bg-background text-foreground font-sans antialiased ${geistSans.variable} ${geistMono.variable}`}
+        className={`min-h-screen bg-background text-foreground font-sans antialiased flex flex-col ${geistSans.variable} ${geistMono.variable}`}
         suppressHydrationWarning={true}
       >
         <LoggerProvider>
@@ -48,6 +49,7 @@ export default function RootLayout({
                     <main className="pt-16 min-h-[calc(100vh-4rem)]">
                       {children}
                     </main>
+                    <Footer />
                     {process.env.NODE_ENV === 'development' && <ConsoleLogViewer />}
                 <Toaster position="top-center" toastOptions={{
                 style: {

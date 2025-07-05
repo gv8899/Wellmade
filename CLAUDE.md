@@ -129,6 +129,68 @@ NEXTAUTH_SECRET
 GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 ```
 
+## 設計系統最佳實踐
+
+### 文字系統架構
+- **統一變體使用**: 所有 Text 組件必須使用設計系統定義的變體
+- **避免 CSS 覆蓋**: 絕不使用 Tailwind 的 `prose` 或其他覆蓋字體樣式的類別
+- **字級階層**: 
+  - `title1` (最大，取代已移除的 largeTitle)
+  - `title2`, `title3` (頁面主要標題)
+  - `headline` (區塊標題)
+  - `body` (主要內容)
+  - `callout` (強調內容)
+  - `subhead`, `footnote` (輔助資訊)
+  - `caption1`, `caption2` (最小字級)
+
+### 重要規則與禁忌
+
+#### ✅ 正確做法
+```tsx
+// 標題和內容分開使用獨立的 Text 組件
+<Text variant="headline" color={colors.neutral.label}>標題</Text>
+<Text variant="body" color={colors.neutral.secondaryLabel}>內容文字</Text>
+
+// 卡片使用設計系統的 Card 組件
+<Card variant="elevated" padding="large" colorMode="light">
+  <Text variant="headline">標題</Text>
+  <Text variant="body">內容</Text>
+</Card>
+
+// 無背景卡片使用 borderless 變體
+<Card variant="borderless" padding="large" colorMode="light">
+```
+
+#### ❌ 錯誤做法
+```tsx
+// 錯誤：在 Text 組件內使用 span 會破壞字體系統
+<Text variant="headline">
+  標題<br />
+  <span style={{ fontWeight: 'normal' }}>內容</span>  // ❌ 會繼承 headline 字體大小
+</Text>
+
+// 錯誤：使用 prose 類別會覆蓋設計系統
+<div className="prose prose-lg">  // ❌ 會覆蓋 Text 組件樣式
+
+// 錯誤：使用邊框卡片
+<div className="border border-gray-200">  // ❌ 應使用陰影
+```
+
+### 卡片設計規範
+- **預設樣式**: 使用陰影卡片，避免邊框
+- **統一陰影**: `boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)'`
+- **保留邊框場景**: 僅在表單輸入框、按鈕狀態、分隔線等功能性元素使用
+- **卡片變體選擇**:
+  - `elevated`: 帶陰影的卡片（預設）
+  - `default`: 純色背景無陰影
+  - `outlined`: 邊框卡片（特殊情況）
+  - `borderless`: 無邊框無陰影，完全透明背景
+
+### 常見錯誤與修正
+1. **文字大小不一致**: 確保相同變體的 Text 組件不被其他樣式覆蓋
+2. **字體繼承問題**: 避免在 Text 組件內嵌套 HTML 標籤改變樣式
+3. **暗色模式衝突**: 移除 `@media (prefers-color-scheme: dark)` 自動切換
+
 ## 關鍵實作細節
 
 - **商品管理**: 
