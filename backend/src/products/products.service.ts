@@ -6,7 +6,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between } from 'typeorm';
+import { Repository, Like, Between, In } from 'typeorm';
 import { Product } from './product.entity';
 import { Brand } from '../brands/brand.entity';
 import { Category } from '../categories/category.entity';
@@ -63,7 +63,29 @@ export class ProductsService {
       });
 
       if (categoryEntity) {
-        whereConditions.categoryId = categoryEntity.id;
+        // 獲取所有子分類ID（包括子分類的子分類）
+        const getAllChildrenIds = async (parentId: string): Promise<string[]> => {
+          const children = await this.categoryRepository.find({
+            where: { parentId },
+          });
+          
+          let allIds: string[] = [];
+          for (const child of children) {
+            allIds.push(child.id);
+            // 遞歸獲取子分類的子分類
+            const grandChildren = await getAllChildrenIds(child.id);
+            allIds = allIds.concat(grandChildren);
+          }
+          return allIds;
+        };
+        
+        // 收集當前分類和所有子分類的ID
+        const categoryIds = [categoryEntity.id];
+        const childrenIds = await getAllChildrenIds(categoryEntity.id);
+        categoryIds.push(...childrenIds);
+        
+        // 使用 In 查詢來包含所有相關分類
+        whereConditions.categoryId = In(categoryIds);
       }
     }
 

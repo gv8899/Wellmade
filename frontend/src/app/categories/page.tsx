@@ -13,17 +13,12 @@ export const metadata: Metadata = {
 
 export default async function CategoriesPage() {
   try {
-    // 獲取所有分類
-    const response = await categoryApi.getAll();
+    // 獲取樹狀結構的分類數據
+    const categories = await categoryApi.getTree();
     
-    // 在前端過濾啟用的分類並排序
-    const activeCategories = response.categories
-      .filter(category => category.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-    
-    return <CategoriesPageClient categories={activeCategories} />;
+    return <CategoriesPageClient categories={categories} />;
   } catch (error) {
-    console.error('載入分類列表失敗:', error);
+    console.error('載入分類樹狀結構失敗:', error);
     
     // 錯誤情況下顯示空列表
     return <CategoriesPageClient categories={[]} />;

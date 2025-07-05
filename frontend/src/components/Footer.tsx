@@ -20,12 +20,10 @@ const Footer: React.FC = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await categoryApi.getAll();
-        // 只顯示啟用的分類，並限制顯示數量
-        const activeCategories = response.categories
-          .filter(cat => cat.isActive)
-          .slice(0, 6); // 最多顯示6個分類
-        setCategories(activeCategories);
+        const treeCategories = await categoryApi.getTree();
+        // 只顯示頂層分類（父分類），並限制顯示數量
+        const topLevelCategories = treeCategories.slice(0, 6); // 最多顯示6個父分類
+        setCategories(topLevelCategories);
       } catch (error) {
         console.error('載入分類失敗:', error);
         setCategories([]);
@@ -105,6 +103,7 @@ const Footer: React.FC = () => {
               <ul className="space-y-1">
                 {categories.map((category) => (
                   <li key={category.id}>
+                    {/* 父分類 */}
                     <Link 
                       href={`/categories/${category.slug}`}
                       className="transition-colors hover:opacity-80"
@@ -113,10 +112,34 @@ const Footer: React.FC = () => {
                         variant="footnote" 
                         color={colors.neutral.secondaryLabel} 
                         colorMode={colorMode}
+                        style={{ fontWeight: 'medium' }}
                       >
                         {category.name}
                       </Text>
                     </Link>
+                    
+                    {/* 子分類（如果有的話，最多顯示3個） */}
+                    {category.children && category.children.length > 0 && (
+                      <ul className="ml-3 mt-1 space-y-1">
+                        {category.children.slice(0, 3).map((childCategory) => (
+                          <li key={childCategory.id}>
+                            <Link 
+                              href={`/categories/${childCategory.slug}`}
+                              className="transition-colors hover:opacity-80"
+                            >
+                              <Text 
+                                variant="footnote" 
+                                color={colors.neutral.tertiaryLabel} 
+                                colorMode={colorMode}
+                                style={{ fontSize: '0.8rem' }}
+                              >
+                                • {childCategory.name}
+                              </Text>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>

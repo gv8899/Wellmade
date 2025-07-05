@@ -32,6 +32,22 @@ export default function CategoryPageClient({
   searchParams 
 }: CategoryPageClientProps) {
   const [colorMode] = useState<ColorMode>('light');
+
+  // 構建父分類路徑的輔助函數
+  const buildCategoryPath = (currentCategory: Category): Category[] => {
+    const path: Category[] = [];
+    let current = currentCategory;
+    
+    // 向上遍歷父分類
+    while (current) {
+      path.unshift(current); // 添加到陣列開頭
+      current = current.parent; // 移動到父分類
+    }
+    
+    return path;
+  };
+
+  const categoryPath = buildCategoryPath(category);
   const [products, setProducts] = useState<EnhancedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,12 +145,28 @@ export default function CategoryPageClient({
               分類
             </Text>
           </Link>
-          <Text variant="subhead" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
-            /
-          </Text>
-          <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode}>
-            {category.name}
-          </Text>
+          
+          {/* 動態顯示分類路徑 */}
+          {categoryPath.map((pathCategory, index) => (
+            <React.Fragment key={pathCategory.id}>
+              <Text variant="subhead" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
+                /
+              </Text>
+              {index === categoryPath.length - 1 ? (
+                // 最後一個分類（當前分類）不是連結
+                <Text variant="subhead" color={colors.neutral.label} colorMode={colorMode}>
+                  {pathCategory.name}
+                </Text>
+              ) : (
+                // 父分類是連結
+                <Link href={`/categories/${pathCategory.slug}`} className="hover:underline">
+                  <Text variant="subhead" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+                    {pathCategory.name}
+                  </Text>
+                </Link>
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </nav>
 
@@ -174,7 +206,6 @@ export default function CategoryPageClient({
           </Text>
         )}
       </div>
-
 
       {/* 商品展示區域 */}
       {loading && (
@@ -310,6 +341,67 @@ export default function CategoryPageClient({
             </>
           )}
         </>
+      )}
+
+      {/* 子分類展示 */}
+      {category.children && category.children.length > 0 && (
+        <div className="mb-8">
+          <Text 
+            variant="title2" 
+            color={colors.neutral.label} 
+            colorMode={colorMode}
+            style={{ fontWeight: 'bold', display: 'block', marginBottom: '1.5rem' }}
+          >
+            子分類
+          </Text>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {category.children.map((childCategory) => (
+              <Link
+                key={childCategory.id}
+                href={`/categories/${childCategory.slug}`}
+                className="block group"
+              >
+                <div 
+                  className="bg-white rounded-xl p-4 text-center hover:shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1"
+                  style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}
+                >
+                  {childCategory.imageUrl ? (
+                    <div className="relative w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
+                      <img
+                        src={childCategory.imageUrl}
+                        alt={childCategory.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('子分類圖片載入失敗:', childCategory.imageUrl);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <Text variant="title3" color={colors.background.systemBackground} colorMode="dark" style={{ fontWeight: 'bold' }}>
+                        {childCategory.name.charAt(0)}
+                      </Text>
+                    </div>
+                  )}
+                  
+                  <Text 
+                    variant="subhead" 
+                    color={colors.neutral.label} 
+                    colorMode={colorMode}
+                    style={{ 
+                      fontWeight: 'medium',
+                      textAlign: 'center',
+                      lineHeight: '1.2'
+                    }}
+                  >
+                    {childCategory.name}
+                  </Text>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

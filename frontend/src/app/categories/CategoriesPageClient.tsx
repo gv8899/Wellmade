@@ -15,13 +15,22 @@ interface CategoriesPageClientProps {
 export default function CategoriesPageClient({ categories }: CategoriesPageClientProps) {
   const [colorMode] = useState<ColorMode>('light');
 
-  // 將分類分組為父分類和子分類
-  const parentCategories = categories.filter(cat => !cat.parentId);
-  const childCategories = categories.filter(cat => cat.parentId);
-
-  const getCategoryChildren = (parentId: string) => {
-    return childCategories.filter(cat => cat.parentId === parentId);
+  // 從樹狀結構中提取所有分類（扁平化用於"所有分類"區塊）
+  const flattenCategories = (cats: Category[]): Category[] => {
+    const result: Category[] = [];
+    for (const cat of cats) {
+      result.push(cat);
+      if (cat.children && cat.children.length > 0) {
+        result.push(...flattenCategories(cat.children));
+      }
+    }
+    return result;
   };
+
+  const allCategories = flattenCategories(categories);
+  
+  // 只顯示頂層分類（父分類）
+  const parentCategories = categories;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -63,7 +72,7 @@ export default function CategoriesPageClient({ categories }: CategoriesPageClien
       </div>
 
       {/* 分類展示 */}
-      {categories.length === 0 ? (
+      {parentCategories.length === 0 ? (
         <div className="text-center py-16">
           <Text variant="title3" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
             暫無可用分類
@@ -90,7 +99,7 @@ export default function CategoriesPageClient({ categories }: CategoriesPageClien
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {parentCategories.map((category) => {
-                  const children = getCategoryChildren(category.id);
+                  const children = category.children || [];
                   
                   return (
                     <div 
@@ -193,7 +202,7 @@ export default function CategoriesPageClient({ categories }: CategoriesPageClien
             </Text>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {categories.map((category) => (
+              {allCategories.map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.slug}`}

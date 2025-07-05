@@ -71,9 +71,13 @@ const isServer = typeof window === 'undefined';
 // 獲取後端基礎 URL
 const getBackendUrl = () => {
   if (isServer) {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
+    // 服務器端：優先使用 BACKEND_URL（與 next.config.js 一致）
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.wellmade.select';
+    console.log('[getBackendUrl] 服務器端使用:', backendUrl);
+    return backendUrl;
   }
-  return '/api'; // 客戶端使用代理
+  // 客戶端：使用代理路由
+  return '/api';
 };
 
 // 分類API服務
