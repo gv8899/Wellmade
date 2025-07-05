@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 // 🎯 導入設計系統
-import { Text } from '@/design-system';
+import { Text, Card } from '@/design-system';
 import { colors } from '@/design-system';
 
 export const metadata: Metadata = {
@@ -54,10 +54,10 @@ export default function ReturnPolicyPage() {
       </div>
 
       {/* 內容區域 */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         
         {/* 退貨條件 */}
-        <div className="bg-white rounded-lg shadow-sm border p-8">
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
@@ -68,7 +68,7 @@ export default function ReturnPolicyPage() {
           </Text>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text 
                 variant="body" 
                 color={colors.neutral.label} 
@@ -79,7 +79,7 @@ export default function ReturnPolicyPage() {
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text 
                 variant="body" 
                 color={colors.neutral.label} 
@@ -90,7 +90,7 @@ export default function ReturnPolicyPage() {
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text 
                 variant="body" 
                 color={colors.neutral.label} 
@@ -101,7 +101,7 @@ export default function ReturnPolicyPage() {
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text 
                 variant="body" 
                 color={colors.neutral.label} 
@@ -112,10 +112,10 @@ export default function ReturnPolicyPage() {
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 退貨流程 */}
-        <div className="bg-white rounded-lg shadow-sm border p-8">
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
@@ -126,15 +126,15 @@ export default function ReturnPolicyPage() {
           </Text>
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                1
+              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                •
               </div>
               <div>
                 <Text 
                   variant="headline" 
                   color={colors.neutral.label} 
                   colorMode={colorMode}
-                  style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
                 >
                   聯絡客服
                 </Text>
@@ -144,20 +144,20 @@ export default function ReturnPolicyPage() {
                   colorMode={colorMode}
                   style={{ lineHeight: '1.6' }}
                 >
-                  寄信至 support@wellmade.select，說明退貨原因並提供訂單編號
+                  寄信至 wellmadegood@gmail.com，說明退貨原因並提供訂單編號
                 </Text>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                2
+              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                •
               </div>
               <div>
                 <Text 
                   variant="headline" 
                   color={colors.neutral.label} 
                   colorMode={colorMode}
-                  style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
                 >
                   審核申請
                 </Text>
@@ -172,15 +172,15 @@ export default function ReturnPolicyPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                3
+              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                •
               </div>
               <div>
                 <Text 
                   variant="headline" 
                   color={colors.neutral.label} 
                   colorMode={colorMode}
-                  style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
                 >
                   寄回商品
                 </Text>
@@ -195,15 +195,15 @@ export default function ReturnPolicyPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                4
+              <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                •
               </div>
               <div>
                 <Text 
                   variant="headline" 
                   color={colors.neutral.label} 
                   colorMode={colorMode}
-                  style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                  style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
                 >
                   退款處理
                 </Text>
@@ -218,10 +218,10 @@ export default function ReturnPolicyPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 換貨說明 */}
-        <div className="bg-white rounded-lg shadow-sm border p-8">
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
@@ -239,13 +239,13 @@ export default function ReturnPolicyPage() {
             如需換貨（例如尺寸、顏色不符），請按退貨流程辦理退貨，
             並重新下單購買所需商品。換貨運費由客戶自行負擔。
           </Text>
-        </div>
+        </Card>
 
         {/* 注意事項 */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-8">
+        <Card variant="borderless" padding="large" colorMode={colorMode} className="bg-amber-50 border border-amber-200 rounded-lg">
           <Text 
             variant="title2" 
-            color={colors.warning} 
+            color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
@@ -277,15 +277,15 @@ export default function ReturnPolicyPage() {
               • 退款金額不包含原訂單之運費
             </Text>
           </div>
-        </div>
+        </Card>
 
         {/* 聯絡資訊 */}
-        <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+        <Card variant="borderless" padding="large" colorMode={colorMode} className="text-center">
           <Text 
             variant="title3" 
             color={colors.neutral.label} 
             colorMode={colorMode}
-            style={{ fontWeight: 'bold', marginBottom: '1rem' }}
+            style={{ fontWeight: 'bold', display: 'block', marginBottom: '1rem' }}
           >
             如有任何問題，歡迎聯絡我們
           </Text>
@@ -299,18 +299,18 @@ export default function ReturnPolicyPage() {
             </Text>
             <a 
               href="mailto:wellmadegood@gmail.com"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
+              className="text-black hover:text-gray-800 transition-colors"
             >
               <Text 
                 variant="body" 
                 color={colors.primary} 
                 colorMode={colorMode}
               >
-                support@wellmade.select
+                wellmadegood@gmail.com
               </Text>
             </a>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

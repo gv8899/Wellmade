@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 // 🎯 導入設計系統
-import { Text } from '@/design-system';
+import { Text, Card } from '@/design-system';
 import { colors } from '@/design-system';
 
 export const metadata: Metadata = {
@@ -39,43 +39,48 @@ export default function TermsPage() {
           variant="title1" 
           color={colors.neutral.label} 
           colorMode={colorMode}
-          style={{ fontWeight: 'bold', marginBottom: '1rem' }}
+          style={{ fontWeight: 'bold', display: 'block', marginBottom: '1rem' }}
         >
           會員服務條款
-          <br />
-          <br />
-          
+        </Text>
+        <Text 
+          variant="title3" 
+          color={colors.neutral.secondaryLabel} 
+          colorMode={colorMode}
+          style={{ maxWidth: '600px', margin: '0 auto', display: 'block', marginBottom: '0.5rem' }}
+        >
+          歡迎使用 Wellmade 服務
         </Text>
         <Text 
           variant="body" 
           color={colors.neutral.secondaryLabel} 
           colorMode={colorMode}
-          style={{ maxWidth: '600px', margin: '0 auto' }}
+          style={{ maxWidth: '600px', margin: '0 auto', display: 'block', marginBottom: '0.5rem' }}
         >
-          歡迎使用 Wellmade 服務。<br />請詳細閱讀以下條款，註冊會員即表示您同意並接受本條款。
+          請詳細閱讀以下條款，註冊會員即表示您同意並接受本條款
         </Text>
         <Text 
           variant="footnote" 
           color={colors.neutral.tertiaryLabel} 
           colorMode={colorMode}
-          style={{ marginTop: '0.5rem' }}
+          style={{ marginTop: '0.5rem', display: 'block' }}
         >
-          <br />最後更新日期：2025年1月4日
+          最後更新日期：2025年1月4日
         </Text>
       </div>
 
       {/* 內容區域 */}
-      <div className="space-y-8">
+      <div className="space-y-6">
 
         {/* 服務說明 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            1. 服務說明 <br />
+            服務說明
           </Text>
           <div className="space-y-4">
             <Text 
@@ -88,17 +93,17 @@ export default function TermsPage() {
               本服務僅限於合法使用，您不得將本服務用於任何非法或未經授權的目的。
             </Text>
           </div>
-        </div>
+        </Card>
 
         {/* 會員註冊與帳戶 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            2. 會員註冊與帳戶
+            會員註冊與帳戶
           </Text>
           <div className="space-y-4">
             <div>
@@ -106,9 +111,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                2.1 註冊資格 <br />
+                註冊資格
               </Text>
               <Text 
                 variant="body" 
@@ -125,9 +130,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                2.2 帳戶安全 <br />
+                帳戶安全
               </Text>
               <Text 
                 variant="body" 
@@ -144,9 +149,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                2.3 資料真實性 <br />
+                資料真實性
               </Text>
               <Text 
                 variant="body" 
@@ -159,17 +164,17 @@ export default function TermsPage() {
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 購買條款 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            3. 購買條款 <br />
+            購買條款
           </Text>
           <div className="space-y-4">
             <div>
@@ -177,9 +182,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                3.1 訂單確認 <br />
+                訂單確認
               </Text>
               <Text 
                 variant="body" 
@@ -195,9 +200,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                3.2 價格與付款 <br />
+                價格與付款
               </Text>
               <Text 
                 variant="body" 
@@ -214,9 +219,9 @@ export default function TermsPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                3.3 配送說明 <br />
+                配送說明
               </Text>
               <Text 
                 variant="body" 
@@ -228,17 +233,17 @@ export default function TermsPage() {
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 使用規範 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            4. 使用規範 <br />
+            使用規範
           </Text>
           <div className="space-y-3">
             <Text 
@@ -276,17 +281,17 @@ export default function TermsPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 智慧財產權 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            5. 智慧財產權 <br />
+            智慧財產權
           </Text>
           <Text 
             variant="body" 
@@ -297,17 +302,17 @@ export default function TermsPage() {
             本網站的所有內容，包含但不限於文字、圖片、商標、設計等，均受智慧財產權法保護。
             未經我們書面同意，您不得複製、修改、分發或以其他方式使用這些內容。
           </Text>
-        </div>
+        </Card>
 
         {/* 責任限制 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            6. 責任限制 <br />
+            責任限制
           </Text>
           <Text 
             variant="body" 
@@ -318,17 +323,17 @@ export default function TermsPage() {
             在法律允許的最大範圍內，我們不對因使用本服務而產生的任何直接、間接、
             偶然或特殊損害承擔責任。我們的責任限制不超過您為相關服務支付的金額。
           </Text>
-        </div>
+        </Card>
 
         {/* 條款修訂 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            7. 條款修訂 <br />  
+            條款修訂
           </Text>
           <Text 
             variant="body" 
@@ -339,17 +344,17 @@ export default function TermsPage() {
             我們保留隨時修訂本條款的權利。重大變更將透過網站公告或電子郵件通知您。
             繼續使用本服務即表示您接受修訂後的條款。
           </Text>
-        </div>
+        </Card>
 
         {/* 聯絡資訊 */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+        <Card variant="borderless" padding="large" colorMode={colorMode} className="bg-blue-50 border border-blue-200 rounded-lg text-center">
           <Text 
             variant="title3" 
             color={colors.neutral.label} 
             colorMode={colorMode}
-            style={{ fontWeight: 'bold', marginBottom: '1rem' }}
+            style={{ fontWeight: 'bold', display: 'block', marginBottom: '1rem' }}
           >
-            如對本條款有任何疑問 <br />
+            如對本條款有任何疑問
           </Text>
           <div className="flex justify-center items-center gap-2">
             <Text 
@@ -357,22 +362,22 @@ export default function TermsPage() {
               color={colors.neutral.secondaryLabel} 
               colorMode={colorMode}
             >
-              請聯絡我們： <br /> 
+              請聯絡我們：
             </Text>
             <a 
-              href="mailto:support@wellmade.select"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
+              href="mailto:wellmadegood@gmail.com"
+              className="text-black hover:text-gray-800 transition-colors"
             >
               <Text 
                 variant="body" 
                 color={colors.primary} 
                 colorMode={colorMode}
               >
-                support@wellmade.select
+                wellmadegood@gmail.com
               </Text>
             </a>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

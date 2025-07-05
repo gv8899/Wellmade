@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 // 🎯 導入設計系統
-import { Text } from '@/design-system';
+import { Text, Card } from '@/design-system';
 import { colors } from '@/design-system';
 
 export const metadata: Metadata = {
@@ -39,40 +39,40 @@ export default function PrivacyPage() {
           variant="title1" 
           color={colors.neutral.label} 
           colorMode={colorMode}
-          style={{ fontWeight: 'bold', marginBottom: '1rem' }}
+          style={{ fontWeight: 'bold', display: 'block', marginBottom: '1rem' }}
         >
           隱私權政策
         </Text>
         <Text 
-          variant="body" 
+          variant="title3" 
           color={colors.neutral.secondaryLabel} 
           colorMode={colorMode}
-          style={{ maxWidth: '600px', margin: '0 auto' }}
+          style={{ maxWidth: '600px', margin: '0 auto', display: 'block', marginBottom: '0.5rem' }}
         >
-          我們重視您的隱私權，本政策說明我們如何收集、使用和保護您的個人資料。
+          我們重視您的隱私權，本政策說明我們如何收集、使用和保護您的個人資料
         </Text>
         <Text 
           variant="footnote" 
           color={colors.neutral.tertiaryLabel} 
           colorMode={colorMode}
-          style={{ marginTop: '0.5rem' }}
+          style={{ marginTop: '0.5rem', display: 'block' }}
         >
           最後更新日期：2025年1月4日
         </Text>
       </div>
 
       {/* 內容區域 */}
-      <div className="space-y-8">
+      <div className="space-y-6">
 
         {/* 資料收集 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            1. 資料收集
+            資料收集
           </Text>
           <div className="space-y-4">
             <div>
@@ -80,9 +80,9 @@ export default function PrivacyPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                1.1 您主動提供的資料
+                您主動提供的資料
               </Text>
               <Text 
                 variant="body" 
@@ -104,9 +104,9 @@ export default function PrivacyPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
-                1.2 自動收集的資料
+                自動收集的資料
               </Text>
               <Text 
                 variant="body" 
@@ -116,7 +116,7 @@ export default function PrivacyPage() {
               >
                 當您使用我們的網站時，我們可能自動收集：
               </Text>
-              <div className="ml-4 space-y-1">
+              <div className="ml-4 space-y-1 gap-3">
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>• 瀏覽器類型和版本</Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>• IP 地址和設備資訊</Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>• 網站使用情況和偏好設定</Text>
@@ -124,17 +124,17 @@ export default function PrivacyPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 資料使用 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            2. 資料使用
+            資料使用
           </Text>
           <Text 
             variant="body" 
@@ -146,47 +146,47 @@ export default function PrivacyPage() {
           </Text>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ lineHeight: '1.6' }}>
                 處理您的訂單和提供客戶服務
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ lineHeight: '1.6' }}>
                 改善我們的產品和服務
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ lineHeight: '1.6' }}>
                 發送重要通知和訂單更新
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ lineHeight: '1.6' }}>
                 個人化您的購物體驗
               </Text>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full mt-2 flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ lineHeight: '1.6' }}>
                 遵守法律義務和保護合法權益
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 資料分享 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            3. 資料分享
+            資料分享
           </Text>
           <Text 
             variant="body" 
@@ -202,7 +202,7 @@ export default function PrivacyPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
                 服務提供商
               </Text>
@@ -220,7 +220,7 @@ export default function PrivacyPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
                 法律要求
               </Text>
@@ -238,7 +238,7 @@ export default function PrivacyPage() {
                 variant="headline" 
                 color={colors.neutral.label} 
                 colorMode={colorMode}
-                style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+                style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}
               >
                 您的同意
               </Text>
@@ -252,17 +252,17 @@ export default function PrivacyPage() {
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 資料安全 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            4. 資料安全
+            資料安全
           </Text>
           <Text 
             variant="body" 
@@ -274,33 +274,33 @@ export default function PrivacyPage() {
           </Text>
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode}>SSL 加密傳輸</Text>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode}>安全的資料儲存</Text>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode}>嚴格的存取控制</Text>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-black rounded-full flex-shrink-0"></div>
               <Text variant="body" color={colors.neutral.label} colorMode={colorMode}>定期安全性評估</Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Cookie 政策 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            5. Cookie 政策
+            Cookie 政策
           </Text>
           <Text 
             variant="body" 
@@ -312,7 +312,7 @@ export default function PrivacyPage() {
           </Text>
           <div className="space-y-3">
             <div>
-              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                 必要 Cookie
               </Text>
               <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -320,7 +320,7 @@ export default function PrivacyPage() {
               </Text>
             </div>
             <div>
-              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                 功能性 Cookie
               </Text>
               <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -328,7 +328,7 @@ export default function PrivacyPage() {
               </Text>
             </div>
             <div>
-              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+              <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                 分析 Cookie
               </Text>
               <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -336,17 +336,17 @@ export default function PrivacyPage() {
               </Text>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 您的權利 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            6. 您的權利
+            您的權利
           </Text>
           <Text 
             variant="body" 
@@ -359,7 +359,7 @@ export default function PrivacyPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <div>
-                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                   查閱權
                 </Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -367,7 +367,7 @@ export default function PrivacyPage() {
                 </Text>
               </div>
               <div>
-                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                   更正權
                 </Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -377,7 +377,7 @@ export default function PrivacyPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                   刪除權
                 </Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -385,7 +385,7 @@ export default function PrivacyPage() {
                 </Text>
               </div>
               <div>
-                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold' }}>
+                <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
                   反對權
                 </Text>
                 <Text variant="body" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
@@ -394,17 +394,17 @@ export default function PrivacyPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 政策更新 */}
-        <div className="bg-white rounded-lg p-8" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <Card variant="borderless" padding="large" colorMode={colorMode}>
           <Text 
             variant="title2" 
             color={colors.neutral.label} 
             colorMode={colorMode}
             style={{ fontWeight: 'bold', marginBottom: '1.5rem' }}
           >
-            7. 政策更新
+            政策更新
           </Text>
           <Text 
             variant="body" 
@@ -415,10 +415,10 @@ export default function PrivacyPage() {
             我們可能會不定期更新本隱私權政策。重大變更將在網站上公告，
             並可能透過電子郵件通知您。請定期查看本政策以了解最新資訊。
           </Text>
-        </div>
+        </Card>
 
         {/* 聯絡資訊 */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
+        <Card variant="borderless" padding="large" colorMode={colorMode} className="bg-green-50 border border-green-200 rounded-lg text-center">
           <Text 
             variant="title3" 
             color={colors.neutral.label} 
@@ -436,19 +436,19 @@ export default function PrivacyPage() {
               請聯絡我們：
             </Text>
             <a 
-              href="mailto:privacy@wellmade.select"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
+              href="mailto:wellmadegood@gmail.com"
+              className="text-black hover:text-gray-800 transition-colors"
             >
               <Text 
                 variant="body" 
                 color={colors.primary} 
                 colorMode={colorMode}
               >
-                privacy@wellmade.select
+                wellmadegood@gmail.com
               </Text>
             </a>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
