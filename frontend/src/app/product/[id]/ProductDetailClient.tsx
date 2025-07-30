@@ -12,6 +12,7 @@ import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 import { Product as ApiProduct, getProductById, getProductCategoryName, FAQItem as ApiFAQItem } from '@/services/api';
+import { InventoryType } from '@/types/product';
 
 // 🎯 導入設計系統
 import { Text } from "@/design-system";
@@ -191,7 +192,10 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
                         apiProduct.status === 'PREORDER' ? 'preorder' : 'out_of_stock',
             stock: apiProduct.stock,
             status: apiProduct.status,
-            isActive: apiProduct.isActive
+            inventoryType: InventoryType.PHYSICAL, // 添加預設庫存類型
+            isActive: apiProduct.isActive,
+            preorderLimit: undefined,
+            preorderSold: 0
           }];
           
           setVariants(singleVariant);
@@ -213,7 +217,13 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
           specs: {},
           price: typeof product.price === 'string' ? Number(product.price) : product.price,
           image: 'cover' in product ? product.cover : product.imageUrl,
-          stockStatus: "in_stock"
+          stockStatus: "in_stock",
+          stock: 'stock' in product ? product.stock : 1,
+          status: 'status' in product ? product.status : 'IN_STOCK' as any,
+          inventoryType: InventoryType.PHYSICAL,
+          isActive: 'isActive' in product ? product.isActive : true,
+          preorderLimit: undefined,
+          preorderSold: 0
         }
       ];
       setVariants(defaultVariants);
