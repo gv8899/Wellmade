@@ -6,7 +6,7 @@ import { KeyFeatureCard } from "./KeyFeatures";
 import FeatureDetails from "./FeatureDetails";
 import { FeatureDetail } from "../../../services/api";
 import FAQSection, { FAQItem } from "./FAQSection";
-import ProductPurchaseOptions, { DisplayDisplayProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
+import ProductPurchaseOptions, { DisplayProductVariant, ProductSpecOption } from "./ProductPurchaseOptions";
 import GoodProductsSection from "./GoodProductsSection";
 import BrandSection from "./BrandSection";
 import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
@@ -58,6 +58,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   const [variants, setVariants] = React.useState<DisplayProductVariant[]>([]);
   const [specOptions, setSpecOptions] = React.useState<ProductSpecOption[]>([]);
   const [currentImage, setCurrentImage] = React.useState<string>("");
+  const [isContainer, setIsContainer] = React.useState<boolean>(false);
   const { cartItems, addToCart, removeFromCart, addCartClick } = useCart();
 
   // 準備變體圖片列表 - 移到組件頂部
@@ -121,6 +122,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         
         setProduct(displayProduct);
         setCurrentImage(displayProduct.cover); // 設置初始圖片
+        setIsContainer(apiProduct.isContainer || false); // 設置容器產品標記
         
         // 載入產品變體
         await loadDisplayProductVariants(apiProduct);
@@ -368,6 +370,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
             options: option.options.length > 0 ? option.options : ['預設值'] // 確保 options 至少有一個預設值
           }))}
           defaultQuantity={1}
+          isContainer={isContainer}
         />
       )}
 

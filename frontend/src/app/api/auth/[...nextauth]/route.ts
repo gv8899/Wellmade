@@ -98,12 +98,13 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     jwt: async ({ token, account, user }) => {
-      console.log('NextAuth JWT callback called:', { 
+      console.log('🔥 NextAuth JWT callback called:', { 
         hasAccount: !!account, 
         hasUser: !!user,
         provider: account?.provider,
         userId: user?.id,
-        tokenSub: token.sub 
+        tokenSub: token.sub,
+        tokenEmail: token.email
       });
       
       // Initial sign in
@@ -134,29 +135,32 @@ export const authOptions: NextAuthOptions = {
         // 如果是 Google Provider，將資料同步到後端
         else if (account.provider === 'google' && user.email) {
           try {
-            console.log('正在將用戶資料同步到後端...', { email: user.email, name: user.name, image: user.image });
+            console.log('🔥 正在將用戶資料同步到後端...', { email: user.email, name: user.name, image: user.image });
             // 發送使用者資料到後端 API
-            const backendUrl = process.env.BACKEND_URL;
-            if (!backendUrl) {
-              console.error('BACKEND_URL environment variable is required');
-              return token;
-            }
+            const backendUrl = process.env.BACKEND_URL || 'http://localhost:3003';
+            console.log('🔥 使用後端 URL:', backendUrl);
+            
+            const requestData = {
+              email: user.email,
+              name: user.name || 'Google User',
+              picture: user.image || '',
+              provider: 'google'
+            };
+            console.log('🔥 發送到後端的資料:', requestData);
+            
             const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({
-                email: user.email,
-                name: user.name,
-                picture: user.image,
-                provider: 'google'
-              }),
+              body: JSON.stringify(requestData),
             });
+            
+            console.log('🔥 後端響應狀態:', response.status);
             
             if (response.ok) {
               const backendData = await response.json();
-              console.log('用戶資料已同步到後端:', backendData);
+              console.log('🔥 用戶資料已同步到後端:', backendData);
               
               // 將後端返回的資料（包含 JWT 等）合併到 token 中
               if (backendData.accessToken && backendData.user) {
@@ -169,17 +173,21 @@ export const authOptions: NextAuthOptions = {
                 token.lastName = backendData.user.lastName;
                 token.picture = backendData.user.picture;
                 
-                console.log('NextAuth: Google OAuth token updated:', {
+                console.log('🔥 NextAuth: Google OAuth token updated:', {
                   userId: token.userId,
                   roles: token.roles,
-                  hasBackendToken: !!token.backendToken
+                  hasBackendToken: !!token.backendToken,
+                  backendTokenLength: token.backendToken?.length
                 });
+              } else {
+                console.log('❌ 後端返回的資料缺少 accessToken 或 user');
               }
             } else {
-              console.error('同步用戶資料到後端失敗:', await response.text());
+              const errorText = await response.text();
+              console.error('❌ 同步用戶資料到後端失敗:', response.status, errorText);
             }
           } catch (error) {
-            console.error('同步用戶資料到後端出錯:', error);
+            console.error('❌ 同步用戶資料到後端出錯:', error);
           }
           
           // 保存 Google OAuth 資訊

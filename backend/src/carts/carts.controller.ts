@@ -511,4 +511,41 @@ export class CartsController {
     const updatedCart = await this.cartsService.getCartDetails(cart);
     return updatedCart;
   }
+
+  /**
+   * 強制綁定購物車到用戶（調試用）
+   */
+  @Public()
+  @Post('force-bind')
+  async forceBindCart(
+    @Headers('authorization') authorization: string,
+    @Session() session: Record<string, any>,
+    @Req() request: Request,
+  ) {
+    const user = await this.getOptionalUser(authorization);
+    if (!user?.id) {
+      throw new UnauthorizedException('必須登入才能綁定購物車');
+    }
+
+    const userId = user.id;
+    const sessionId = this.getSessionId(request);
+
+    console.log('強制綁定購物車:', { userId, sessionId });
+
+    // 查找所有與此 sessionId 相關的購物車
+    const sessionCarts = await this.cartsService.findCartsBySession(sessionId);
+    
+    for (const cart of sessionCarts) {
+      if (!cart.userId) {
+        console.log('將購物車', cart.id, '綁定到用戶', userId);
+        cart.userId = userId;
+        cart.sessionId = null; // 清除 sessionId
+        await this.cartsService.saveCart(cart);
+      }
+    }
+
+    // 獲取更新後的購物車
+    const updatedCart = await this.cartsService.getOrCreateCart(userId, sessionId);
+    return this.cartsService.getCartDetails(updatedCart);
+  }
 }

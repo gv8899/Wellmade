@@ -114,6 +114,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
           const response = await cartApi.addToCart({
             productId,
+            variantId: (item as any).variantId, // 保留原有的 variantId（如果存在）
             quantity: item.quantity,
             specs: item.specs || {}
           });
@@ -148,6 +149,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // 修復購物車綁定問題
+  const fixCartBinding = useCallback(async (): Promise<boolean> => {
+    if (!isAuthenticated) return false;
+    
+    try {
+      console.log('[CART] 嘗試修復購物車綁定問題');
+      const response = await fetch('/api/cart/force-bind', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        console.log('[CART] 購物車綁定修復成功');
+        return true;
+      } else {
+        console.warn('[CART] 購物車綁定修復失敗:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('[CART] 購物車綁定修復錯誤:', error);
+      return false;
+    }
+  }, [isAuthenticated]);
+
   // 刷新購物車
   const refreshCart = useCallback(async (): Promise<boolean> => {
     if (operationLock.current) return false;
@@ -158,6 +186,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     try {
       const items = await loadCart();
+      
+      // 如果已登入但購物車為空，嘗試修復綁定問題
+      if (isAuthenticated && items.length === 0) {
+        console.log('[CART] 🔧 檢測到已登入用戶但購物車為空，嘗試修復綁定問題');
+        const fixed = await fixCartBinding();
+        if (fixed) {
+          console.log('[CART] ✅ 購物車綁定修復成功，重新載入購物車');
+          // 重新載入購物車
+          const fixedItems = await loadCart();
+          setCartItems(fixedItems);
+          console.log('[CART] 📊 修復後載入商品數量:', fixedItems.length);
+          return true;
+        } else {
+          console.log('[CART] ❌ 購物車綁定修復失敗');
+        }
+      }
+      
       setCartItems(items);
       return true;
     } catch (error) {
@@ -168,7 +213,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       operationLock.current = false;
     }
-  }, [loadCart]);
+  }, [loadCart, isAuthenticated, fixCartBinding]);
 
   // 添加商品到購物車
   const addToCart = useCallback(async (input: AddToCartInput): Promise<boolean> => {
@@ -350,17 +395,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleAuthChange = async () => {
       if (previousAuthState.current !== isAuthenticated) {
+        console.log('[CART] 認證狀態改變:', {
+          from: previousAuthState.current,
+          to: isAuthenticated
+        });
         previousAuthState.current = isAuthenticated;
         
         if (isAuthenticated) {
           // 剛登入：合併訪客購物車
+          console.log('[CART] 用戶剛登入，開始合併訪客購物車');
           await mergeGuestCart();
         }
         
         // 重新載入購物車
+        console.log('[CART] 認證狀態改變後重新載入購物車');
         await refreshCart();
       } else if (status !== 'loading') {
         // 初始載入
+        console.log('[CART] 執行初始購物車載入');
         await refreshCart();
       }
     };

@@ -12,18 +12,17 @@ export async function GET(request: NextRequest) {
   try {
     console.log('購物車 API - 開始處理請求');
 
-    // 準備基本請求 headers
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    // 安全獲取用戶會話 - 本地和正式環境兼容
+    const session = await getSafeSession();
+    
+    // 準備請求 headers（包含認證信息）
+    const headers = prepareBackendHeaders(request, session);
 
-    // 複製原始請求的 Cookie（保持 session 狀態）
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-      headers.Cookie = cookieHeader;
-    }
-
-    console.log('發送請求到後端:', `${API_BASE_URL}/cart`);
+    console.log('發送請求到後端:', `${API_BASE_URL}/cart`, {
+      hasSession: !!session,
+      hasBackendToken: !!(session as any)?.backendToken,
+      sessionUser: (session as any)?.user?.email
+    });
 
     // 發送請求到後端
     const response = await axios.get(`${API_BASE_URL}/cart`, {
@@ -32,7 +31,7 @@ export async function GET(request: NextRequest) {
       validateStatus: (status) => status < 500, // 允許 4xx 狀態碼通過
     });
 
-    console.log('後端響應狀態:', response.status);
+    console.log('後端響應狀態:', response.status, '商品數量:', response.data?.items?.length || 0);
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
     console.error('購物車API路由錯誤:', {

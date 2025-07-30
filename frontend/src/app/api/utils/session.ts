@@ -24,7 +24,14 @@ async function loadNextAuth() {
 export async function getSafeSession() {
   try {
     const { getServerSession: getSession, authOptions: options } = await loadNextAuth();
-    return await getSession(options);
+    const session = await getSession(options);
+    console.log('🔍 getSafeSession 結果:', {
+      hasSession: !!session,
+      sessionUser: session?.user?.email,
+      hasBackendToken: !!(session as any)?.backendToken,
+      backendTokenLength: (session as any)?.backendToken?.length
+    });
+    return session;
   } catch (error) {
     console.log('會話獲取失敗，繼續以訪客身份處理:', error instanceof Error ? error.message : 'Unknown error');
     return null;

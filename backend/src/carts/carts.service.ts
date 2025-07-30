@@ -112,7 +112,29 @@ export class CartsService {
    * 獲取購物車詳情
    */
   async getCartDetails(cart: Cart): Promise<Cart> {
-    return cart;
+    // 重新加載購物車以確保包含最新的 items 關係
+    const cartWithItems = await this.cartRepository.findOne({
+      where: { id: cart.id },
+      relations: ['items', 'items.product'],
+    });
+    
+    if (!cartWithItems) {
+      console.warn(`購物車 ${cart.id} 不存在`);
+      return cart;
+    }
+    
+    console.log('🔍 getCartDetails 結果:', {
+      cartId: cartWithItems.id,
+      itemsCount: cartWithItems.items?.length || 0,
+      items: cartWithItems.items?.map(item => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.name,
+        quantity: item.quantity
+      }))
+    });
+    
+    return cartWithItems;
   }
 
   /**
@@ -331,5 +353,22 @@ export class CartsService {
     await this.clearCart(sourceCart);
 
     return targetCart;
+  }
+
+  /**
+   * 根據 sessionId 查找購物車
+   */
+  async findCartsBySession(sessionId: string): Promise<Cart[]> {
+    return this.cartRepository.find({
+      where: { sessionId },
+      relations: ['items', 'items.product'],
+    });
+  }
+
+  /**
+   * 保存購物車
+   */
+  async saveCart(cart: Cart): Promise<Cart> {
+    return this.cartRepository.save(cart);
   }
 }
