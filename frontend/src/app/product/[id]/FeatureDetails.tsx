@@ -1,5 +1,10 @@
 import React from "react";
 
+// 🎯 導入設計系統
+import { Text } from "@/design-system";
+import { colors } from "@/design-system";
+import type { ColorMode } from "@/design-system";
+
 export interface FeatureDetail {
   type: "image" | "video";
   src: string;
@@ -13,29 +18,70 @@ interface FeatureDetailsProps {
 }
 
 const FeatureDetails: React.FC<FeatureDetailsProps> = ({ details }) => {
+  const [colorMode] = React.useState<ColorMode>('light');
+  
+  // 除錯日誌
+  React.useEffect(() => {
+    console.log('🎯 FeatureDetails 接收到的資料:', details);
+    details.forEach((detail, index) => {
+      console.log(`Feature ${index}:`, {
+        type: detail.type,
+        src: detail.src,
+        title: detail.title,
+        description: detail.description
+      });
+    });
+  }, [details]);
+  
   return (
-    <section className="flex flex-col gap-16 w-full max-w-5xl mx-auto py-12 px-4 md:px-0">
+    <section className="flex flex-col gap-8 w-full py-12">
       {details.map((item, idx) => {
-        // 桌機左右交錯，手機皆為上下
-        const isReverse = (item.direction === "right") || (item.direction === undefined && idx % 2 === 1);
         return (
-          <div
-            key={idx}
-            className={`flex flex-col md:flex-row ${isReverse ? 'md:flex-row-reverse' : ''} items-center gap-8 md:gap-16`}
-          >
-            <div className="w-full md:w-1/2 flex justify-center items-center">
-  <div className="w-full h-[260px] flex items-center justify-center">
-
-              {item.type === "image" ? (
-      <img src={item.src} alt={item.title} className="rounded-xl shadow-md object-cover w-full h-full" />
-    ) : (
-      <video src={item.src} controls className="rounded-xl shadow-md object-cover w-full h-full" />
-    )}
-  </div>
+          <div key={idx} className="w-full">
+            {/* 文字內容 - 在圖片上方的外部區域 */}
+            <div className="flex flex-col items-center text-center px-6 md:px-12 mb-6">
+              <Text 
+                variant="title2" 
+                color={colors.neutral.label} 
+                colorMode={colorMode}
+                className="mb-4 max-w-4xl"
+              >
+                {item.title}
+              </Text>
+              <Text 
+                variant="body" 
+                color={colors.neutral.secondaryLabel} 
+                colorMode={colorMode}
+                className="max-w-3xl leading-relaxed"
+              >
+                {item.description}
+              </Text>
             </div>
-            <div className="w-full md:w-1/2 flex flex-col items-start">
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">{item.title}</h3>
-              <p className="text-gray-700 text-lg leading-relaxed">{item.description}</p>
+            
+            {/* 圖片區域 - 手機版填滿寬度，桌機版使用容器限制寬度保持比例 */}
+            <div className="w-full md:max-w-2xl md:mx-auto">
+              <div className="w-full h-[400px] overflow-hidden">
+              {item.type === "image" ? (
+                <img 
+                  src={item.src} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    console.error(`❌ 圖片載入失敗: ${item.src}`);
+                    console.error('錯誤詳情:', e);
+                  }}
+                  onLoad={() => {
+                    console.log(`✅ 圖片載入成功: ${item.src}`);
+                  }}
+                />
+              ) : (
+                <video 
+                  src={item.src} 
+                  controls 
+                  className="w-full h-full object-cover" 
+                />
+              )}
+              </div>
             </div>
           </div>
         );
