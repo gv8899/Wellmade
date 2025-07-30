@@ -48,50 +48,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
         />
       )}
 
-      {/* 置中文字區塊 */}
-      <div className="relative z-20 w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center px-4 py-12 h-full pt-2">
-        {subtitle && (
-          <Text 
-            variant="headline" 
-            color={colors.info} 
-            colorMode={colorMode}
-            style={{ 
-              marginBottom: '0.5rem', 
-              letterSpacing: '0.025em', 
-              fontWeight: 'medium' 
-            }}
-          >
-            {subtitle}
-          </Text>
-        )}
-        <Text 
-          variant="title1" 
-          color={colors.neutral.label} 
-          colorMode={colorMode}
-          style={{ 
-            fontSize: 'clamp(2rem, 5vw, 3rem)',
-            fontWeight: 'bold', 
-            marginBottom: '1rem', 
-            lineHeight: '1.1' 
-          }}
-        >
-          {title}
-        </Text>
-        {description && (
-          <Text 
-            variant="title3" 
-            color={colors.neutral.secondaryLabel} 
-            colorMode={colorMode}
-            style={{ 
-              marginBottom: '2rem', 
-              whiteSpace: 'pre-line' 
-            }}
-          >
-            {description}
-          </Text>
-        )}
-
-      </div>
+      {/* 文字區塊已隱藏 - 只顯示圖片 */}
 
       {/* 變體圖片選擇器 */}
       {variantImages.length > 1 && (
