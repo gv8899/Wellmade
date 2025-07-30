@@ -50,38 +50,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
 
       {/* 文字區塊已隱藏 - 只顯示圖片 */}
 
-      {/* 變體圖片選擇器 */}
-      {variantImages.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
-            <div className="flex gap-2">
-              {variantImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => onImageChange?.(image)}
-                  className="w-12 h-12 rounded-lg overflow-hidden border-2 transition-all"
-                  style={{
-                    borderColor: image === imageUrl 
-                      ? colors.primary.light 
-                      : colors.neutral.tertiaryLabel.light,
-                    boxShadow: image === imageUrl 
-                      ? `0 0 0 2px ${colors.primary.light}20`
-                      : 'none'
-                  }}
-                >
-                  <Image
-                    src={image}
-                    alt={`變體圖片 ${index + 1}`}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 圖片選擇器已移至 Hero 和 KeyFeatures 之間 */}
     </section>
   );
 };

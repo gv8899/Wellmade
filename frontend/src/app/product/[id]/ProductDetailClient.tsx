@@ -13,6 +13,7 @@ import { FaBolt, FaTint, FaBatteryFull, FaRegLightbulb } from "react-icons/fa";
 import { useCart } from '@/CartContext';
 import { Product as ApiProduct, getProductById, getProductCategoryName, FAQItem as ApiFAQItem } from '@/services/api';
 import { InventoryType } from '@/types/product';
+import Image from 'next/image';
 
 // 🎯 導入設計系統
 import { Text } from "@/design-system";
@@ -367,6 +368,39 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         variantImages={variantImages}
         onImageChange={handleImageChange}
       />
+      
+      {/* 圖片選擇器 - 位於 Hero 和 KeyFeatures 之間 */}
+      {variantImages.length > 1 && (
+        <div className="w-full flex justify-center py-8 bg-gray-50">
+          <div className="bg-white rounded-lg p-4 shadow-lg">
+            <div className="flex gap-3">
+              {variantImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleImageChange(image)}
+                  className="w-16 h-16 rounded-lg overflow-hidden border-2 transition-all hover:scale-105"
+                  style={{
+                    borderColor: image === (currentImage || product.cover)
+                      ? colors.primary.light 
+                      : colors.neutral.tertiaryLabel,
+                    boxShadow: image === (currentImage || product.cover)
+                      ? `0 0 0 2px ${colors.primary.light}20`
+                      : 'none'
+                  }}
+                >
+                  <Image
+                    src={image}
+                    alt={`產品圖片 ${index + 1}`}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       
       <KeyFeatures
         scrollRef={keyFeaturesScrollRef}
