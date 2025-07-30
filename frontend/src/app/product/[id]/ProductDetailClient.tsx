@@ -344,7 +344,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
   return (
     <div className="min-h-screen bg-white">
       <ProductHero
-        subtitle={product.categoryRelation?.name || "精品科技"}
+        subtitle={product.categoryRelation?.name || ""}
         title={product.name}
         description={product.description}
         imageUrl={currentImage || product.cover}
