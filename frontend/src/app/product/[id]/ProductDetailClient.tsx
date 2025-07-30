@@ -64,7 +64,19 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
 
   // 準備變體圖片列表 - 移到組件頂部
   const variantImages = React.useMemo(() => {
-    const images = [product?.cover].filter(Boolean) as string[];
+    const images: string[] = [];
+    
+    // 添加主圖
+    if (product?.cover) {
+      images.push(product.cover);
+    }
+    
+    // 添加所有媒體圖片（包含附加圖片）
+    product?.media?.forEach(media => {
+      if (media.type === 'image' && media.src && !images.includes(media.src)) {
+        images.push(media.src);
+      }
+    });
     
     // 添加變體圖片
     variants.forEach(variant => {
