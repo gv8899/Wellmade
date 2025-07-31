@@ -372,35 +372,22 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
         onImageChange={handleImageChange}
       />
       
-      {/* 圓點指示器 - 位於 Hero 和 KeyFeatures 之間 */}
-      {variantImages.length > 1 && (
-        <div className="w-full flex justify-center py-6">
-          <div className="flex gap-2">
-            {variantImages.map((image, index) => {
-              const isActive = image === (currentImage || product.cover);
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleImageChange(image)}
-                  className="transition-all duration-200 hover:scale-110"
-                  style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: isActive 
-                      ? colors.neutral.label.light 
-                      : colors.neutral.tertiaryLabel.light,
-                    opacity: isActive ? 1 : 0.5,
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                  aria-label={`切換到圖片 ${index + 1}`}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* 商品名稱區塊 - 位於 Hero 和 KeyFeatures 之間 */}
+      <div className="w-full py-6 px-6 md:px-12">
+        <Text 
+          variant="headline" 
+          color={colors.neutral.label} 
+          colorMode={colorMode}
+          style={{ 
+            fontSize: '20px', 
+            fontWeight: '600',
+            lineHeight: '24px',
+            textAlign: 'left'
+          }}
+        >
+          {product.name}
+        </Text>
+      </div>
       
       <KeyFeatures
         scrollRef={keyFeaturesScrollRef}
