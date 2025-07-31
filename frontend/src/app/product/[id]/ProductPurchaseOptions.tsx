@@ -106,6 +106,15 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   
   const currentPrice = currentVariant ? getCurrentPrice(currentVariant) : 0;
   
+  // 變體選擇處理函數
+  const handleVariantSelection = (variant: DisplayProductVariant) => {
+    if (!primarySpecOption) return;
+    
+    // 更新選擇的規格以匹配所選變體
+    const newSpecs = { [primarySpecOption.name]: variant.specs[primarySpecOption.name] };
+    setSelectedSpecs(newSpecs);
+  };
+  
   // 調試信息
   console.log('ProductPurchaseOptions Debug:', {
     currentVariant,
@@ -235,9 +244,11 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (isLoading) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
-          購買選項
-        </Text>
+        <div className="text-center mb-10">
+          <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600', letterSpacing: '0.025em' }}>
+            購買產品
+          </Text>
+        </div>
         <div className="flex justify-center items-center h-40">
           <div 
             className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
@@ -255,9 +266,11 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (error) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
-          購買選項
-        </Text>
+        <div className="text-center mb-10">
+          <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600', letterSpacing: '0.025em' }}>
+            購買產品
+          </Text>
+        </div>
         <div className="flex justify-center items-center h-40 flex-col">
           <Text variant="headline" color={colors.danger} colorMode={colorMode} style={{ marginBottom: '1rem' }}>
             {error}
@@ -279,9 +292,11 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   if (isContainer && (!currentVariant || variants.length === 0)) {
     return (
       <div className="w-full max-w-5xl mx-auto my-10">
-        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
-          購買選項
-        </Text>
+        <div className="text-center mb-10">
+          <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600', letterSpacing: '0.025em' }}>
+            購買產品
+          </Text>
+        </div>
         <div className="flex justify-center items-center h-40 flex-col">
           <div className="text-center py-8">
             <Text variant="headline" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginBottom: '1rem' }}>
@@ -298,78 +313,94 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
   
   return (
     <div className="w-full max-w-5xl mx-auto my-10">
-      <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '0.025em' }}>
-        購買選項
-      </Text>
-      <div className="flex flex-col items-center w-full">
-        {/* 商品圖+名稱+價格+狀態 */}
-        <div className="flex flex-row items-center w-full justify-center gap-4 mb-4">
-          <div className="w-24 h-24 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
+      {/* 標題 */}
+      <div className="text-center">
+        <Text variant="title1" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600', letterSpacing: '0.025em' }}>
+          購買產品
+        </Text>
+      </div>
+      
+      <div className="flex flex-col items-center w-full mt-8">
+        {/* 大圖片展示 */}
+        <div className="w-full max-w-48 mx-auto mb-8">
+          <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
             <img 
               src={currentVariant?.image || variants[0]?.image} 
-              alt="商品圖" 
-              className="w-full h-full object-cover rounded-md" 
+              alt={title}
+              className="w-full h-full object-cover" 
             />
           </div>
-          <div className="flex flex-col items-start justify-center ml-2">
-            <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'semibold', marginBottom: '0.25rem' }}>
-              {currentVariant?.variantTitle || title}
-            </Text>
-            <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-              ${currentPrice}
-            </Text>
-            {currentVariant?.status && (
-              <ProductStatusBadge status={currentVariant.status} size="sm" />
-            )}
-          </div>
         </div>
-        {/* 規格選單區塊 - 只顯示第一個規格 */}
-        <div className="flex flex-col gap-6 w-full max-w-xs items-center mx-auto">
-          {primarySpecOption && (
-            <div className="w-full">
-              <Text variant="headline" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ textAlign: 'center', fontWeight: 'medium', marginBottom: '0.5rem' }}>
-                {primarySpecOption.name}
-              </Text>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {primarySpecOption.options.map((opt) => {
-                  const isSelected = selectedSpecs[primarySpecOption.name] === opt;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      className={`px-4 py-3 rounded-lg border text-lg font-semibold transition
-                        ${isSelected 
-                          ? 'bg-black text-white border-black' 
-                          : 'bg-white text-gray-800 border-gray-300 hover:border-black hover:bg-gray-100'}`}
-                      onClick={() => setSelectedSpecs({ [primarySpecOption.name]: opt })}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+
         {/* 數量選擇器 */}
-        <div className="flex flex-col items-center mt-8 mb-6">
-          <div className="text-center text-gray-700 text-base font-medium mb-2">數量</div>
+        <div className="flex flex-col items-center mb-6">
           <div className="flex flex-row gap-6 items-center">
             <button
-              className="w-10 h-10 rounded-full border border-gray-400 text-2xl text-gray-700 flex items-center justify-center disabled:opacity-30"
+              className="w-10 h-10 text-gray-600 flex items-center justify-center disabled:opacity-30 hover:text-gray-800 transition"
               disabled={quantity <= 1}
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
             >
-              -
+              <Text variant="title2" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '400' }}>-</Text>
             </button>
-            <span className="w-8 text-center text-gray-900 font-bold text-xl">{quantity}</span>
+            <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600', minWidth: '2rem', textAlign: 'center' }}>
+              {quantity}
+            </Text>
             <button
-              className="w-10 h-10 rounded-full border border-gray-400 text-2xl text-gray-700 flex items-center justify-center"
+              className="w-10 h-10 text-gray-600 flex items-center justify-center hover:text-gray-800 transition"
               onClick={() => setQuantity(q => q + 1)}
             >
-              +
+              <Text variant="title2" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '400' }}>+</Text>
             </button>
           </div>
+        </div>
+
+        {/* 變體選項卡片 */}
+        <div className="w-full max-w-sm mx-auto px-4 space-y-4 mb-8">
+          {variants.map((variant) => {
+            const isSelected = currentVariant?.id === variant.id;
+            const variantPrice = getCurrentPrice(variant);
+            
+            return (
+              <div key={variant.id} className="relative">
+                {/* 狀態標籤覆蓋在框線上 */}
+                {variant.status && (
+                  <div className="absolute -top-3 right-4 z-10">
+                    <ProductStatusBadge status={variant.status} size="sm" showIcon={false} />
+                  </div>
+                )}
+                
+                <button
+                  type="button"
+                  className={`w-full p-4 rounded-lg border-2 transition-all duration-200 ${
+                    isSelected 
+                      ? 'border-black bg-gray-50' 
+                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleVariantSelection(variant)}
+                >
+                  <div className="flex flex-col">
+                    <div className="text-left mb-1">
+                      <Text variant="title3" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '700', fontSize: '17px', lineHeight: '1.3' }}>
+                        {title}
+                      </Text>
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <div className="text-left">
+                        <Text variant="callout" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ lineHeight: '1.4', fontSize: '15px' }}>
+                          {variant.variantTitle}
+                        </Text>
+                      </div>
+                      <div className="text-right">
+                        <Text variant="body" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: 'bold', fontSize: '17px' }}>
+                          ${variantPrice}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            );
+          })}
         </div>
         {/* 預購信息顯示 */}
         {currentVariant && currentVariant.inventoryType && currentVariant.inventoryType !== InventoryType.PHYSICAL && (
@@ -379,7 +410,7 @@ const ProductPurchaseOptions: React.FC<ProductPurchaseOptionsProps> = ({
         )}
         
         {/* 行動按鈕（加入購物車/預購/貨到通知） */}
-        <div className="w-full max-w-xs mx-auto min-h-[64px] flex items-center">
+        <div className="w-full max-w-sm mx-auto px-4 min-h-[64px] flex items-center">
           <div className="w-full">
             {actionButtons}
             <RestockNotifyModal
