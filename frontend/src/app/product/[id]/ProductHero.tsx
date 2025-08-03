@@ -35,121 +35,236 @@ const ProductHero: React.FC<ProductHeroProps> = ({
 }) => {
   const [colorMode, setColorMode] = useState<ColorMode>('light');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [currentTranslate, setCurrentTranslate] = useState(0);
+  const [prevTranslate, setPrevTranslate] = useState(0);
+  const [animationId, setAnimationId] = useState(0);
 
   // 準備圖片列表，如果沒有變體圖片就使用主圖
   const images = variantImages.length > 0 ? variantImages : [imageUrl];
   const currentImage = images[currentImageIndex] || imageUrl;
 
-  // 處理圓點點擊
-  const handleDotClick = (index: number) => {
+  // 輔助函數：設置滑動位置
+  const setSliderPosition = () => {
+    if (containerRef.current) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('設置位置:', currentTranslate);
+      }
+      containerRef.current.style.transform = `translateX(${currentTranslate}px)`;
+    }
+  };
+
+  // 動畫函數
+  const animation = () => {
+    setSliderPosition();
+    if (isDragging) {
+      const id = requestAnimationFrame(animation);
+      setAnimationId(id);
+    }
+  };
+
+  // 獲取位置索引
+  const getPositionX = (event: TouchEvent | MouseEvent) => {
+    return event.type.includes('mouse') 
+      ? (event as MouseEvent).clientX 
+      : (event as TouchEvent).touches[0].clientX;
+  };
+
+  // 設置到指定索引
+  const setPositionByIndex = (index: number) => {
+    // 每個圖片的寬度是視窗寬度
+    const slideWidth = window.innerWidth;
     setCurrentImageIndex(index);
+    const translateValue = -index * slideWidth;
+    setPrevTranslate(translateValue);
+    setCurrentTranslate(translateValue);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('設置索引位置:', { 
+        index, 
+        slideWidth, 
+        translateValue, 
+        containerWidth: containerRef.current?.offsetWidth,
+        imagesLength: images.length 
+      });
+    }
+    
+    // 直接設置 transform
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translateX(${translateValue}px)`;
+    }
+    
     if (onImageChange && images[index]) {
       onImageChange(images[index]);
     }
   };
 
-  // 處理觸摸事件
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // 處理圓點點擊
+  const handleDotClick = (index: number) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('點擊圓點:', index, '當前索引:', currentImageIndex);
+    }
+    setPositionByIndex(index);
+  };
+
+  // 開始拖拽
+  const dragStart = (index: number) => (e: React.TouchEvent | React.MouseEvent) => {
     setIsDragging(true);
-    setStartX(e.touches[0].clientX);
+    setStartX(getPositionX(e.nativeEvent));
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'none';
+    }
+    requestAnimationFrame(animation);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  // 拖拽中
+  const dragMove = (e: React.TouchEvent | React.MouseEvent) => {
     if (!isDragging) return;
-    // 不要阻止預設行為，讓觸摸滑動正常運作
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
+    e.preventDefault();
     
-    const endX = e.changedTouches[0].clientX;
-    const moveX = endX - startX;
-    const threshold = 50; // 滑動閾值
+    const currentPosition = getPositionX(e.nativeEvent);
+    const diff = currentPosition - startX;
+    const newTranslate = prevTranslate + diff;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('滑動中:', { currentPosition, diff, newTranslate, prevTranslate });
+    }
+    setCurrentTranslate(newTranslate);
+  };
 
-    if (Math.abs(moveX) > threshold) {
-      if (moveX > 0 && currentImageIndex > 0) {
-        // 向右滑動，顯示上一張
-        const newIndex = currentImageIndex - 1;
-        setCurrentImageIndex(newIndex);
-        if (onImageChange && images[newIndex]) {
-          onImageChange(images[newIndex]);
-        }
-      } else if (moveX < 0 && currentImageIndex < images.length - 1) {
-        // 向左滑動，顯示下一張
-        const newIndex = currentImageIndex + 1;
-        setCurrentImageIndex(newIndex);
-        if (onImageChange && images[newIndex]) {
-          onImageChange(images[newIndex]);
-        }
-      }
+  // 結束拖拽
+  const dragEnd = () => {
+    setIsDragging(false);
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
+
+    // 添加過渡動畫
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'transform 0.3s ease-out';
+    }
+
+    const slideWidth = window.innerWidth;
+    const movedBy = currentTranslate - prevTranslate;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('拖拽結束:', { 
+        movedBy, 
+        currentTranslate, 
+        prevTranslate, 
+        currentImageIndex, 
+        slideWidth,
+        totalImages: images.length 
+      });
+    }
+
+    // 如果移動距離大於閾值，切換到下一張/上一張
+    if (movedBy < -100 && currentImageIndex < images.length - 1) {
+      // 向左滑動，下一張
+      setPositionByIndex(currentImageIndex + 1);
+    } else if (movedBy > 100 && currentImageIndex > 0) {
+      // 向右滑動，上一張
+      setPositionByIndex(currentImageIndex - 1);
+    } else {
+      // 回彈到當前位置
+      setPositionByIndex(currentImageIndex);
     }
   };
 
-  // 處理滑鼠事件（桌面版）
-  const handleMouseStart = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-  };
+  // 觸摸事件處理
+  const handleTouchStart = dragStart(currentImageIndex);
+  const handleTouchMove = dragMove;
+  const handleTouchEnd = dragEnd;
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-  };
+  // 滑鼠事件處理
+  const handleMouseDown = dragStart(currentImageIndex);
+  const handleMouseMove = dragMove;
+  const handleMouseUp = dragEnd;
+  const handleMouseLeave = dragEnd;
 
-  const handleMouseEnd = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    
-    const moveX = e.clientX - startX;
-    const threshold = 50;
+  // 初始化位置
+  useEffect(() => {
+    // 初始化
+    setTimeout(() => {
+      setPositionByIndex(0);
+    }, 100);
+  }, []);
 
-    if (Math.abs(moveX) > threshold) {
-      if (moveX > 0 && currentImageIndex > 0) {
-        const newIndex = currentImageIndex - 1;
-        setCurrentImageIndex(newIndex);
-        if (onImageChange && images[newIndex]) {
-          onImageChange(images[newIndex]);
-        }
-      } else if (moveX < 0 && currentImageIndex < images.length - 1) {
-        const newIndex = currentImageIndex + 1;
-        setCurrentImageIndex(newIndex);
-        if (onImageChange && images[newIndex]) {
-          onImageChange(images[newIndex]);
-        }
+  // 處理窗口大小變化
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setPositionByIndex(currentImageIndex);
       }
-    }
-  };
+    };
+
+    // 監聽窗口大小變化
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [currentImageIndex]);
+
+  // 清理動畫
+  useEffect(() => {
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [animationId]);
+
+  // 當 currentTranslate 變化時立即更新 DOM
+  useEffect(() => {
+    setSliderPosition();
+  }, [currentTranslate]);
 
   return (
     <section 
-      className="relative w-full overflow-hidden cursor-grab select-none"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleMouseStart}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseEnd}
-      onMouseLeave={handleMouseEnd}
-      style={{ 
-        cursor: isDragging ? 'grabbing' : 'grab',
-        height: '70vh'
-      }}
+      className="relative w-full overflow-hidden"
+      style={{ height: '70vh' }}
+      data-testid="product-hero"
     >
-      {/* 背景主圖 */}
-      {currentImage && (
-        <Image
-          src={currentImage}
-          alt={title}
-          fill
-          className="object-cover object-center w-full h-full z-0 transition-opacity duration-300"
-          priority
-          sizes="100vw"
-        />
-      )}
+      {/* 滑動容器 */}
+      <div
+        ref={containerRef}
+        className="flex w-full h-full cursor-grab select-none"
+        style={{ 
+          cursor: isDragging ? 'grabbing' : 'grab',
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className="relative flex-shrink-0 h-full"
+            style={{ width: '100vw' }}
+          >
+            <Image
+              src={image}
+              alt={`${title} - 圖片 ${index + 1}`}
+              fill
+              className="object-cover object-center"
+              priority={index === 0}
+              sizes="100vw"
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
 
       {/* 圓點指示器 - 覆蓋在圖片底部 */}
       {images.length > 1 && (
@@ -157,6 +272,10 @@ const ProductHero: React.FC<ProductHeroProps> = ({
           <div className="flex gap-2">
             {images.map((_, index) => {
               const isActive = index === currentImageIndex;
+              // 只在開發環境輸出調試信息
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`圓點 ${index}: 激活狀態 = ${isActive}, 當前索引 = ${currentImageIndex}`);
+              }
               return (
                 <button
                   key={index}
@@ -173,6 +292,7 @@ const ProductHero: React.FC<ProductHeroProps> = ({
                     cursor: 'pointer'
                   }}
                   aria-label={`切換到圖片 ${index + 1}`}
+                  data-active={isActive} // 添加測試用的屬性
                 />
               );
             })}
