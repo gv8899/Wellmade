@@ -32,6 +32,7 @@ export interface TypographyScale {
   footnote: TypographyToken;
   caption1: TypographyToken;
   caption2: TypographyToken;
+  small: TypographyToken; // 新增 14px 字級
 }
 
 // === Uber 字體系統 ===
@@ -88,28 +89,28 @@ export const typography: TypographyScale = {
     lineHeight: uberTypography.headingLarge.lineHeight,
   },
   
-  // 對應 HeadingMedium
+  // 對應 HeadingXSmall (20px - 符合設計需求)
   title3: {
-    fontFamily: uberTypography.headingMedium.fontFamily,
-    fontSize: uberTypography.headingMedium.fontSize,
-    fontWeight: uberTypography.headingMedium.fontWeight,
-    lineHeight: uberTypography.headingMedium.lineHeight,
+    fontFamily: uberTypography.headingXSmall.fontFamily,
+    fontSize: uberTypography.headingXSmall.fontSize,
+    fontWeight: uberTypography.headingXSmall.fontWeight,
+    lineHeight: uberTypography.headingXSmall.lineHeight,
   },
   
-  // 對應 HeadingSmall (加粗)
+  // 自定義 17px (商品名稱用)
   headline: {
     fontFamily: uberTypography.headingSmall.fontFamily,
-    fontSize: uberTypography.headingSmall.fontSize,
+    fontSize: '17px',
     fontWeight: '600', // 使其更粗
-    lineHeight: uberTypography.headingSmall.lineHeight,
+    lineHeight: '22px',
   },
   
-  // 對應 ParagraphMedium
+  // 對應 ParagraphLarge (18px - 最接近設計需求的 17px)
   body: {
-    fontFamily: uberTypography.paragraphMedium.fontFamily,
-    fontSize: uberTypography.paragraphMedium.fontSize,
-    fontWeight: uberTypography.paragraphMedium.fontWeight,
-    lineHeight: uberTypography.paragraphMedium.lineHeight,
+    fontFamily: uberTypography.paragraphLarge.fontFamily,
+    fontSize: uberTypography.paragraphLarge.fontSize,
+    fontWeight: uberTypography.paragraphLarge.fontWeight,
+    lineHeight: uberTypography.paragraphLarge.lineHeight,
   },
   
   // 對應 ParagraphSmall
@@ -150,6 +151,14 @@ export const typography: TypographyScale = {
     fontSize: uberTypography.labelXSmall.fontSize,
     fontWeight: uberTypography.labelXSmall.fontWeight,
     lineHeight: uberTypography.labelXSmall.lineHeight,
+  },
+  
+  // 自定義 14px (計數器和價格用)
+  small: {
+    fontFamily: uberTypography.paragraphMedium.fontFamily,
+    fontSize: '14px',
+    fontWeight: '400',
+    lineHeight: '18px',
   }
 };
 

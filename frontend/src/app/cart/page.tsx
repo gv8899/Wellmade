@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
+import { formatSimpleDollar } from '@/utils/format';
 
 // 🎯 導入設計系統
 import { Text, Button } from '@/design-system';
@@ -75,58 +76,7 @@ export default function CartPage() {
     <div className="min-h-screen w-full bg-white font-sans flex items-start justify-center">
       <div className="max-w-lg w-full px-4 py-12">
       
-        {/* 登入提示 */}
-        {!isAuthenticated && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm text-blue-700">
-                  登入後可跨裝置同步購物車。
-                  <button 
-                    onClick={handleSignIn}
-                    className="font-medium underline ml-1"
-                  >
-                    立即登入
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         
-        {/* 同步狀態 */}
-        {isAuthenticated && (
-          <div className="mb-6 flex justify-end">
-            <button 
-              onClick={handleSyncCart}
-              disabled={isSyncing}
-              className="flex items-center text-sm text-gray-600 hover:text-gray-900"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                className={`mr-1 ${isSyncing ? 'animate-spin' : ''}`}
-              >
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-              </svg>
-              {isSyncing ? '同步中...' : '同步購物車'}
-            </button>
-          </div>
-        )}
       {/* 標題與右上角商品數量 */}
       <div className="flex justify-between items-center mb-8">
         <Text variant="title2" color={colors.neutral.label} colorMode={colorMode}>
@@ -191,19 +141,21 @@ export default function CartPage() {
                         {item.name}
                       </Text>
                       
+                      {/* 變體規格顯示 - 固定斷行，沒有變體時不顯示 */}
+                      {item.specs && Object.keys(item.specs).length > 0 && (
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+                            {Object.values(item.specs).join('・')}
+                          </Text>
+                        </div>
+                      )}
+                      
                       {/* 預購狀態顯示 */}
                       {item.isPreorder && (
                         <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-2">
                           📅 預購商品
                         </div>
                       )}
-                      
-                      {/* 商品規格顯示 */}
-                      <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ marginBottom: '0.5rem' }}>
-                        {item.specs && Object.keys(item.specs).length > 0
-                          ? Object.values(item.specs).join('・')
-                          : '—'}
-                      </Text>
                       
                       {/* 預購信息顯示 */}
                       {item.isPreorder && item.preorderInfo && (
@@ -240,7 +192,7 @@ export default function CartPage() {
                     >
                       -
                     </button>
-                    <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ width: '32px', textAlign: 'center', userSelect: 'none', margin: '0 0.5rem', lineHeight: '2rem' }}>
+                    <Text variant="small" color={colors.neutral.label} colorMode={colorMode} style={{ width: '32px', textAlign: 'center', userSelect: 'none', margin: '0 0.5rem', lineHeight: '2rem' }}>
                       {item.quantity}
                     </Text>
                     <button
@@ -257,8 +209,8 @@ export default function CartPage() {
                     >
                       +
                     </button>
-                    <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ marginLeft: '0.5rem' }}>
-                      NT$ {(typeof item.price === 'number' ? item.price : 0).toFixed(0)}
+                    <Text variant="small" color={colors.neutral.label} colorMode={colorMode} style={{ marginLeft: '0.5rem' }}>
+                      {formatSimpleDollar(item.price)}
                     </Text>
                   </div>
                 </div>
@@ -290,8 +242,8 @@ export default function CartPage() {
               <Text variant="title3" color={colors.neutral.label} colorMode={colorMode}>
                 總計
               </Text>
-              <Text variant="title1" color={colors.neutral.label} colorMode={colorMode}>
-                NT$ {subtotal.toFixed(0)}
+              <Text variant="title3" color={colors.neutral.label} colorMode={colorMode}>
+                {formatSimpleDollar(subtotal)}
               </Text>
             </div>
             
@@ -314,16 +266,6 @@ export default function CartPage() {
 
           {/* 結帳按鈕 */}
           <div className="mt-8">
-            {!isAuthenticated && checkedItems.length > 0 && (
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
-                建議您 <button onClick={handleSignIn} className="font-medium underline">登入會員</button> 後再進行結帳，以便紀錄訂單並累積點數。
-                {hasPreorderItems && (
-                  <div className="mt-2 text-blue-700">
-                    預購商品需要會員身份才能結帳。
-                  </div>
-                )}
-              </div>
-            )}
             <Button
               variant="primary"
               size="large"
