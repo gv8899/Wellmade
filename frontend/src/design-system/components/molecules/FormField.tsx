@@ -46,8 +46,8 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   const requiredStyle: React.CSSProperties = {
     color: colorMode === 'light' 
-      ? colors.danger.light 
-      : colors.danger.dark,
+      ? colors.neutral.label.light 
+      : colors.neutral.label.dark,
   };
 
   return (
@@ -80,7 +80,9 @@ export const FormField: React.FC<FormFieldProps> = ({
           style={{
             width: '100%',
             padding: '0.75rem',
-            border: `1px solid ${hasError ? colors.danger[colorMode] : colors.neutral.tertiaryLabel[colorMode]}`,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: hasError ? colors.danger[colorMode] : colors.neutral.tertiaryLabel[colorMode],
             borderRadius: '6px',
             fontSize: '1rem',
             fontFamily: 'inherit',
