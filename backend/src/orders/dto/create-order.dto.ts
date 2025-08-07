@@ -11,7 +11,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaymentMethod } from '../entities/order.entity';
+import { PaymentMethod, DeliveryMethod } from '../entities/order.entity';
 
 export class CustomerInfoDto {
   @IsString()
@@ -39,6 +39,35 @@ export class CustomerInfoDto {
   postalCode?: string;
 }
 
+export class DeliveryInfoDto {
+  @IsEnum(DeliveryMethod)
+  method: DeliveryMethod;
+
+  @IsNumber()
+  @Min(0)
+  fee: number;
+
+  @IsNumber()
+  @Min(1)
+  estimatedDays: number;
+
+  @IsOptional()
+  @IsString()
+  storeId?: string;
+
+  @IsOptional()
+  @IsString()
+  storeName?: string;
+
+  @IsOptional()
+  @IsString()
+  storeAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  storePhone?: string;
+}
+
 export class OrderItemDto {
   @IsUUID()
   productId: string;
@@ -59,6 +88,10 @@ export class CreateOrderDto {
 
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
+
+  @ValidateNested()
+  @Type(() => DeliveryInfoDto)
+  deliveryInfo: DeliveryInfoDto;
 
   @IsArray()
   @ValidateNested({ each: true })

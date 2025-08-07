@@ -8,8 +8,11 @@ import KeyFeaturesEditor from "./KeyFeaturesEditor";
 import FeatureDetailsEditor from "./FeatureDetailsEditor";
 import FAQEditor from "./FAQEditor";
 import ProductVariantEditor from "./ProductVariantEditor";
+import ProductLogisticsConfig from "./ProductLogisticsConfig";
 import { FaSave, FaTimes, FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { ProductLogisticsConfig as ProductLogisticsConfigType } from "@/types/logistics";
+import { logisticsService } from "@/services/logistics";
 
 interface ProductFormData {
   name: string;
@@ -81,6 +84,13 @@ export default function ProductForm({
   const [faqs, setFaqs] = useState<FAQ[]>(product?.faqs || []);
   const [specTemplate, setSpecTemplate] = useState<string[]>(product?.specTemplate || []);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
+  
+  // 物流配置
+  const [logisticsConfig, setLogisticsConfig] = useState<ProductLogisticsConfigType>({
+    supportedDeliveryMethods: [],
+    physicalAttributes: {},
+    deliveryRestrictions: {}
+  });
 
   // 加載分類資料
   useEffect(() => {
@@ -101,6 +111,24 @@ export default function ProductForm({
     };
     loadCategories();
   }, []);
+
+  // 載入物流配置（編輯模式）
+  useEffect(() => {
+    const loadLogisticsConfig = async () => {
+      if (mode === 'edit' && product?.id) {
+        try {
+          const config = await logisticsService.getProductLogistics(product.id);
+          if (config) {
+            setLogisticsConfig(config);
+          }
+        } catch (error) {
+          console.error('載入物流配置失敗:', error);
+        }
+      }
+    };
+
+    loadLogisticsConfig();
+  }, [mode, product?.id]);
 
   // 當產品資料變化時更新狀態
   useEffect(() => {
@@ -272,6 +300,29 @@ export default function ProductForm({
       if (mode === "create") {
         console.log('✅ ProductForm - 創建模式：變體已在產品創建時一併處理');
       }
+
+      // 保存物流配置（編輯模式和創建模式都需要）
+      if (submittedProduct && (submittedProduct as any).id) {
+        const productId = (submittedProduct as any).id || product?.id;
+        if (productId) {
+          try {
+            console.log('🚀 ProductForm - 開始保存物流配置:', logisticsConfig);
+            const logisticsSuccess = await logisticsService.updateProductLogistics(
+              productId,
+              logisticsConfig
+            );
+            if (logisticsSuccess) {
+              console.log('✅ ProductForm - 物流配置保存成功');
+            } else {
+              console.warn('⚠️ ProductForm - 物流配置保存失敗，但產品已創建/更新');
+              toast.error('物流配置保存失敗，請稍後再試');
+            }
+          } catch (error) {
+            console.error('❌ ProductForm - 物流配置保存錯誤:', error);
+            toast.error('物流配置保存失敗，但產品已成功保存');
+          }
+        }
+      }
       
       console.log('🎉 ProductForm - 所有操作完成');
     } catch (error) {
@@ -281,6 +332,11 @@ export default function ProductForm({
     }
   };
 
+
+  // 處理物流配置變更
+  const handleLogisticsConfigChange = (newConfig: ProductLogisticsConfigType) => {
+    setLogisticsConfig(newConfig);
+  };
 
   const handleCancel = () => {
     router.push("/admin/products");
@@ -537,6 +593,20 @@ export default function ProductForm({
             新增規格項目
           </button>
         </div>
+      </div>
+
+      {/* 物流配置 */}
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">物流設定</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          設定產品的配送方式支援、物理屬性和配送限制。這些設定會影響用戶在結帳時可選擇的配送選項。
+        </p>
+        <ProductLogisticsConfig
+          productId={product?.id || 'new'}
+          currentConfig={logisticsConfig}
+          onConfigChange={handleLogisticsConfigChange}
+          colorMode="light"
+        />
       </div>
 
       {/* 產品變體 */}

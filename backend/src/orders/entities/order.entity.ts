@@ -35,6 +35,14 @@ export enum PaymentMethod {
   LINE_PAY = 'line_pay',
 }
 
+export enum DeliveryMethod {
+  HOME_DELIVERY = 'home_delivery',
+  SEVEN_ELEVEN = 'seven_eleven',
+  FAMILY_MART = 'family_mart',
+  HI_LIFE = 'hi_life',
+  OK_MART = 'ok_mart',
+}
+
 interface CustomerInfo {
   name: string;
   email: string;
@@ -43,6 +51,16 @@ interface CustomerInfo {
   city?: string;
   district?: string;
   postalCode?: string;
+}
+
+interface DeliveryInfo {
+  method: DeliveryMethod;
+  fee: number;
+  estimatedDays: number;
+  storeId?: string;
+  storeName?: string;
+  storeAddress?: string;
+  storePhone?: string;
 }
 
 @Entity('orders')
@@ -81,6 +99,13 @@ export class Order {
   })
   paymentMethod: PaymentMethod;
 
+  @Column({
+    type: 'enum',
+    enum: DeliveryMethod,
+    nullable: true,
+  })
+  deliveryMethod: DeliveryMethod;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   subtotal: number;
 
@@ -92,6 +117,9 @@ export class Order {
 
   @Column({ type: 'jsonb' })
   customerInfo: CustomerInfo;
+
+  @Column({ type: 'jsonb', nullable: true })
+  deliveryInfo: DeliveryInfo;
 
   @Column({ type: 'text', nullable: true })
   notes: string;

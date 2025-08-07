@@ -10,7 +10,9 @@ export class UploadsController {
   private readonly uploadsPath: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.uploadsPath = this.configService.get<string>('UPLOAD_PATH') || path.join(process.cwd(), 'uploads');
+    this.uploadsPath =
+      this.configService.get<string>('UPLOAD_PATH') ||
+      path.join(process.cwd(), 'uploads');
   }
 
   @Get(':filename')

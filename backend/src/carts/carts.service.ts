@@ -117,23 +117,23 @@ export class CartsService {
       where: { id: cart.id },
       relations: ['items', 'items.product'],
     });
-    
+
     if (!cartWithItems) {
       console.warn(`購物車 ${cart.id} 不存在`);
       return cart;
     }
-    
+
     console.log('🔍 getCartDetails 結果:', {
       cartId: cartWithItems.id,
       itemsCount: cartWithItems.items?.length || 0,
-      items: cartWithItems.items?.map(item => ({
+      items: cartWithItems.items?.map((item) => ({
         id: item.id,
         productId: item.productId,
         name: item.name,
-        quantity: item.quantity
-      }))
+        quantity: item.quantity,
+      })),
     });
-    
+
     return cartWithItems;
   }
 

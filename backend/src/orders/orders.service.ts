@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Order, OrderStatus, PaymentStatus } from './entities/order.entity';
+import { Order, OrderStatus, PaymentStatus, DeliveryMethod } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { PaymentRecord } from './entities/payment-record.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -80,16 +80,22 @@ export class OrdersService {
         });
       }
 
+      // Calculate shipping fee based on delivery info
+      const shippingFee = createOrderDto.deliveryInfo?.fee || 0;
+      const total = subtotal + shippingFee;
+
       // Create order
       const order = this.orderRepository.create({
         userId,
         status: OrderStatus.PENDING,
         paymentStatus: PaymentStatus.PENDING,
         paymentMethod: createOrderDto.paymentMethod,
+        deliveryMethod: createOrderDto.deliveryInfo?.method,
         subtotal,
-        shippingFee: 0, // TODO: Calculate shipping fee based on location
-        total: subtotal,
+        shippingFee,
+        total,
         customerInfo: createOrderDto.customerInfo,
+        deliveryInfo: createOrderDto.deliveryInfo,
         notes: createOrderDto.notes,
       });
 

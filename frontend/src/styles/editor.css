@@ -1,0 +1,178 @@
+/* Editor.js 基本樣式 */
+.codex-editor {
+  width: 100%;
+  min-height: 400px;
+}
+
+.codex-editor__redactor {
+  padding: 16px !important;
+  min-height: 350px;
+}
+
+.ce-block__content {
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.ce-paragraph {
+  line-height: 1.6;
+  font-size: 16px;
+  color: #374151;
+}
+
+.ce-header {
+  line-height: 1.4;
+  margin: 24px 0 16px 0;
+  color: #111827;
+}
+
+.ce-header[data-level="2"] {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ce-header[data-level="3"] {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ce-header[data-level="4"] {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ce-list {
+  margin: 16px 0;
+}
+
+.ce-list__item {
+  line-height: 1.6;
+  color: #374151;
+  margin: 8px 0;
+}
+
+.ce-quote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 16px;
+  margin: 24px 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.ce-quote__text {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.ce-quote__caption {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+/* 工具欄樣式 */
+.ce-inline-toolbar {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ce-popover {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ce-popover__item:hover {
+  background-color: #f3f4f6;
+}
+
+/* 佔位符樣式 */
+.ce-block--empty .ce-paragraph::before {
+  color: #9ca3af;
+}
+
+/* 焦點樣式 */
+.ce-block--focused .ce-block__content {
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+}
+
+/* 工具欄按鈕樣式 */
+.ce-toolbar__plus {
+  color: #6b7280;
+}
+
+.ce-toolbar__plus:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.ce-settings-button {
+  color: #6b7280;
+}
+
+.ce-settings-button:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* 圖片樣式 */
+.ce-image {
+  margin: 24px 0;
+}
+
+.ce-image__image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ce-image__caption {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+  font-style: italic;
+}
+
+.ce-image__upload-button {
+  background: #f3f4f6;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ce-image__upload-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .codex-editor__redactor {
+    padding: 12px !important;
+  }
+  
+  .ce-paragraph {
+    font-size: 14px;
+  }
+  
+  .ce-header[data-level="2"] {
+    font-size: 20px;
+  }
+  
+  .ce-header[data-level="3"] {
+    font-size: 18px;
+  }
+  
+  .ce-header[data-level="4"] {
+    font-size: 16px;
+  }
+}

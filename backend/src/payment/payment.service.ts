@@ -240,7 +240,10 @@ export class PaymentService {
       }
 
       // 創建新的付款
-      return await this.createPayment({ orderId, paymentMethod: paymentMethod as any });
+      return await this.createPayment({
+        orderId,
+        paymentMethod: paymentMethod as any,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to retry payment for order: ${orderId}`,

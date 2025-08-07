@@ -19,7 +19,10 @@ async function bootstrap() {
   // 在應用啟動前驗證環境變數
   try {
     EnvironmentValidator.validate();
-    console.log('[Bootstrap] Environment Summary:', EnvironmentValidator.getEnvironmentSummary());
+    console.log(
+      '[Bootstrap] Environment Summary:',
+      EnvironmentValidator.getEnvironmentSummary(),
+    );
   } catch (error) {
     console.error('[Bootstrap] Environment validation failed:', error.message);
     process.exit(1);
@@ -61,22 +64,22 @@ async function bootstrap() {
     origin: (origin, callback) => {
       // 允許無 origin 的請求（例如 Postman、行動應用）
       if (!origin) return callback(null, true);
-      
+
       // 檢查是否在允許清單中
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      
+
       // 允許所有 *.zeabur.app 子域名
       if (origin.endsWith('.zeabur.app')) {
         return callback(null, true);
       }
-      
+
       // 開發環境允許所有請求
       if (process.env.NODE_ENV === 'development') {
         return callback(null, true);
       }
-      
+
       callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

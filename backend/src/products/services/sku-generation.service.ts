@@ -229,9 +229,14 @@ export class SkuGenerationService {
   /**
    * 生成規格代碼
    */
-  private getSpecCode(specs: Record<string, string>, variantIndex?: number): string {
-    console.log(`SkuGeneration - 生成規格代碼，輸入規格: ${JSON.stringify(specs)}, 變體索引: ${variantIndex}`);
-    
+  private getSpecCode(
+    specs: Record<string, string>,
+    variantIndex?: number,
+  ): string {
+    console.log(
+      `SkuGeneration - 生成規格代碼，輸入規格: ${JSON.stringify(specs)}, 變體索引: ${variantIndex}`,
+    );
+
     const codes: string[] = [];
 
     // 定義規格的優先順序
@@ -243,12 +248,16 @@ export class SkuGenerationService {
       if (specValue && this.specCodeMap[specType]) {
         const code = this.specCodeMap[specType][specValue];
         if (code) {
-          console.log(`SkuGeneration - 找到預定義代碼: ${specType}=${specValue} -> ${code}`);
+          console.log(
+            `SkuGeneration - 找到預定義代碼: ${specType}=${specValue} -> ${code}`,
+          );
           codes.push(code);
         } else {
           // 如果沒有預定義的代碼，生成一個
           const generatedCode = this.generateSpecCode(specValue, specType);
-          console.log(`SkuGeneration - 生成代碼: ${specType}=${specValue} -> ${generatedCode}`);
+          console.log(
+            `SkuGeneration - 生成代碼: ${specType}=${specValue} -> ${generatedCode}`,
+          );
           codes.push(generatedCode);
         }
       }
@@ -259,7 +268,9 @@ export class SkuGenerationService {
     for (const [key, value] of Object.entries(specs)) {
       if (!specOrder.includes(key) && value) {
         const generatedCode = this.generateSpecCode(value, key, otherSpecIndex);
-        console.log(`SkuGeneration - 處理其他規格: ${key}=${value} -> ${generatedCode}`);
+        console.log(
+          `SkuGeneration - 處理其他規格: ${key}=${value} -> ${generatedCode}`,
+        );
         codes.push(generatedCode);
         otherSpecIndex++;
       }
@@ -268,7 +279,9 @@ export class SkuGenerationService {
     // 如果提供了變體索引，加入索引確保唯一性
     if (variantIndex !== undefined && variantIndex > 0) {
       const indexCode = (variantIndex + 1).toString().padStart(2, '0');
-      console.log(`SkuGeneration - 添加變體索引代碼: ${variantIndex} -> ${indexCode}`);
+      console.log(
+        `SkuGeneration - 添加變體索引代碼: ${variantIndex} -> ${indexCode}`,
+      );
       codes.push(indexCode);
     }
 
@@ -280,10 +293,14 @@ export class SkuGenerationService {
   /**
    * 為未定義的規格值生成代碼
    */
-  private generateSpecCode(value: string, specType?: string, index?: number): string {
+  private generateSpecCode(
+    value: string,
+    specType?: string,
+    index?: number,
+  ): string {
     // 創建基礎代碼
     let baseCode = '';
-    
+
     // 嘗試提取數字
     const numbers = value.match(/\d+/);
     if (numbers) {
@@ -387,7 +404,9 @@ export class SkuGenerationService {
   ): Promise<string[]> {
     console.log(`SkuGeneration - 開始批量生成 ${specsArray.length} 個 SKU`);
     console.log(`SkuGeneration - 產品資訊: ${product.name} (${product.id})`);
-    console.log(`SkuGeneration - 規格陣列: ${JSON.stringify(specsArray, null, 2)}`);
+    console.log(
+      `SkuGeneration - 規格陣列: ${JSON.stringify(specsArray, null, 2)}`,
+    );
 
     const skus: string[] = [];
     const usedBaseSku = new Set<string>();
@@ -397,47 +416,70 @@ export class SkuGenerationService {
       let attempts = 0;
       let uniqueSku: string;
 
-      console.log(`SkuGeneration - 處理第 ${i + 1} 個變體，規格: ${JSON.stringify(specs)}`);
+      console.log(
+        `SkuGeneration - 處理第 ${i + 1} 個變體，規格: ${JSON.stringify(specs)}`,
+      );
 
-      while (attempts < 10) { // 最多重試10次
+      while (attempts < 10) {
+        // 最多重試10次
         try {
           // 傳入變體索引確保基礎 SKU 不同
-          const baseSku = await this.generateSkuBase(product, specs, i + attempts);
-          console.log(`SkuGeneration - 第 ${i + 1} 個變體，嘗試 ${attempts + 1}，基礎 SKU: ${baseSku}`);
-          
+          const baseSku = await this.generateSkuBase(
+            product,
+            specs,
+            i + attempts,
+          );
+          console.log(
+            `SkuGeneration - 第 ${i + 1} 個變體，嘗試 ${attempts + 1}，基礎 SKU: ${baseSku}`,
+          );
+
           // 檢查批次內是否重複
           if (usedBaseSku.has(baseSku)) {
-            console.log(`SkuGeneration - 基礎 SKU ${baseSku} 在批次內重複，重試...`);
+            console.log(
+              `SkuGeneration - 基礎 SKU ${baseSku} 在批次內重複，重試...`,
+            );
             attempts++;
             continue;
           }
 
           // 確保全域唯一性
           uniqueSku = await this.ensureUniqueSku(baseSku, product.id);
-          console.log(`SkuGeneration - 第 ${i + 1} 個變體，最終 SKU: ${uniqueSku}`);
-          
+          console.log(
+            `SkuGeneration - 第 ${i + 1} 個變體，最終 SKU: ${uniqueSku}`,
+          );
+
           // 檢查最終 SKU 是否在批次內重複
           if (skus.includes(uniqueSku)) {
-            console.log(`SkuGeneration - 最終 SKU ${uniqueSku} 在批次內重複，重試...`);
+            console.log(
+              `SkuGeneration - 最終 SKU ${uniqueSku} 在批次內重複，重試...`,
+            );
             attempts++;
             continue;
           }
 
           usedBaseSku.add(baseSku);
           skus.push(uniqueSku);
-          console.log(`SkuGeneration - 第 ${i + 1} 個變體 SKU 生成成功: ${uniqueSku}`);
+          console.log(
+            `SkuGeneration - 第 ${i + 1} 個變體 SKU 生成成功: ${uniqueSku}`,
+          );
           break;
         } catch (error) {
           attempts++;
-          console.error(`SkuGeneration - 第 ${i + 1} 個變體，嘗試 ${attempts} 失敗: ${error.message}`);
+          console.error(
+            `SkuGeneration - 第 ${i + 1} 個變體，嘗試 ${attempts} 失敗: ${error.message}`,
+          );
           if (attempts >= 10) {
-            throw new Error(`Failed to generate unique SKU after ${attempts} attempts for variant ${i}: ${error.message}`);
+            throw new Error(
+              `Failed to generate unique SKU after ${attempts} attempts for variant ${i}: ${error.message}`,
+            );
           }
         }
       }
     }
 
-    console.log(`SkuGeneration - 批量生成完成，總共 ${skus.length} 個 SKU: ${skus.join(', ')}`);
+    console.log(
+      `SkuGeneration - 批量生成完成，總共 ${skus.length} 個 SKU: ${skus.join(', ')}`,
+    );
     return skus;
   }
 

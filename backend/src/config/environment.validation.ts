@@ -10,11 +10,11 @@ export class EnvironmentValidator {
    */
   static validate(): void {
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     // 所有環境都需要的變數
     const requiredEnvVars = [
       'DB_HOST',
-      'DB_PORT', 
+      'DB_PORT',
       'DB_USER',
       'DB_PASSWORD',
       'DB_NAME',
@@ -32,11 +32,11 @@ export class EnvironmentValidator {
       'GOOGLE_CALLBACK_URL',
     ];
 
-    const envVarsToCheck = isProduction 
+    const envVarsToCheck = isProduction
       ? [...requiredEnvVars, ...productionRequiredEnvVars]
       : requiredEnvVars;
 
-    const missingVars = envVarsToCheck.filter(varName => {
+    const missingVars = envVarsToCheck.filter((varName) => {
       const value = process.env[varName];
       return !value || value.trim() === '';
     });
@@ -44,22 +44,26 @@ export class EnvironmentValidator {
     if (missingVars.length > 0) {
       const errorMessage = `Missing required environment variables: ${missingVars.join(', ')}`;
       console.error(`[EnvironmentValidator] ${errorMessage}`);
-      
+
       if (isProduction) {
         throw new Error(errorMessage);
       } else {
         console.warn(`[EnvironmentValidator] Warning: ${errorMessage}`);
-        console.warn('[EnvironmentValidator] Application may not work correctly in production');
+        console.warn(
+          '[EnvironmentValidator] Application may not work correctly in production',
+        );
       }
     }
 
     // 驗證資料庫連接相關配置
     this.validateDatabaseConfig();
-    
+
     // 驗證 JWT 配置
     this.validateJwtConfig();
 
-    console.log('[EnvironmentValidator] Environment validation completed successfully');
+    console.log(
+      '[EnvironmentValidator] Environment validation completed successfully',
+    );
   }
 
   /**
@@ -78,12 +82,16 @@ export class EnvironmentValidator {
   private static validateJwtConfig(): void {
     const jwtSecret = process.env.JWT_SECRET;
     if (jwtSecret && jwtSecret.length < 32) {
-      console.warn('[EnvironmentValidator] JWT_SECRET should be at least 32 characters long for security');
+      console.warn(
+        '[EnvironmentValidator] JWT_SECRET should be at least 32 characters long for security',
+      );
     }
 
     const jwtExpires = process.env.JWT_EXPIRES_IN;
     if (jwtExpires && !['1h', '1d', '7d', '30d'].includes(jwtExpires)) {
-      console.warn('[EnvironmentValidator] JWT_EXPIRES_IN format should be like "1h", "1d", "7d", "30d"');
+      console.warn(
+        '[EnvironmentValidator] JWT_EXPIRES_IN format should be like "1h", "1d", "7d", "30d"',
+      );
     }
   }
 
@@ -92,7 +100,7 @@ export class EnvironmentValidator {
    */
   static getEnvironmentSummary(): Record<string, any> {
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     return {
       nodeEnv: process.env.NODE_ENV || 'development',
       isProduction,
@@ -100,7 +108,9 @@ export class EnvironmentValidator {
       dbPort: process.env.DB_PORT || 'NOT_SET',
       dbName: process.env.DB_NAME || 'NOT_SET',
       hasJwtSecret: !!process.env.JWT_SECRET,
-      hasGoogleOAuth: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      hasGoogleOAuth: !!(
+        process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ),
       baseUrl: process.env.BASE_URL || 'NOT_SET',
       frontendUrl: process.env.FRONTEND_URL || 'NOT_SET',
       uploadPath: process.env.UPLOAD_PATH || `${process.cwd()}/uploads`,

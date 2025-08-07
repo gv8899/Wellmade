@@ -5,7 +5,7 @@ import * as path from 'path';
 // Migration 重建腳本 - 直接連接生產資料庫執行
 async function rebuildMigrations() {
   console.log('🚀 開始 Migration 重建流程...');
-  
+
   // 使用與生產環境相同的連接配置
   const dataSource = new DataSource({
     type: 'postgres',
@@ -24,7 +24,7 @@ async function rebuildMigrations() {
 
     // 第一步：分析當前資料庫結構
     console.log('\n📋 第一步：分析當前資料庫結構...');
-    
+
     // 獲取所有表
     const tables = await queryRunner.query(`
       SELECT table_name 
@@ -34,14 +34,17 @@ async function rebuildMigrations() {
       ORDER BY table_name
     `);
 
-    console.log('發現的表:', tables.map((t: any) => t.table_name));
+    console.log(
+      '發現的表:',
+      tables.map((t: any) => t.table_name),
+    );
 
     const schemaReport: any = {
       analyzedAt: new Date().toISOString(),
       tables: {},
       enums: [],
       foreignKeys: [],
-      migrationStatus: {}
+      migrationStatus: {},
     };
 
     // 分析每個表的結構
@@ -77,7 +80,7 @@ async function rebuildMigrations() {
 
       schemaReport.tables[tableName] = {
         columns: columns,
-        primaryKeys: primaryKeys.map((pk: any) => pk.column_name)
+        primaryKeys: primaryKeys.map((pk: any) => pk.column_name),
       };
     }
 
@@ -117,11 +120,13 @@ async function rebuildMigrations() {
 
     schemaReport.enums = enums;
 
-    console.log(`✅ 分析完成: ${Object.keys(schemaReport.tables).length} 表, ${foreignKeys.length} 外鍵, ${enums.length} 枚舉`);
+    console.log(
+      `✅ 分析完成: ${Object.keys(schemaReport.tables).length} 表, ${foreignKeys.length} 外鍵, ${enums.length} 枚舉`,
+    );
 
     // 第二步：生成基線 Migration
     console.log('\n🏗️ 第二步：生成基線 Migration...');
-    
+
     const timestamp = new Date().getTime();
     const migrationName = `${timestamp}-BaselineSchema`;
     const migrationFileName = `${migrationName}.ts`;
@@ -146,10 +151,16 @@ export class BaselineSchema${timestamp} implements MigrationInterface {
         // enum_values 可能是字串或陣列，需要處理
         let enumValues;
         if (Array.isArray(enumType.enum_values)) {
-          enumValues = enumType.enum_values.map((v: string) => `'${v}'`).join(', ');
+          enumValues = enumType.enum_values
+            .map((v: string) => `'${v}'`)
+            .join(', ');
         } else {
           // 如果是字串格式 {value1,value2}，需要解析
-          enumValues = enumType.enum_values.replace(/[{}]/g, '').split(',').map((v: string) => `'${v.trim()}'`).join(', ');
+          enumValues = enumType.enum_values
+            .replace(/[{}]/g, '')
+            .split(',')
+            .map((v: string) => `'${v.trim()}'`)
+            .join(', ');
         }
         migrationContent += `        await queryRunner.query(\`CREATE TYPE "public"."${enumType.enum_name}" AS ENUM(${enumValues})\`);\n`;
       }
@@ -159,49 +170,49 @@ export class BaselineSchema${timestamp} implements MigrationInterface {
     // 生成表創建語句
     migrationContent += `        // 創建表\n`;
     const sortedTables = Object.keys(schemaReport.tables).sort();
-    
+
     for (const tableName of sortedTables) {
       const table = schemaReport.tables[tableName];
       migrationContent += `        await queryRunner.query(\`CREATE TABLE "${tableName}" (\n`;
-      
+
       const columnDefs = table.columns.map((col: any) => {
         let def = `            "${col.column_name}" `;
-        
+
         if (col.data_type === 'uuid') {
           def += 'uuid';
         } else if (col.data_type === 'character varying') {
-          def += col.character_maximum_length ? 
-            `character varying(${col.character_maximum_length})` : 
-            'character varying';
+          def += col.character_maximum_length
+            ? `character varying(${col.character_maximum_length})`
+            : 'character varying';
         } else if (col.data_type === 'USER-DEFINED') {
           def += `"public"."${col.udt_name}"`;
         } else if (col.data_type === 'ARRAY') {
           def += `${col.udt_name}`;
         } else if (col.data_type === 'numeric') {
-          def += col.numeric_precision ? 
-            `numeric(${col.numeric_precision},${col.numeric_scale})` : 
-            'numeric';
+          def += col.numeric_precision
+            ? `numeric(${col.numeric_precision},${col.numeric_scale})`
+            : 'numeric';
         } else {
           def += col.data_type;
         }
-        
+
         if (col.is_nullable === 'NO') {
           def += ' NOT NULL';
         }
-        
+
         if (col.column_default) {
           def += ` DEFAULT ${col.column_default}`;
         }
-        
+
         return def;
       });
-      
+
       migrationContent += columnDefs.join(',\n');
-      
+
       if (table.primaryKeys.length > 0) {
         migrationContent += `,\n            CONSTRAINT "PK_${tableName}" PRIMARY KEY ("${table.primaryKeys.join('", "')}")`;
       }
-      
+
       migrationContent += `\n        )\`);\n\n`;
     }
 
@@ -225,15 +236,15 @@ export class BaselineSchema${timestamp} implements MigrationInterface {
 
     // 第三步：備份並清理現有 migrations
     console.log('\n🗂️ 第三步：備份並清理現有 migrations...');
-    
+
     const migrationsDir = path.join(process.cwd(), 'migrations');
     const backupDir = path.join(process.cwd(), 'migrations-backup');
-    
+
     // 創建備份目錄
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir);
     }
-    
+
     // 備份現有 migrations
     const existingMigrations = fs.readdirSync(migrationsDir);
     for (const migration of existingMigrations) {
@@ -244,32 +255,33 @@ export class BaselineSchema${timestamp} implements MigrationInterface {
         fs.unlinkSync(sourcePath); // 刪除原文件
       }
     }
-    
-    console.log(`✅ 備份了 ${existingMigrations.length} 個 migration 檔案到 migrations-backup/`);
+
+    console.log(
+      `✅ 備份了 ${existingMigrations.length} 個 migration 檔案到 migrations-backup/`,
+    );
 
     // 第四步：創建新的基線 migration
     console.log('\n📝 第四步：創建新的基線 migration...');
-    
+
     const newMigrationPath = path.join(migrationsDir, migrationFileName);
     fs.writeFileSync(newMigrationPath, migrationContent);
-    
+
     console.log(`✅ 基線 migration 創建完成: ${migrationFileName}`);
 
     // 第五步：重置 migration 歷史
     console.log('\n🔄 第五步：重置 migration 歷史...');
-    
+
     try {
       // 清空 migrations 表
       await queryRunner.query(`DELETE FROM migrations`);
       console.log('✅ 清空 migrations 表');
-      
+
       // 插入基線 migration 記錄
       await queryRunner.query(`
         INSERT INTO migrations (timestamp, name) 
         VALUES (${timestamp}, 'BaselineSchema${timestamp}')
       `);
       console.log('✅ 插入基線 migration 記錄');
-      
     } catch (error) {
       console.log('migrations 表不存在，將由基線 migration 創建');
     }
@@ -284,7 +296,6 @@ export class BaselineSchema${timestamp} implements MigrationInterface {
 
     await queryRunner.release();
     await dataSource.destroy();
-
   } catch (error) {
     console.error('❌ Migration 重建失敗:', error);
     process.exit(1);

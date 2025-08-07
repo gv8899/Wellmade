@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購物車測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 購物車修復測試</h1>
+    
+    <div class="test-section">
+        <h2>測試商品資訊</h2>
+        <p><strong>商品ID:</strong> 3c0e65bb-27f5-4857-afe3-c6d987fb6fb5</p>
+        <button onclick="testProductAPI()">測試商品 API</button>
+        <div id="product-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>測試訪客購物車</h2>
+        <button onclick="testAddToCart()">模擬添加商品到購物車</button>
+        <button onclick="checkLocalStorage()">檢查本地存儲</button>
+        <button onclick="clearLocalStorage()">清空本地存儲</button>
+        <div id="cart-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>實際購物車頁面</h2>
+        <a href="/cart" target="_blank">
+            <button>打開購物車頁面</button>
+        </a>
+        <p class="info">請在新頁面中測試添加商品功能</p>
+    </div>
+
+    <script>
+        const productId = '3c0e65bb-27f5-4857-afe3-c6d987fb6fb5';
+        
+        async function testProductAPI() {
+            const resultDiv = document.getElementById('product-result');
+            resultDiv.innerHTML = '<p>測試中...</p>';
+            
+            try {
+                const response = await fetch(`/api/product?id=${productId}`);
+                const product = await response.json();
+                
+                const result = `
+                    <h3 class="success">✅ API 測試成功</h3>
+                    <pre>${JSON.stringify(product, null, 2)}</pre>
+                    <p><strong>商品名稱:</strong> ${product.name}</p>
+                    <p><strong>價格:</strong> NT$ ${product.price}</p>
+                    <p><strong>圖片:</strong> ${product.imageUrl ? '✅ 有圖片' : '❌ 無圖片'}</p>
+                `;
+                resultDiv.innerHTML = result;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ API 測試失敗: ${error.message}</p>`;
+            }
+        }
+        
+        function testAddToCart() {
+            const resultDiv = document.getElementById('cart-result');
+            
+            // 模擬舊的本地存儲方式（會產生問題）
+            const oldItem = {
+                id: productId,
+                productId: productId,
+                name: `Product ${productId}`,
+                price: 0,
+                quantity: 1,
+                cover: '',
+                specs: {}
+            };
+            
+            // 模擬新的修復後方式
+            testProductAPI().then(() => {
+                fetch(`/api/product?id=${productId}`)
+                    .then(response => response.json())
+                    .then(product => {
+                        const newItem = {
+                            id: productId,
+                            productId: productId,
+                            name: product.name,
+                            price: parseFloat(product.price) || 0,
+                            quantity: 1,
+                            cover: product.imageUrl || '',
+                            specs: {}
+                        };
+                        
+                        const comparison = `
+                            <h3>購物車項目比較</h3>
+                            <div style="display: flex; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <h4 class="error">❌ 修復前 (有問題)</h4>
+                                    <p><strong>名稱:</strong> ${oldItem.name}</p>
+                                    <p><strong>價格:</strong> NT$ ${oldItem.price}</p>
+                                    <p><strong>圖片:</strong> ${oldItem.cover ? '有' : '無'}</p>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h4 class="success">✅ 修復後 (正確)</h4>
+                                    <p><strong>名稱:</strong> ${newItem.name}</p>
+                                    <p><strong>價格:</strong> NT$ ${newItem.price}</p>
+                                    <p><strong>圖片:</strong> ${newItem.cover ? '有' : '無'}</p>
+                                </div>
+                            </div>
+                        `;
+                        resultDiv.innerHTML = comparison;
+                        
+                        // 保存到本地存儲以供測試
+                        localStorage.setItem('cart', JSON.stringify([newItem]));
+                    });
+            });
+        }
+        
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('cart-result');
+            const cartData = localStorage.getItem('cart');
+            
+            if (cartData) {
+                const cart = JSON.parse(cartData);
+                resultDiv.innerHTML = `
+                    <h3>本地存儲購物車內容</h3>
+                    <pre>${JSON.stringify(cart, null, 2)}</pre>
+                `;
+            } else {
+                resultDiv.innerHTML = '<p>本地存儲中沒有購物車資料</p>';
+            }
+        }
+        
+        function clearLocalStorage() {
+            localStorage.removeItem('cart');
+            document.getElementById('cart-result').innerHTML = '<p class="info">本地存儲已清空</p>';
+        }
+        
+        // 頁面載入時自動測試 API
+        window.onload = () => {
+            testProductAPI();
+        };
+    </script>
+</body>
+</html>

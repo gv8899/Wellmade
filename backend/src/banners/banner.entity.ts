@@ -76,7 +76,7 @@ export class Banner {
     if (!this.isActive) return false;
 
     const now = new Date();
-    
+
     // 檢查開始時間
     if (this.startDate && now < this.startDate) {
       return false;

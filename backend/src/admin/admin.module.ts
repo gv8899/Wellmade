@@ -17,7 +17,11 @@ import { ProductsModule } from '../products/products.module';
     TypeOrmModule.forFeature([Product, Brand, User, Category]),
     ProductsModule, // 導入 ProductsModule 以使用 ProductVariantsService
   ],
-  controllers: [AdminController, ScriptExecutorController, DatabaseAnalysisController],
+  controllers: [
+    AdminController,
+    ScriptExecutorController,
+    DatabaseAnalysisController,
+  ],
   providers: [AdminService, UploadService, DatabaseAnalysisService],
   exports: [AdminService],
 })

@@ -62,7 +62,9 @@ export class PaymentController {
     // 重導向到前端結果頁面
     const clientBackUrl = process.env.NEWEBPAY_CLIENT_BACK_URL;
     if (!clientBackUrl) {
-      console.error('NEWEBPAY_CLIENT_BACK_URL environment variable is required');
+      console.error(
+        'NEWEBPAY_CLIENT_BACK_URL environment variable is required',
+      );
       res.status(500).send('Configuration error');
       return;
     }

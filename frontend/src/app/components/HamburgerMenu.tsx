@@ -55,6 +55,9 @@ export default function HamburgerMenu() {
                 <div className="block w-full px-6 py-4 text-lg text-gray-800 font-semibold mb-3 transition text-left cursor-default select-none">
                   {user.name}
                 </div>
+                <Link href="/blog" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+                  部落格
+                </Link>
                 <Link href="/orders" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
                   訂單查詢
                 </Link>
@@ -70,6 +73,9 @@ export default function HamburgerMenu() {
               </>
             ) : (
               <>
+                <Link href="/blog" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
+                  部落格
+                </Link>
                 <Link href="/login" className="block w-full px-6 py-4 text-lg text-gray-700 hover:bg-gray-50 rounded mb-3 transition text-left" onClick={() => setOpen(false)}>
                   登入
                 </Link>

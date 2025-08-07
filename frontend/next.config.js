@@ -114,17 +114,36 @@ const nextConfig = {
         source: '/api/categories/:path*',
         destination: `${apiUrl}/categories/:path*`,
       },
-      {
-        source: '/api/cart/:path*',
-        destination: `${apiUrl}/cart/:path*`,
-      },
-      {
-        source: '/api/cart',
-        destination: `${apiUrl}/cart`,
-      },
+      // Cart API 使用前端 API 路由處理，不直接代理
+      // 這樣可以正確處理 session 和 cookie 轉發
       {
         source: '/api/admin/:path*',
         destination: `${apiUrl}/admin/:path*`,
+      },
+      // Blog 相關 API 代理
+      {
+        source: '/api/articles/:path*',
+        destination: `${apiUrl}/articles/:path*`,
+      },
+      {
+        source: '/api/articles',
+        destination: `${apiUrl}/articles`,
+      },
+      {
+        source: '/api/article-categories/:path*',
+        destination: `${apiUrl}/article-categories/:path*`,
+      },
+      {
+        source: '/api/article-categories',
+        destination: `${apiUrl}/article-categories`,
+      },
+      {
+        source: '/api/authors/:path*',
+        destination: `${apiUrl}/authors/:path*`,
+      },
+      {
+        source: '/api/authors',
+        destination: `${apiUrl}/authors`,
       },
       // 註解：/api/uploads/:path* 的代理已移除，使用前端 API 路由處理
       // 可以根據需要添加其他特定的 API 代理

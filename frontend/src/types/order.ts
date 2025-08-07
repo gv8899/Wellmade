@@ -20,6 +20,14 @@ export enum PaymentMethod {
   LINE_PAY = 'line_pay',
 }
 
+export enum DeliveryMethod {
+  HOME_DELIVERY = 'home_delivery',
+  SEVEN_ELEVEN = 'seven_eleven',
+  FAMILY_MART = 'family_mart',
+  HI_LIFE = 'hi_life',
+  OK_MART = 'ok_mart'
+}
+
 export interface CustomerInfo {
   name: string;
   email: string;
@@ -28,6 +36,16 @@ export interface CustomerInfo {
   city?: string;
   district?: string;
   postalCode?: string;
+}
+
+export interface DeliveryInfo {
+  method: DeliveryMethod;
+  fee: number;
+  estimatedDays: number;
+  storeId?: string;
+  storeName?: string;
+  storeAddress?: string;
+  storePhone?: string;
 }
 
 export interface OrderItem {
@@ -56,10 +74,13 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
+  deliveryMethod: DeliveryMethod;
   subtotal: number;
   shippingFee: number;
+  handlingFee: number;
   total: number;
   customerInfo: CustomerInfo;
+  deliveryInfo: DeliveryInfo;
   notes?: string;
   items: OrderItem[];
   createdAt: string;
@@ -69,6 +90,7 @@ export interface Order {
 export interface CreateOrderData {
   customerInfo: CustomerInfo;
   paymentMethod: PaymentMethod;
+  deliveryInfo: DeliveryInfo;
   items: Array<{
     productId: string;
     variantId?: string;

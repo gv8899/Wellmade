@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { BrandsModule } from './brands/brands.module';
 import { CartsModule } from './carts/carts.module';
+import { CartsLogisticsModule } from './carts/carts-logistics.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
 import { UploadsModule } from './uploads/uploads.module';
@@ -19,6 +20,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PaymentModule } from './payment/payment.module';
 import { HealthModule } from './health/health.module';
 import { BannersModule } from './banners/banners.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { BannersModule } from './banners/banners.module';
     ProductsModule,
     BrandsModule,
     CartsModule,
+    CartsLogisticsModule,
     AdminModule,
     CategoriesModule,
     UploadsModule,
@@ -65,6 +68,7 @@ import { BannersModule } from './banners/banners.module';
     OrdersModule,
     PaymentModule,
     BannersModule,
+    ArticlesModule,
   ],
   controllers: [AppController],
   providers: [

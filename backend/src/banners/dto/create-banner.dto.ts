@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsNumber, IsDateString, IsUrl, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsNumber,
+  IsDateString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 import { BannerLinkType, BannerPosition } from '../banner.entity';
 
 export class CreateBannerDto {

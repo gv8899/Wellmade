@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions } from 'typeorm';
 import { Banner, BannerPosition } from './banner.entity';
@@ -22,7 +26,7 @@ export class BannersService {
       if (createBannerDto.startDate && createBannerDto.endDate) {
         const startDate = new Date(createBannerDto.startDate);
         const endDate = new Date(createBannerDto.endDate);
-        
+
         if (startDate >= endDate) {
           throw new BadRequestException('結束日期必須晚於開始日期');
         }
@@ -33,16 +37,22 @@ export class BannersService {
         const maxOrder = await this.bannersRepository
           .createQueryBuilder('banner')
           .select('MAX(banner.sortOrder)', 'maxOrder')
-          .where('banner.position = :position', { position: createBannerDto.position || BannerPosition.HOMEPAGE })
+          .where('banner.position = :position', {
+            position: createBannerDto.position || BannerPosition.HOMEPAGE,
+          })
           .getRawOne();
-        
+
         createBannerDto.sortOrder = (maxOrder?.maxOrder || 0) + 1;
       }
 
       const banner = this.bannersRepository.create({
         ...createBannerDto,
-        startDate: createBannerDto.startDate ? new Date(createBannerDto.startDate) : null,
-        endDate: createBannerDto.endDate ? new Date(createBannerDto.endDate) : null,
+        startDate: createBannerDto.startDate
+          ? new Date(createBannerDto.startDate)
+          : null,
+        endDate: createBannerDto.endDate
+          ? new Date(createBannerDto.endDate)
+          : null,
       });
 
       return await this.bannersRepository.save(banner);
@@ -57,8 +67,17 @@ export class BannersService {
   /**
    * 獲取 Banner 列表（管理員用）
    */
-  async findAll(queryDto: QueryBannerDto): Promise<{ items: Banner[]; total: number }> {
-    const { position, isActive, includeInactive, skip = 0, take = 20, onlyCurrentlyActive } = queryDto;
+  async findAll(
+    queryDto: QueryBannerDto,
+  ): Promise<{ items: Banner[]; total: number }> {
+    const {
+      position,
+      isActive,
+      includeInactive,
+      skip = 0,
+      take = 20,
+      onlyCurrentlyActive,
+    } = queryDto;
 
     const queryBuilder = this.bannersRepository.createQueryBuilder('banner');
 
@@ -76,11 +95,11 @@ export class BannersService {
       queryBuilder.andWhere('banner.isActive = true');
       queryBuilder.andWhere(
         '(banner.startDate IS NULL OR banner.startDate <= :now)',
-        { now }
+        { now },
       );
       queryBuilder.andWhere(
         '(banner.endDate IS NULL OR banner.endDate > :now)',
-        { now }
+        { now },
       );
     }
 
@@ -103,18 +122,17 @@ export class BannersService {
    */
   async findPublic(position?: BannerPosition): Promise<Banner[]> {
     const queryBuilder = this.bannersRepository.createQueryBuilder('banner');
-    
+
     const now = new Date();
-    
+
     queryBuilder.where('banner.isActive = true');
     queryBuilder.andWhere(
       '(banner.startDate IS NULL OR banner.startDate <= :now)',
-      { now }
+      { now },
     );
-    queryBuilder.andWhere(
-      '(banner.endDate IS NULL OR banner.endDate > :now)',
-      { now }
-    );
+    queryBuilder.andWhere('(banner.endDate IS NULL OR banner.endDate > :now)', {
+      now,
+    });
 
     if (position) {
       queryBuilder.andWhere('banner.position = :position', { position });
@@ -148,9 +166,13 @@ export class BannersService {
     const banner = await this.findOne(id);
 
     // 檢查日期邏輯
-    const startDate = updateBannerDto.startDate ? new Date(updateBannerDto.startDate) : banner.startDate;
-    const endDate = updateBannerDto.endDate ? new Date(updateBannerDto.endDate) : banner.endDate;
-    
+    const startDate = updateBannerDto.startDate
+      ? new Date(updateBannerDto.startDate)
+      : banner.startDate;
+    const endDate = updateBannerDto.endDate
+      ? new Date(updateBannerDto.endDate)
+      : banner.endDate;
+
     if (startDate && endDate && startDate >= endDate) {
       throw new BadRequestException('結束日期必須晚於開始日期');
     }
@@ -158,8 +180,12 @@ export class BannersService {
     try {
       const updateData = {
         ...updateBannerDto,
-        startDate: updateBannerDto.startDate ? new Date(updateBannerDto.startDate) : undefined,
-        endDate: updateBannerDto.endDate ? new Date(updateBannerDto.endDate) : undefined,
+        startDate: updateBannerDto.startDate
+          ? new Date(updateBannerDto.startDate)
+          : undefined,
+        endDate: updateBannerDto.endDate
+          ? new Date(updateBannerDto.endDate)
+          : undefined,
       };
 
       await this.bannersRepository.update(id, updateData);
@@ -198,9 +224,11 @@ export class BannersService {
   /**
    * 批量更新排序
    */
-  async updateBatchSortOrder(updates: { id: string; sortOrder: number }[]): Promise<Banner[]> {
+  async updateBatchSortOrder(
+    updates: { id: string; sortOrder: number }[],
+  ): Promise<Banner[]> {
     const results = [];
-    
+
     for (const update of updates) {
       const banner = await this.findOne(update.id);
       banner.sortOrder = update.sortOrder;

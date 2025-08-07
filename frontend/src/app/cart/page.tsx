@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/CartContext';
 import { CartItem } from '@/types/cart';
 import Image from 'next/image';
@@ -14,23 +15,22 @@ import { colors } from '@/design-system';
 import type { ColorMode } from '@/design-system';
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, totalAmount, isLoading, refreshCart, isAuthenticated } = useCart();
+  const router = useRouter();
+  const { 
+    cartItems, 
+    updateQuantity, 
+    removeFromCart, 
+    totalAmount, 
+    selectedTotalAmount,
+    selectedItems,
+    selectedItemIds,
+    toggleItemSelection,
+    isLoading, 
+    refreshCart, 
+    isAuthenticated 
+  } = useCart();
   const [isSyncing, setIsSyncing] = useState(false);
   const [colorMode, setColorMode] = useState<ColorMode>('light');
-  // 將 useState hook 移到條件判斷之前，避免 React Hooks 順序問題
-  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
-
-  // 當 cartItems 變動時同步勾選狀態
-  React.useEffect(() => {
-    if (!isLoading && cartItems && cartItems.length > 0) {
-      setSelectedIds(prev => {
-        // 保留已有的選擇，但過濾掉不再存在的商品
-        const existingSelections = prev.filter(id => cartItems.some(item => item.id === id));
-        // 如果沒有任何選擇，則全選
-        return existingSelections.length > 0 ? existingSelections : cartItems.map(i => i.id);
-      });
-    }
-  }, [cartItems, isLoading]);
 
   // 手動同步購物車資料
   const handleSyncCart = async () => {
@@ -64,13 +64,9 @@ export default function CartPage() {
   const hasPreorderItems = preorderItems.length > 0;
   // 當 cartItems 變動時自動同步勾選的邏輯已移至上方
   // 切換勾選
-  const toggleSelect = (id: string) => {
-    setSelectedIds(ids => ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]);
-  };
-
-  // 只統計勾選的商品
-  const checkedItems = cartItems.filter(item => selectedIds.includes(item.id));
-  const subtotal = checkedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // 使用 Context 中的選擇狀態
+  const checkedItems = selectedItems;
+  const subtotal = selectedTotalAmount;
 
   return (
     <div className="min-h-screen w-full bg-white font-sans flex items-start justify-center">
@@ -112,8 +108,8 @@ export default function CartPage() {
                 <input
                   type="checkbox"
                   className="w-5 h-5 accent-black mr-4"
-                  checked={selectedIds.includes(item.id)}
-                  onChange={() => toggleSelect(item.id)}
+                  checked={selectedItemIds.includes(item.id)}
+                  onChange={() => toggleItemSelection(item.id)}
                   aria-label="選擇本商品結帳"
                 />
                 {/* 商品圖片 */}
@@ -273,6 +269,12 @@ export default function CartPage() {
               disabled={checkedItems.length === 0 || (!isAuthenticated && hasPreorderItems)}
               style={{ width: '100%', marginTop: '1.5rem', marginBottom: '0.5rem' }}
               onClick={() => {
+                // 檢查是否有選擇商品
+                if (checkedItems.length === 0) {
+                  toast.error('請選擇要結帳的商品');
+                  return;
+                }
+                
                 // 如果有預購商品但未登入，強制要求登入
                 if (!isAuthenticated && hasPreorderItems) {
                   toast.error('預購商品需要會員身份，請先登入。');
@@ -280,13 +282,16 @@ export default function CartPage() {
                   return;
                 }
                 
+                // 如果沒有登入，詢問是否要先登入
                 if (!isAuthenticated && checkedItems.length > 0) {
                   if (confirm('是否要先登入會員再結帳？\n\n登入會員可以累積點數、查詢訂單記錄。')) {
                     handleSignIn();
                     return;
                   }
                 }
-                // 在這裡可以直接導向結帳頁面或處理結帳流程
+                
+                // 導向結帳頁面
+                router.push('/checkout');
               }}
             >
               {checkedItems.length === 0 

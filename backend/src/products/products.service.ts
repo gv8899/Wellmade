@@ -64,11 +64,13 @@ export class ProductsService {
 
       if (categoryEntity) {
         // 獲取所有子分類ID（包括子分類的子分類）
-        const getAllChildrenIds = async (parentId: string): Promise<string[]> => {
+        const getAllChildrenIds = async (
+          parentId: string,
+        ): Promise<string[]> => {
           const children = await this.categoryRepository.find({
             where: { parentId },
           });
-          
+
           let allIds: string[] = [];
           for (const child of children) {
             allIds.push(child.id);
@@ -78,12 +80,12 @@ export class ProductsService {
           }
           return allIds;
         };
-        
+
         // 收集當前分類和所有子分類的ID
         const categoryIds = [categoryEntity.id];
         const childrenIds = await getAllChildrenIds(categoryEntity.id);
         categoryIds.push(...childrenIds);
-        
+
         // 使用 In 查詢來包含所有相關分類
         whereConditions.categoryId = In(categoryIds);
       }
@@ -588,5 +590,15 @@ export class ProductsService {
   // 輔助方法：獲取 SKU 生成服務
   getSkuGenerationService() {
     return this.skuGenerationService;
+  }
+
+  /**
+   * 為遷移獲取所有產品（包括變體）
+   */
+  async findAllForMigration(): Promise<Product[]> {
+    return this.productRepository.find({
+      relations: ['variants', 'brand', 'categoryRelation'],
+      order: { createdAt: 'ASC' }
+    });
   }
 }

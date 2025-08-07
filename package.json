@@ -1,0 +1,19 @@
+{
+  "name": "wellmade-fullstack",
+  "version": "1.0.0",
+  "description": "Wellmade 電商平台 - 前後端一體化啟動",
+  "scripts": {
+    "start:dev": "./start-dev.sh",
+    "dev": "./start-dev.sh"
+  },
+  "keywords": [
+    "wellmade",
+    "ecommerce",
+    "fullstack"
+  ],
+  "author": "Wellmade Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

@@ -14,6 +14,10 @@ interface CartContextType {
   error: string | null;
   isAuthenticated: boolean;
   
+  // 選擇狀態
+  selectedItemIds: string[];
+  selectedItems: CartItem[];
+  
   // 操作
   addToCart: (input: AddToCartInput) => Promise<boolean>;
   removeFromCart: (itemId: string) => Promise<boolean>;
@@ -21,8 +25,15 @@ interface CartContextType {
   clearCart: () => Promise<boolean>;
   refreshCart: () => Promise<boolean>;
   
+  // 選擇操作
+  setSelectedItemIds: (ids: string[]) => void;
+  toggleItemSelection: (itemId: string) => void;
+  selectAllItems: () => void;
+  unselectAllItems: () => void;
+  
   // 計算屬性
   totalAmount: number;
+  selectedTotalAmount: number;
   cartClickCount: number;
   addCartClick: () => void;
 }
@@ -31,15 +42,29 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart 必須在 CartProvider 內使用");
+  if (!ctx) {
+    console.error('[CART] ⚠️  useCart 被在 CartProvider 外使用');
+    throw new Error("useCart 必須在 CartProvider 內使用");
+  }
+  
+  // 添加調試信息：追蹤 useCart 的使用
+  console.log('[CART] 📌 useCart hook 被呼叫:', {
+    cartItemsCount: ctx.cartItems?.length || 0,
+    isLoading: ctx.isLoading,
+    error: ctx.error,
+    isAuthenticated: ctx.isAuthenticated
+  });
+  
   return ctx;
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  console.log('[CART] 🏗️  CartProvider 組件初始化');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cartClickCount, setCartClickCount] = useState<number>(0);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
@@ -751,8 +776,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // 初始載入和登入狀態變化處理
   useEffect(() => {
     const handleAuthChange = async () => {
+      console.log('[CART] 🔄 認證狀態檢查:', {
+        currentAuth: isAuthenticated,
+        previousAuth: previousAuthState.current,
+        status,
+        operationLocked: operationLock.current
+      });
+      
       if (previousAuthState.current !== isAuthenticated) {
-        console.log('[CART] 認證狀態改變:', {
+        console.log('[CART] 🔄 認證狀態改變:', {
           from: previousAuthState.current,
           to: isAuthenticated
         });
@@ -760,16 +792,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         
         if (isAuthenticated) {
           // 剛登入：合併訪客購物車
-          console.log('[CART] 用戶剛登入，開始合併訪客購物車');
+          console.log('[CART] 👤 用戶剛登入，開始合併訪客購物車');
           await mergeGuestCart();
         }
         
         // 重新載入購物車
-        console.log('[CART] 認證狀態改變後重新載入購物車');
+        console.log('[CART] 🔄 認證狀態改變後重新載入購物車');
         await refreshCart();
-      } else if (status !== 'loading') {
-        // 初始載入
-        console.log('[CART] 執行初始購物車載入');
+      } else if (status !== 'loading' && !operationLock.current) {
+        // 初始載入：確保不在操作鎖定狀態下
+        console.log('[CART] 🚀 執行初始購物車載入');
         await refreshCart();
       }
     };
@@ -777,20 +809,89 @@ export function CartProvider({ children }: { children: ReactNode }) {
     handleAuthChange();
   }, [isAuthenticated, status, mergeGuestCart, refreshCart]);
 
+  // 選擇狀態管理：當購物車商品變化時，自動調整選擇狀態
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setSelectedItemIds(prev => {
+        // 移除已經不存在的商品 ID
+        const validIds = prev.filter(id => cartItems.some(item => item.id === id));
+        // 如果沒有任何選中項目，則全選
+        if (validIds.length === 0) {
+          return cartItems.map(item => item.id);
+        }
+        return validIds;
+      });
+    } else {
+      setSelectedItemIds([]);
+    }
+  }, [cartItems]);
+
+  // 選擇相關的計算屬性
+  const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
+  const selectedTotalAmount = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // 選擇操作函數
+  const toggleItemSelection = useCallback((itemId: string) => {
+    setSelectedItemIds(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  }, []);
+
+  const selectAllItems = useCallback(() => {
+    setSelectedItemIds(cartItems.map(item => item.id));
+  }, [cartItems]);
+
+  const unselectAllItems = useCallback(() => {
+    setSelectedItemIds([]);
+  }, []);
+
+  // 添加額外的組件掛載檢查，確保購物車在所有情況下都能正確初始化
+  useEffect(() => {
+    console.log('[CART] 📊 購物車組件狀態監控:', {
+      cartItemsCount: cartItems.length,
+      selectedItemsCount: selectedItems.length,
+      isLoading,
+      error,
+      isAuthenticated,
+      totalAmount,
+      selectedTotalAmount
+    });
+  }, [cartItems, selectedItems.length, isLoading, error, isAuthenticated, totalAmount, selectedTotalAmount]);
+
   const contextValue: CartContextType = {
     cartItems,
     isLoading,
     error,
     isAuthenticated,
+    selectedItemIds,
+    selectedItems,
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
     refreshCart,
+    setSelectedItemIds,
+    toggleItemSelection,
+    selectAllItems,
+    unselectAllItems,
     totalAmount,
+    selectedTotalAmount,
     cartClickCount,
     addCartClick,
   };
+
+  // 添加調試信息：每次 Context Value 變化時記錄
+  useEffect(() => {
+    console.log('[CART] 🎯 Context Value 更新:', {
+      cartItemsCount: cartItems.length,
+      totalAmount,
+      isLoading,
+      error: error ? error.substring(0, 50) : null,
+      isAuthenticated
+    });
+  }, [cartItems.length, totalAmount, isLoading, error, isAuthenticated]);
 
   return (
     <CartContext.Provider value={contextValue}>

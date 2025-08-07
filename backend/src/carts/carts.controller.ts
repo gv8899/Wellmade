@@ -534,7 +534,7 @@ export class CartsController {
 
     // 查找所有與此 sessionId 相關的購物車
     const sessionCarts = await this.cartsService.findCartsBySession(sessionId);
-    
+
     for (const cart of sessionCarts) {
       if (!cart.userId) {
         console.log('將購物車', cart.id, '綁定到用戶', userId);
@@ -545,7 +545,10 @@ export class CartsController {
     }
 
     // 獲取更新後的購物車
-    const updatedCart = await this.cartsService.getOrCreateCart(userId, sessionId);
+    const updatedCart = await this.cartsService.getOrCreateCart(
+      userId,
+      sessionId,
+    );
     return this.cartsService.getCartDetails(updatedCart);
   }
 }

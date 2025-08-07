@@ -29,6 +29,7 @@ interface Product {
   cover: string;
   category: string;
   style?: string;
+  images?: string[]; // 額外圖片列表
   media: {
     type: "image" | "video";
     src: string;
@@ -71,6 +72,13 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ id }) => {
     if (product?.cover) {
       images.push(product.cover);
     }
+    
+    // 添加產品的額外圖片 (images 欄位)
+    product?.images?.forEach(imageUrl => {
+      if (imageUrl && !images.includes(imageUrl)) {
+        images.push(imageUrl);
+      }
+    });
     
     // 添加所有媒體圖片（包含附加圖片）
     product?.media?.forEach(media => {

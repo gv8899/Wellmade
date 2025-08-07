@@ -83,7 +83,14 @@ export default function ImageUploader({
       const response = await adminApi.uploadImages(files);
       
       if (response.summary.failed > 0) {
-        toast.warning(`${response.summary.successful} 張圖片上傳成功，${response.summary.failed} 張失敗`);
+        toast(`${response.summary.successful} 張圖片上傳成功，${response.summary.failed} 張失敗`, {
+          icon: '⚠️',
+          style: {
+            background: '#FEF3C7',
+            color: '#92400E',
+            border: '1px solid #FDE68A'
+          }
+        });
       } else {
         toast.success(`${response.summary.successful} 張圖片上傳成功`);
       }

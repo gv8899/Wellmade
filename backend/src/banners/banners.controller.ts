@@ -77,7 +77,10 @@ export class BannersController {
    */
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  async update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateBannerDto: UpdateBannerDto,
+  ) {
     return await this.bannersService.update(id, updateBannerDto);
   }
 

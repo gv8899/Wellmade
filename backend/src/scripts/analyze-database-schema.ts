@@ -5,7 +5,7 @@ import * as path from 'path';
 // 分析生產資料庫結構的腳本
 async function analyzeDatabaseSchema() {
   console.log('🔍 開始分析生產資料庫結構...');
-  
+
   const dataSource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST,
@@ -30,13 +30,16 @@ async function analyzeDatabaseSchema() {
       ORDER BY table_name
     `);
 
-    console.log('📋 發現的表:', tables.map((t: any) => t.table_name));
+    console.log(
+      '📋 發現的表:',
+      tables.map((t: any) => t.table_name),
+    );
 
     const schemaReport: any = {
       tables: {},
       enums: [],
       foreignKeys: [],
-      indexes: []
+      indexes: [],
     };
 
     // 2. 分析每個表的結構
@@ -86,7 +89,7 @@ async function analyzeDatabaseSchema() {
       schemaReport.tables[tableName] = {
         columns: columns,
         primaryKeys: primaryKeys.map((pk: any) => pk.column_name),
-        uniqueConstraints: uniqueConstraints
+        uniqueConstraints: uniqueConstraints,
       };
     }
 
@@ -141,7 +144,10 @@ async function analyzeDatabaseSchema() {
     schemaReport.indexes = indexes;
 
     // 6. 保存分析報告
-    const reportPath = path.join(process.cwd(), 'database-schema-analysis.json');
+    const reportPath = path.join(
+      process.cwd(),
+      'database-schema-analysis.json',
+    );
     fs.writeFileSync(reportPath, JSON.stringify(schemaReport, null, 2));
     console.log(`\n📄 結構分析報告已保存至: ${reportPath}`);
 
@@ -156,7 +162,6 @@ async function analyzeDatabaseSchema() {
 
     await queryRunner.release();
     await dataSource.destroy();
-
   } catch (error) {
     console.error('❌ 分析失敗:', error);
     process.exit(1);

@@ -55,6 +55,9 @@ export function prepareBackendHeaders(request: NextRequest, session: any) {
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
     headers.Cookie = cookieHeader;
+    console.log('🍪 轉發 Cookie:', cookieHeader);
+  } else {
+    console.log('⚠️  無 Cookie 信息');
   }
 
   return headers;

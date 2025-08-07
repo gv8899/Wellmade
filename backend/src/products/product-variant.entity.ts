@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { ProductStatus, InventoryType } from './enums/product-status.enum';
+import type { ProductLogisticsConfig } from './interfaces/product-logistics.interface';
 
 @Entity('product_variants')
 @Index(['productId', 'sku'], { unique: true }) // 確保同一產品的SKU唯一
@@ -117,6 +118,16 @@ export class ProductVariant {
   // 預購描述
   @Column('text', { nullable: true })
   preorderDescription: string;
+
+  // 物流配置 (JSON 格式儲存)
+  @Column('jsonb', { 
+    nullable: true,
+    default: () => `'{
+      "supportedDeliveryMethods": ["home_delivery", "seven_eleven", "family_mart", "hi_life", "ok_mart"],
+      "physicalAttributes": {}
+    }'::jsonb`
+  })
+  logisticsConfig: ProductLogisticsConfig;
 
   @CreateDateColumn()
   createdAt: Date;

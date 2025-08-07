@@ -1,0 +1,307 @@
+{
+  "config": {
+    "configFile": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/playwright.config.ts",
+    "rootDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "Mobile Chrome Landscape",
+        "name": "Mobile Chrome Landscape",
+        "testDir": "/Users/mike/CascadeProjects/Wellmade-old-version/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "checkout-functionality.spec.ts",
+      "file": "checkout-functionality.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Checkout 頁面功能測試",
+          "file": "checkout-functionality.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "配送方式選擇測試",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9961,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🛒 測試購物車資料已準備完成\n"
+                        },
+                        {
+                          "text": "🔍 檢查配送方式選項...\n"
+                        },
+                        {
+                          "text": "✅ 找到配送選項: 宅配到府\n"
+                        },
+                        {
+                          "text": "✓ 宅配到府 選項可正常選擇\n"
+                        },
+                        {
+                          "text": "✅ 找到配送選項: 7-ELEVEN\n"
+                        },
+                        {
+                          "text": "✓ 7-ELEVEN 選項可正常選擇\n"
+                        },
+                        {
+                          "text": "✅ 找到配送選項: 全家便利商店\n"
+                        },
+                        {
+                          "text": "✓ 全家便利商店 選項可正常選擇\n"
+                        },
+                        {
+                          "text": "✅ 找到配送選項: 萊爾富\n"
+                        },
+                        {
+                          "text": "✓ 萊爾富 選項可正常選擇\n"
+                        },
+                        {
+                          "text": "✅ 找到配送選項: OK便利商店\n"
+                        },
+                        {
+                          "text": "✓ OK便利商店 選項可正常選擇\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-05T14:46:14.497Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0d7a10cd6c50ccfc67dd-eb9f9ef08aa6710628fb",
+              "file": "checkout-functionality.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "超商取貨門市選擇測試",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 9353,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🛒 測試購物車資料已準備完成\n"
+                        },
+                        {
+                          "text": "🏪 測試超商取貨門市選擇功能...\n"
+                        },
+                        {
+                          "text": "✅ 找到 7-ELEVEN 取貨選項\n"
+                        },
+                        {
+                          "text": "✅ 門市選擇功能可用\n"
+                        },
+                        {
+                          "text": "✅ 門市選擇彈窗正常開啟\n"
+                        },
+                        {
+                          "text": "✅ 門市選擇器正常載入\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-05T14:46:14.506Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0d7a10cd6c50ccfc67dd-3627e07000fbbed1560e",
+              "file": "checkout-functionality.spec.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "付款方式選擇測試",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 8327,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🛒 測試購物車資料已準備完成\n"
+                        },
+                        {
+                          "text": "💳 檢查付款方式選項...\n"
+                        },
+                        {
+                          "text": "✅ 找到付款選項: 信用卡付款\n"
+                        },
+                        {
+                          "text": "✓ 信用卡付款 選項可正常選擇\n"
+                        },
+                        {
+                          "text": "✅ 找到付款選項: LINE Pay\n"
+                        },
+                        {
+                          "text": "✓ LINE Pay 選項可正常選擇\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-05T14:46:14.497Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0d7a10cd6c50ccfc67dd-b2268534fb1205e9867e",
+              "file": "checkout-functionality.spec.ts",
+              "line": 176,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-05T14:46:13.788Z",
+    "duration": 11377.399000000001,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

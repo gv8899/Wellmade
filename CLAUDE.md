@@ -16,6 +16,12 @@ Wellmade 是一個內容導向的電商平台，採用 Instagram 風格的商品
 
 ## 核心指令
 
+### 一次啟動前後端
+```bash
+npm run start:dev         # 一次啟動前後端開發伺服器
+npm run dev              # 同上，簡化指令
+```
+
 ### 後端開發
 ```bash
 cd backend
@@ -68,7 +74,7 @@ npm run format           # Prettier 格式化
 - **商品 (Products)**: 豐富內容搭配品牌關聯，JSONB 欄位用於功能/常見問題，支援多變體管理
 - **分類 (Categories)**: 階層式結構，支援 SEO 優化欄位 (metaTitle, metaDescription)
 - **品牌 (Brands)**: 品牌資訊管理，與商品多對一關聯
-- **購物車 (Carts)**: 支援訪客和認證用戶，自動合併機制
+- **購物車 (Carts)**: 支援訪客和認證用戶，自動合併機制，具備唯一性約束確保單一用戶單一購物車
 - **用戶 (Users)**: 基於角色 (admin, user, editor) 搭配 Google OAuth 同步
 - **訂單 (Orders)**: 
   - 訂單主表：狀態流轉 (pending → processing → paid → shipped → delivered)
@@ -129,6 +135,32 @@ NEXTAUTH_SECRET
 
 # Google OAuth
 GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+```
+
+## 價格顯示系統
+
+專案包含統一的價格格式化工具：
+- **位置**: `frontend/src/utils/format.ts`
+- **主要函式**:
+  - `formatPrice()` - 基礎數字格式化，支援千分位逗號
+  - `formatTWD()` - 台幣格式化 (NT$ X,XXX)
+  - `formatPriceRange()` - 價格範圍顯示 (NT$ X,XXX - X,XXX)
+  - `formatSubtotal()` - 小計計算與格式化
+  - `formatNumber()` - 純數字格式化（不含貨幣符號）
+- **使用規範**: 所有價格顯示必須使用統一格式化函式，確保一致性
+
+### 使用範例
+```tsx
+import { formatTWD, formatPriceRange, formatSubtotal } from '@/utils/format';
+
+// 單一價格顯示
+<Text>{formatTWD(1234)}</Text>  // "NT$ 1,234"
+
+// 價格範圍顯示
+<Text>{formatPriceRange(100, 500)}</Text>  // "NT$ 100 - 500"
+
+// 小計計算
+<Text>{formatSubtotal(99, 3)}</Text>  // "NT$ 297"
 ```
 
 ## 設計系統最佳實踐
@@ -203,6 +235,9 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
   - 混合訪客/認證系統搭配樂觀更新
   - 自動合併機制，登入時合併訪客購物車
   - 本地儲存備份，離線支援
+  - 強制綁定機制 (`/api/cart/force-bind`) 修復購物車同步問題
+  - 資料完整性約束，確保單一用戶單一購物車
+  - 自動修復機制，登入後檢測並修復購物車狀態
 - **訂單處理**: 
   - 完整狀態機管理訂單生命週期
   - 商品資訊快照，保證歷史資料一致性
@@ -303,7 +338,25 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 - `/api/categories/*` - 分類資料代理
 - `/api/products/*` - 商品資料代理
 - `/api/cart/*` - 購物車操作代理
+- `/api/cart/force-bind` - 購物車強制綁定修復機制
 - `/api/orders/*` - 訂單操作代理
+
+## 測試和除錯
+
+### 手動測試工具
+- **認證測試頁面**: `/test-auth` - 完整的 OAuth 流程測試
+- **測試指南**: `backend/manual-auth-test.md` - 詳細的手動測試步驟
+- **測試腳本**: 多個除錯腳本用於測試購物車、認證、API 整合等功能
+  - `test-cart-flow.js` - 購物車流程測試
+  - `test-authenticated-cart.js` - 認證用戶購物車測試
+  - `test-complete-flow.js` - 完整流程測試
+  - `test-frontend-integration.js` - 前端整合測試
+
+### 測試流程
+1. **認證測試**: 訪問 `/test-auth` 頁面驗證 Google OAuth 流程
+2. **購物車測試**: 使用測試腳本驗證購物車綁定和同步
+3. **API 測試**: 檢查各 API 端點的回應和錯誤處理
+4. **自動修復驗證**: 確認購物車自動修復機制正常運作
 
 ## 故障排除
 

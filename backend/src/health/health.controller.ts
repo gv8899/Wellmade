@@ -34,7 +34,7 @@ export class HealthController {
     try {
       // 執行簡單的查詢來檢查資料庫連線
       await this.dataSource.query('SELECT 1');
-      
+
       return {
         status: 'ok',
         database: 'connected',
@@ -59,7 +59,7 @@ export class HealthController {
     try {
       // 檢查所有關鍵服務是否就緒
       const dbCheck = await this.dataSource.query('SELECT 1');
-      
+
       return {
         status: 'ready',
         services: {

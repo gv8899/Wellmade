@@ -38,6 +38,7 @@ export interface FAQItem {
 
 // 在檔案最前面導入 ProductVariant 會產生循環依賴，所以使用延遲載入
 import type { ProductVariant } from './product-variant.entity';
+import type { ProductLogisticsConfig } from './interfaces/product-logistics.interface';
 
 @Entity('products') // Specifies the table name in the database
 export class Product {
@@ -98,6 +99,16 @@ export class Product {
   // 常見問答 (JSON 格式儲存)
   @Column('jsonb', { nullable: true })
   faqs: FAQItem[];
+
+  // 物流配置 (JSON 格式儲存)
+  @Column('jsonb', { 
+    nullable: true,
+    default: () => `'{
+      "supportedDeliveryMethods": ["home_delivery", "seven_eleven", "family_mart", "hi_life", "ok_mart"],
+      "physicalAttributes": {}
+    }'::jsonb`
+  })
+  logisticsConfig: ProductLogisticsConfig;
 
   // 產品規格模板 (定義此產品有哪些規格項目，例如：["顏色", "尺寸"])
   @Column('jsonb', { nullable: true, default: () => "'[]'" })

@@ -46,7 +46,7 @@ export const productApi = {
 
   // 獲取單一商品
   async getOne(id: string): Promise<EnhancedProduct> {
-    const response = await api.get(`/products/${id}`);
+    const response = await api.get(`/product?id=${id}`);
     return response.data;
   },
 

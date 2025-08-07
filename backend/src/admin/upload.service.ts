@@ -18,7 +18,9 @@ export class UploadService {
 
   constructor(private readonly configService: ConfigService) {
     // 從環境變數或預設路徑設定上傳目錄
-    this.uploadPath = this.configService.get<string>('UPLOAD_PATH') || path.join(process.cwd(), 'uploads');
+    this.uploadPath =
+      this.configService.get<string>('UPLOAD_PATH') ||
+      path.join(process.cwd(), 'uploads');
     this.ensureUploadDirectoryExists();
   }
 
@@ -85,7 +87,9 @@ export class UploadService {
 
       const baseUrl = this.configService.get<string>('BASE_URL');
       if (!baseUrl) {
-        throw new BadRequestException('BASE_URL environment variable is required');
+        throw new BadRequestException(
+          'BASE_URL environment variable is required',
+        );
       }
 
       return {
@@ -138,10 +142,7 @@ export class UploadService {
       this.uploadPath,
       `${baseFilename}-medium.webp`,
     );
-    const largePath = path.join(
-      this.uploadPath,
-      `${baseFilename}-large.webp`,
-    );
+    const largePath = path.join(this.uploadPath, `${baseFilename}-large.webp`);
     const desktopPath = path.join(
       this.uploadPath,
       `${baseFilename}-desktop.webp`,
@@ -202,7 +203,9 @@ export class UploadService {
 
       const baseUrl = this.configService.get<string>('BASE_URL');
       if (!baseUrl) {
-        throw new BadRequestException('BASE_URL environment variable is required');
+        throw new BadRequestException(
+          'BASE_URL environment variable is required',
+        );
       }
 
       return {
@@ -219,12 +222,12 @@ export class UploadService {
     } catch (error) {
       // 清理可能已創建的檔案
       await this.cleanupFiles([
-        originalPath, 
-        thumbnailPath, 
-        mediumPath, 
-        largePath, 
-        desktopPath, 
-        mobilePath
+        originalPath,
+        thumbnailPath,
+        mediumPath,
+        largePath,
+        desktopPath,
+        mobilePath,
       ]);
       throw new BadRequestException(
         `Banner image processing failed: ${error.message}`,
@@ -310,9 +313,9 @@ export class UploadService {
       `${filename}-original.*`,
       `${filename}-thumb.webp`,
       `${filename}-medium.webp`,
-      `${filename}-large.webp`,    // Banner 專用
-      `${filename}-desktop.webp`,  // Banner 專用
-      `${filename}-mobile.webp`,   // Banner 專用
+      `${filename}-large.webp`, // Banner 專用
+      `${filename}-desktop.webp`, // Banner 專用
+      `${filename}-mobile.webp`, // Banner 專用
     ];
 
     try {

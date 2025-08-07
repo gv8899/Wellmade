@@ -34,113 +34,124 @@ async function updateImageUrls() {
 
     // 更新產品圖片 URL
     console.log('開始更新產品圖片 URL...');
-    
+
     const products = await productRepo.find();
     let productUpdated = 0;
-    
+
     for (const product of products) {
       let needUpdate = false;
-      
+
       // 更新主圖 URL
-      if (product.imageUrl && product.imageUrl.includes('localhost:3003/uploads/')) {
+      if (
+        product.imageUrl &&
+        product.imageUrl.includes('localhost:3003/uploads/')
+      ) {
         product.imageUrl = product.imageUrl.replace(
           'http://localhost:3003/uploads/',
-          'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
+          'https://02f0-36-224-76-160.ngrok-free.app/uploads/',
         );
         needUpdate = true;
       }
-      
+
       // 更新額外圖片 URLs
       if (product.images && Array.isArray(product.images)) {
-        const updatedImages = product.images.map(url => {
+        const updatedImages = product.images.map((url) => {
           if (url && url.includes('localhost:3003/uploads/')) {
             return url.replace(
               'http://localhost:3003/uploads/',
-              'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
+              'https://02f0-36-224-76-160.ngrok-free.app/uploads/',
             );
           }
           return url;
         });
-        
+
         if (JSON.stringify(updatedImages) !== JSON.stringify(product.images)) {
           product.images = updatedImages;
           needUpdate = true;
         }
       }
-      
+
       // 更新關鍵特性中的圖片
       if (product.keyFeatures && Array.isArray(product.keyFeatures)) {
-        const updatedKeyFeatures = product.keyFeatures.map(feature => {
-          if (feature.image && feature.image.includes('localhost:3003/uploads/')) {
+        const updatedKeyFeatures = product.keyFeatures.map((feature) => {
+          if (
+            feature.image &&
+            feature.image.includes('localhost:3003/uploads/')
+          ) {
             return {
               ...feature,
               image: feature.image.replace(
                 'http://localhost:3003/uploads/',
-                'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
-              )
+                'https://02f0-36-224-76-160.ngrok-free.app/uploads/',
+              ),
             };
           }
           return feature;
         });
-        
-        if (JSON.stringify(updatedKeyFeatures) !== JSON.stringify(product.keyFeatures)) {
+
+        if (
+          JSON.stringify(updatedKeyFeatures) !==
+          JSON.stringify(product.keyFeatures)
+        ) {
           product.keyFeatures = updatedKeyFeatures;
           needUpdate = true;
         }
       }
-      
+
       // 更新特性詳情中的圖片
       if (product.featureDetails && Array.isArray(product.featureDetails)) {
-        const updatedFeatureDetails = product.featureDetails.map(detail => {
+        const updatedFeatureDetails = product.featureDetails.map((detail) => {
           if (detail.src && detail.src.includes('localhost:3003/uploads/')) {
             return {
               ...detail,
               src: detail.src.replace(
                 'http://localhost:3003/uploads/',
-                'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
-              )
+                'https://02f0-36-224-76-160.ngrok-free.app/uploads/',
+              ),
             };
           }
           return detail;
         });
-        
-        if (JSON.stringify(updatedFeatureDetails) !== JSON.stringify(product.featureDetails)) {
+
+        if (
+          JSON.stringify(updatedFeatureDetails) !==
+          JSON.stringify(product.featureDetails)
+        ) {
           product.featureDetails = updatedFeatureDetails;
           needUpdate = true;
         }
       }
-      
+
       if (needUpdate) {
         await productRepo.save(product);
         productUpdated++;
         console.log(`✅ 更新產品: ${product.name}`);
       }
     }
-    
+
     console.log(`產品圖片 URL 更新完成，共更新 ${productUpdated} 個產品`);
 
     // 更新品牌 Logo URL
     console.log('開始更新品牌 Logo URL...');
-    
+
     const brands = await brandRepo.find();
     let brandUpdated = 0;
-    
+
     for (const brand of brands) {
       if (brand.logoUrl && brand.logoUrl.includes('localhost:3003/uploads/')) {
         brand.logoUrl = brand.logoUrl.replace(
           'http://localhost:3003/uploads/',
-          'https://02f0-36-224-76-160.ngrok-free.app/uploads/'
+          'https://02f0-36-224-76-160.ngrok-free.app/uploads/',
         );
-        
+
         await brandRepo.save(brand);
         brandUpdated++;
         console.log(`✅ 更新品牌: ${brand.name}`);
       }
     }
-    
+
     console.log(`品牌 Logo URL 更新完成，共更新 ${brandUpdated} 個品牌`);
     console.log(`🎉 所有圖片 URL 更新完成！`);
-
   } catch (error) {
     console.error('更新圖片 URL 時發生錯誤:', error);
   } finally {

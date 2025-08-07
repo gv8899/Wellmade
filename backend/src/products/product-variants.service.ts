@@ -107,7 +107,9 @@ export class ProductVariantsService {
       }
     });
 
-    console.log(`AdminService - 需要生成 SKU 的變體: ${variantsNeedingSku.length}`);
+    console.log(
+      `AdminService - 需要生成 SKU 的變體: ${variantsNeedingSku.length}`,
+    );
     console.log(`AdminService - 已有 SKU 的變體: ${variantsWithSku.length}`);
 
     // 批量生成 SKU，確保無重複
@@ -147,7 +149,9 @@ export class ProductVariantsService {
     const allSkus = processedVariants.map((v) => v.sku);
     const uniqueSkus = new Set(allSkus);
     if (allSkus.length !== uniqueSkus.size) {
-      console.error(`AdminService - 最終檢查發現重複 SKU: ${allSkus.join(', ')}`);
+      console.error(
+        `AdminService - 最終檢查發現重複 SKU: ${allSkus.join(', ')}`,
+      );
       throw new BadRequestException(
         'Duplicate SKUs found in final variant list',
       );
@@ -161,13 +165,24 @@ export class ProductVariantsService {
       .map(([sku]) => sku);
 
     if (existingSkus.length > 0) {
-      console.error(`AdminService - 發現已存在的 SKU: ${existingSkus.join(', ')}`);
+      console.error(
+        `AdminService - 發現已存在的 SKU: ${existingSkus.join(', ')}`,
+      );
       throw new ConflictException(
         `The following SKUs already exist: ${existingSkus.join(', ')}`,
       );
     }
 
-    console.log(`AdminService - 最終變體資料: ${JSON.stringify(processedVariants.map(v => ({ sku: v.sku, variantTitle: v.variantTitle })), null, 2)}`);
+    console.log(
+      `AdminService - 最終變體資料: ${JSON.stringify(
+        processedVariants.map((v) => ({
+          sku: v.sku,
+          variantTitle: v.variantTitle,
+        })),
+        null,
+        2,
+      )}`,
+    );
 
     const variantEntities = processedVariants.map((variantData) =>
       this.variantRepository.create(variantData),

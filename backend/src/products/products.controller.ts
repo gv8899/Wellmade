@@ -22,14 +22,20 @@ import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/user.enum';
 import { ProductsService } from './products.service';
+import { ProductLogisticsService } from './services/product-logistics.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
 import { Product } from './product.entity';
+import { ProductLogisticsConfig } from './interfaces/product-logistics.interface';
 
+@ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly logisticsService: ProductLogisticsService,
+  ) {}
 
   // GET /products - 取得產品列表，支援分頁和排序
   @Public()
@@ -182,5 +188,49 @@ export class ProductsController {
       message: 'Master SKU 生成完成',
       ...result,
     };
+  }
+
+  // === 物流管理 API ===
+
+  /**
+   * 獲取產品的物流配置
+   */
+  @Public()
+  @Get(':id/logistics')
+  @ApiOperation({ summary: '獲取產品物流配置' })
+  @ApiResponse({ status: 200, description: '物流配置資訊' })
+  async getProductLogistics(@Param('id') id: string) {
+    const product = await this.productsService.findOne(id);
+    return {
+      productId: id,
+      logisticsConfig: product.logisticsConfig
+    };
+  }
+
+  /**
+   * 更新產品的物流配置
+   */
+  @Patch(':id/logistics')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '更新產品物流配置' })
+  @ApiResponse({ status: 200, description: '物流配置更新成功' })
+  async updateProductLogistics(
+    @Param('id') id: string,
+    @Body() logisticsConfig: ProductLogisticsConfig
+  ): Promise<Product> {
+    return this.logisticsService.updateProductLogisticsConfig(id, logisticsConfig);
+  }
+
+  /**
+   * 獲取所有可用的配送方式
+   */
+  @Public()
+  @Get('system/delivery-methods')
+  @ApiOperation({ summary: '獲取系統所有可用配送方式' })
+  @ApiResponse({ status: 200, description: '配送方式列表' })
+  async getDeliveryMethods() {
+    return this.logisticsService.getAvailableDeliveryMethods();
   }
 }
