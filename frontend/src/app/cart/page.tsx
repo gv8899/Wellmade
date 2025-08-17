@@ -282,12 +282,10 @@ export default function CartPage() {
                   return;
                 }
                 
-                // 如果沒有登入，詢問是否要先登入
+                // 如果沒有登入，直接登入（移除確認彈窗）
                 if (!isAuthenticated && checkedItems.length > 0) {
-                  if (confirm('是否要先登入會員再結帳？\n\n登入會員可以累積點數、查詢訂單記錄。')) {
-                    handleSignIn();
-                    return;
-                  }
+                  handleSignIn();
+                  return;
                 }
                 
                 // 導向結帳頁面
