@@ -12,6 +12,7 @@ import { formatTWD } from '@/utils/format';
 // 導入新組件
 import EnhancedDeliverySelector from './EnhancedDeliverySelector';
 import StoreSelector from './StoreSelector';
+import NewebpayStoreSelector from './NewebpayStoreSelector';
 import ShippingCalculator from './ShippingCalculator';
 
 // 導入物流服務
@@ -474,97 +475,6 @@ const EnhancedCheckoutForm: React.FC = () => {
           <div className="w-full">
             {/* 表單區域 */}
             <div>
-              {/* 選中的商品列表 */}
-              <div className="mb-8">
-                <div className="divide-y divide-gray-200">
-                  {selectedItems.map((item, index) => (
-                    <div key={`${item.id}_${index}`} className="py-4 flex gap-4 relative">
-                      {/* 商品圖片 */}
-                      <div className="w-20 h-20 relative flex-shrink-0 bg-gray-100 rounded">
-                        {item.cover && item.cover.trim() !== '' ? (
-                          <Image
-                            src={item.cover}
-                            alt={item.name}
-                            fill
-                            className="object-cover rounded"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-                            <Text variant="footnote" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
-                              無圖
-                            </Text>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* 商品資訊 */}
-                      <div className="flex-1">
-                        {/* 商品名稱 x 數量 */}
-                        <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600' }}>
-                          {item.name.split(' x ')[0]} x {item.quantity}
-                        </Text>
-                        
-                        {/* 變體規格顯示 - 換行 */}
-                        {item.specs && Object.keys(item.specs).length > 0 && (
-                          <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ display: 'block', marginTop: '0.25rem', marginBottom: '0.5rem' }}>
-                            {Object.entries(item.specs).map(([key, value]) => `${key}: ${value}`).join(' • ')}
-                          </Text>
-                        )}
-                        
-                        {/* 預購狀態顯示 */}
-                        {item.isPreorder && (
-                          <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-2">
-                            📅 預購商品
-                          </div>
-                        )}
-                        
-                        {/* 預購信息顯示 */}
-                        {item.isPreorder && item.preorderInfo && (
-                          <div className="text-xs space-y-1">
-                            {item.preorderInfo.expectedShipDate && (
-                              <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
-                                預計出貨: {new Date(item.preorderInfo.expectedShipDate).toLocaleDateString('zh-TW')}
-                              </Text>
-                            )}
-                            {item.preorderInfo.preorderDescription && (
-                              <Text variant="footnote" color={colors.info} colorMode={colorMode}>
-                                {item.preorderInfo.preorderDescription}
-                              </Text>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* 價格顯示 - 固定右下角，對齊圖片底部 */}
-                      <div className="absolute right-0 bottom-4">
-                        <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600' }}>
-                          $ {(item.price * item.quantity).toLocaleString()}
-                        </Text>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* 費用明細區塊 - 從底部移到這裡 */}
-                <div className="mt-6">
-                  <ShippingCalculator
-                    cartItems={selectedItems.map(item => ({
-                      id: item.id,
-                      name: item.name,
-                      price: item.price,
-                      quantity: item.quantity,
-                      weight: 0.5, // 預設重量
-                      isPreorder: item.isPreorder
-                    }))}
-                    deliveryInfo={deliveryInfo}
-                    colorMode={colorMode}
-                  />
-                </div>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-12">
                 {/* 基本資訊 */}
                 <div className="space-y-6">
@@ -763,6 +673,97 @@ const EnhancedCheckoutForm: React.FC = () => {
                   />
                 </div>
 
+                {/* 選中的商品列表 */}
+                <div className="mb-8">
+                  <div className="divide-y divide-gray-200">
+                    {selectedItems.map((item, index) => (
+                      <div key={`${item.id}_${index}`} className="py-4 flex gap-4 relative">
+                        {/* 商品圖片 */}
+                        <div className="w-20 h-20 relative flex-shrink-0 bg-gray-100 rounded">
+                          {item.cover && item.cover.trim() !== '' ? (
+                            <Image
+                              src={item.cover}
+                              alt={item.name}
+                              fill
+                              className="object-cover rounded"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+                              <Text variant="footnote" color={colors.neutral.tertiaryLabel} colorMode={colorMode}>
+                                無圖
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* 商品資訊 */}
+                        <div className="flex-1">
+                          {/* 商品名稱 x 數量 */}
+                          <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600' }}>
+                            {item.name.split(' x ')[0]} x {item.quantity}
+                          </Text>
+                          
+                          {/* 變體規格顯示 - 換行 */}
+                          {item.specs && Object.keys(item.specs).length > 0 && (
+                            <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode} style={{ display: 'block', marginTop: '0.25rem', marginBottom: '0.5rem' }}>
+                              {Object.entries(item.specs).map(([key, value]) => `${key}: ${value}`).join(' • ')}
+                            </Text>
+                          )}
+                          
+                          {/* 預購狀態顯示 */}
+                          {item.isPreorder && (
+                            <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-2">
+                              📅 預購商品
+                            </div>
+                          )}
+                          
+                          {/* 預購信息顯示 */}
+                          {item.isPreorder && item.preorderInfo && (
+                            <div className="text-xs space-y-1">
+                              {item.preorderInfo.expectedShipDate && (
+                                <Text variant="footnote" color={colors.neutral.secondaryLabel} colorMode={colorMode}>
+                                  預計出貨: {new Date(item.preorderInfo.expectedShipDate).toLocaleDateString('zh-TW')}
+                                </Text>
+                              )}
+                              {item.preorderInfo.preorderDescription && (
+                                <Text variant="footnote" color={colors.info} colorMode={colorMode}>
+                                  {item.preorderInfo.preorderDescription}
+                                </Text>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* 價格顯示 - 固定右下角，對齊圖片底部 */}
+                        <div className="absolute right-0 bottom-4">
+                          <Text variant="headline" color={colors.neutral.label} colorMode={colorMode} style={{ fontWeight: '600' }}>
+                            $ {(item.price * item.quantity).toLocaleString()}
+                          </Text>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* 費用明細區塊 - 從底部移到這裡 */}
+                  <div className="mt-6">
+                    <ShippingCalculator
+                      cartItems={selectedItems.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        weight: 0.5, // 預設重量
+                        isPreorder: item.isPreorder
+                      }))}
+                      deliveryInfo={deliveryInfo}
+                      colorMode={colorMode}
+                    />
+                  </div>
+                </div>
+
                 {/* 錯誤訊息 */}
                 {finalError && (
                   <div className="rounded-md p-4" style={{ backgroundColor: `${colors.danger.light}10` }}>
@@ -797,17 +798,18 @@ const EnhancedCheckoutForm: React.FC = () => {
           </div>
         )}
 
-        {/* 門市選擇彈窗 */}
+        {/* 門市選擇彈窗 - 使用藍新金流門市地圖 */}
         {showStoreSelector && isStorePickup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
               <div className="p-6 max-h-[90vh] overflow-y-auto">
-                <StoreSelector
+                <NewebpayStoreSelector
                   storeType={formData.deliveryMethod!}
                   selectedStore={formData.selectedStore}
                   onStoreSelect={handleStoreSelect}
                   onClose={() => setShowStoreSelector(false)}
                   colorMode={colorMode}
+                  merchantOrderNo={`TEMP_${Date.now()}`} // 暫時訂單編號，實際應該在建立訂單後使用真實訂單號
                 />
               </div>
             </div>

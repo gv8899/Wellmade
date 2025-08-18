@@ -21,6 +21,7 @@ import { PaymentModule } from './payment/payment.module';
 import { HealthModule } from './health/health.module';
 import { BannersModule } from './banners/banners.module';
 import { ArticlesModule } from './articles/articles.module';
+import { LogisticsModule } from './logistics/logistics.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { ArticlesModule } from './articles/articles.module';
     PaymentModule,
     BannersModule,
     ArticlesModule,
+    LogisticsModule,
   ],
   controllers: [AppController],
   providers: [
