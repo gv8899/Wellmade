@@ -106,7 +106,7 @@ export class NewebpayLogisticsService {
       this.config.apiUrl = this.config.apiUrl || 'https://clogistics.newebpay.com/api';
       this.config.isProduction = false;
       
-      this.logger.log('物流服務已啟動測試模式，全家門市選擇功能仍可正常使用');
+      this.logger.log('物流服務已啟動測試模式，全家門市選擇功能仍可正常使用 [v2024.08.24]');
     }
   }
 
