@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
 
+// Base64 編碼函數（Node.js 環境可用）
+function base64Encode(str: string): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(str).toString('base64');
+  }
+  // 前端環境的備援方案
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -38,8 +47,10 @@ export async function POST(request: NextRequest) {
         : 'http://localhost:3000';
       
       let officialMapUrl = '';
-      const shipType = body.ShipType || 1;
-      const returnUrl = body.ReturnURL || `${frontendUrl}/api/logistics/webhook/store-selected`;
+      const shipType = parseInt(body.ShipType || body.shipType || '1');
+      const returnUrl = body.ReturnURL || body.returnUrl || `${frontendUrl}/api/logistics/webhook/store-selected`;
+      
+      console.log('[API Proxy] Store map fallback - ShipType:', shipType, 'ReturnURL:', returnUrl);
       
       switch (shipType) {
         case 1: // 7-ELEVEN
@@ -48,11 +59,18 @@ export async function POST(request: NextRequest) {
           officialMapUrl = `https://emap.presco.com.tw/c2cemap.ashx?eshopid=870&servicetype=1&url=${encodeURIComponent(intermediateUrl)}`;
           break;
         case 2: // 全家便利商店
+          // 🎉 使用全家門市查詢 API 的自建門市選擇器
+          console.log('[Store Map] 使用全家門市查詢 API 自建門市選擇器');
+          
+          // 直接使用我們的門市選擇器，不再依賴有問題的官方回調機制
+          officialMapUrl = `${frontendUrl}/family-mart-selector.html`;
+          console.log('[Store Map] 全家便利商店門市選擇器:', officialMapUrl);
+          break;
         case 3: // 萊爾富  
         case 4: // OK便利商店
         default:
           // 其他超商暫時使用測試模式
-          const storeNames = { 2: 'FamilyMart', 3: 'HiLife', 4: 'OKMart' };
+          const storeNames = { 3: 'HiLife', 4: 'OKMart' };
           const storeName = storeNames[shipType as keyof typeof storeNames] || 'ConvenienceStore';
           officialMapUrl = `${frontendUrl}/test/store-map?${new URLSearchParams({
             storeType: shipType.toString(),
@@ -65,8 +83,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         mapUrl: officialMapUrl,
-        message: shipType === 1 ? '使用 7-11 官方門市選擇頁面' : '使用測試模式 - 該超商官方 API 尚未整合',
-        isTestMode: shipType !== 1
+        message: shipType === 1 ? '使用 7-11 官方門市選擇頁面' : 
+                shipType === 2 ? '使用全家便利商店官方門市選擇 API' :
+                '使用測試模式 - 該超商官方 API 尚未整合',
+        isTestMode: shipType > 2,
+        service: shipType === 1 ? '7-11 官方 API' : 
+                shipType === 2 ? '全家便利商店官方 API' : 'Test Mode',
+        note: shipType === 2 ? '使用 mfme.map.com.tw 官方門市選擇服務' : undefined
       });
     }
 

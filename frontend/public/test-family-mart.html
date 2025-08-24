@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全家便利商店門市選擇測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 10px; background: #00A651; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #008a44; }
+        .result { background: white; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        .url { word-break: break-all; font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🏪 全家便利商店門市選擇測試</h1>
+    
+    <div class="test-section">
+        <h2>📍 門市選擇測試</h2>
+        <p>點擊下方按鈕開啟門市選擇頁面：</p>
+        <button onclick="testStoreSelection()">開啟全家門市選擇</button>
+        <button onclick="test7ElevenStoreSelection()">開啟 7-11 門市選擇 (對照組)</button>
+        <div id="storeResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 API URL 生成測試</h2>
+        <button onclick="generateAPIUrls()">生成 API URL</button>
+        <button onclick="testRetrieveCallback()">測試 Retrieve 端點</button>
+        <div id="urlResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📞 回調測試</h2>
+        <p>模擬不同的回調參數格式：</p>
+        <button onclick="testCallback('direct')">直接參數格式</button>
+        <button onclick="testCallback('cvs')">CVS 格式</button>
+        <button onclick="testCallback('json')">JSON 格式</button>
+        <div id="callbackResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 監聽門市選擇結果
+        window.addEventListener('message', function(event) {
+            console.log('收到門市選擇結果:', event.data);
+            
+            if (event.data.type === 'STORE_SELECTED') {
+                const result = document.getElementById('storeResult');
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>✅ 門市選擇成功</h3>
+                    <p><strong>門市代碼:</strong> ${event.data.store.storeId}</p>
+                    <p><strong>門市名稱:</strong> ${event.data.store.storeName}</p>
+                    <p><strong>門市地址:</strong> ${event.data.store.storeAddress}</p>
+                    <p><strong>電話:</strong> ${event.data.store.storePhone || '未提供'}</p>
+                    <p><strong>來源:</strong> ${event.data.source || '未知'}</p>
+                `;
+            }
+        });
+
+        async function testStoreSelection() {
+            try {
+                const response = await fetch('/api/logistics/store-map', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ShipType: 2,
+                        MerchantOrderNo: 'TEST_' + Date.now(),
+                        ReturnURL: window.location.origin + '/api/logistics/webhook/store-selected'
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('門市地圖 API 回應:', data);
+                
+                if (data.success && data.mapUrl) {
+                    const mapWindow = window.open(data.mapUrl, 'familyStoreMap', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                } else {
+                    alert('無法開啟門市地圖: ' + (data.message || '未知錯誤'));
+                }
+            } catch (error) {
+                console.error('測試失敗:', error);
+                alert('測試失敗: ' + error.message);
+            }
+        }
+
+        async function test7ElevenStoreSelection() {
+            try {
+                const response = await fetch('/api/logistics/store-map', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ShipType: 1,
+                        MerchantOrderNo: 'SEVEN_' + Date.now(),
+                        ReturnURL: window.location.origin + '/api/logistics/webhook/store-selected'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.mapUrl) {
+                    const mapWindow = window.open(data.mapUrl, 'sevenElevenStoreMap', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                } else {
+                    alert('無法開啟 7-11 門市地圖: ' + (data.message || '未知錯誤'));
+                }
+            } catch (error) {
+                alert('7-11 測試失敗: ' + error.message);
+            }
+        }
+
+        function generateAPIUrls() {
+            const baseUrl = 'https://mfme.map.com.tw/default.aspx';
+            const callbackUrl = window.location.origin + '/api/logistics/family-mart-callback';
+            
+            const configs = [
+                { name: '本地測試', cvsname: 'wellmade.local' },
+                { name: '生產環境', cvsname: 'wellmade.select' }
+            ];
+            
+            let html = '<h3>生成的 API URLs:</h3>';
+            
+            configs.forEach(config => {
+                const cvstemp = btoa(JSON.stringify({ callback_url: callbackUrl }));
+                const params = new URLSearchParams({
+                    cvsname: config.cvsname,
+                    cvsid: Date.now().toString(),
+                    cvstemp: cvstemp,
+                    exchange: 'true',
+                    cvslink: callbackUrl
+                });
+                
+                const fullUrl = baseUrl + '?' + params.toString();
+                html += `
+                    <h4>${config.name}</h4>
+                    <div class="url">${fullUrl}</div>
+                    <p>cvstemp 內容: ${JSON.stringify({callback_url: callbackUrl})}</p>
+                `;
+            });
+            
+            const result = document.getElementById('urlResult');
+            result.style.display = 'block';
+            result.innerHTML = html;
+        }
+
+        function testRetrieveCallback() {
+            // 模擬全家 retrieve.aspx 回調的參數格式
+            const testParams = new URLSearchParams({
+                pkey: '022470',
+                city: '桃園市',
+                area: '中壢區',
+                searchType: '0',
+                storeName: '全家測試門市',
+                address: '測試路123號',
+                phone: '03-1234-5678'
+            });
+            
+            const retrieveUrl = `/api/logistics/family-retrieve?${testParams.toString()}`;
+            window.open(retrieveUrl, 'familyRetrieveTest', 'width=600,height=500,scrollbars=yes,resizable=yes');
+            
+            const result = document.getElementById('urlResult');
+            result.style.display = 'block';
+            result.innerHTML = `
+                <h3>Retrieve 端點測試</h3>
+                <div class="url">${retrieveUrl}</div>
+                <p>已開啟 retrieve.aspx 模擬回調測試視窗</p>
+            `;
+        }
+
+        async function testCallback(format) {
+            const callbackUrl = '/api/logistics/family-mart-callback';
+            let testUrl = callbackUrl;
+            
+            switch (format) {
+                case 'direct':
+                    testUrl += '?storeId=FM001&storeName=全家測試門市&storeAddress=台北市測試路123號&storePhone=02-1234-5678';
+                    break;
+                case 'cvs':
+                    testUrl += '?CVSStoreID=FM002&CVSStoreName=全家CVS格式門市&CVSAddress=新北市CVS路456號&CVSTelephone=02-2345-6789';
+                    break;
+                case 'json':
+                    const jsonData = encodeURIComponent(JSON.stringify({
+                        storeId: 'FM003',
+                        storeName: '全家JSON格式門市',
+                        storeAddress: '桃園市JSON路789號',
+                        storePhone: '03-3456-7890'
+                    }));
+                    testUrl += '?data=' + jsonData;
+                    break;
+            }
+            
+            const testWindow = window.open(testUrl, 'callbackTest', 'width=600,height=400,scrollbars=yes,resizable=yes');
+            
+            const result = document.getElementById('callbackResult');
+            result.style.display = 'block';
+            result.innerHTML = `<p>已開啟 ${format} 格式的回調測試視窗</p>`;
+        }
+    </script>
+</body>
+</html>

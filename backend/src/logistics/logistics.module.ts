@@ -4,6 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 
 import { LogisticsController } from './logistics.controller';
 import { NewebpayLogisticsService } from './newebpay-logistics.service';
+import { StoreManagementController } from './controllers/store-management.controller';
+import { TestController } from './test.controller';
+import { SimpleController } from './simple.controller';
+// import { FamilyMartPageController } from './familymart-page.controller';
 
 import { LogisticsOrder } from './entities/logistics-order.entity';
 import { LogisticsStatusRecord } from './entities/logistics-status-record.entity';
@@ -27,6 +31,9 @@ import { ConvenienceStore } from './entities/convenience-store.entity';
   ],
   controllers: [
     LogisticsController,
+    SimpleController,
+    StoreManagementController,
+    // TestController,
   ],
   providers: [
     NewebpayLogisticsService,

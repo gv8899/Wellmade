@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface MockStore {
@@ -11,7 +11,7 @@ interface MockStore {
   distance?: number;
 }
 
-export default function TestStoreMapPage() {
+function TestStoreMapContent() {
   const searchParams = useSearchParams();
   const storeType = searchParams.get('storeType') || '1';
   const merchantOrderNo = searchParams.get('merchantOrderNo') || '';
@@ -218,5 +218,20 @@ export default function TestStoreMapPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TestStoreMapPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">載入門市地圖中...</p>
+        </div>
+      </div>
+    }>
+      <TestStoreMapContent />
+    </Suspense>
   );
 }

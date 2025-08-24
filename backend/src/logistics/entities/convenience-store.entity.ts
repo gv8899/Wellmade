@@ -34,9 +34,17 @@ export class ConvenienceStore {
 
   @Column({ name: 'store_address' })
   storeAddress: string;                 // 門市地址
+  
+  // 新增別名欄位以便相容新的同步服務
+  @Column({ name: 'address', nullable: true })
+  address: string;                      // 地址別名
 
   @Column({ name: 'store_telephone', nullable: true })
   storeTelephone: string;               // 門市電話
+  
+  // 新增別名欄位
+  @Column({ name: 'phone', nullable: true })
+  phone: string;                        // 電話別名
 
   /**
    * 地理位置資訊
@@ -46,6 +54,10 @@ export class ConvenienceStore {
 
   @Column({ name: 'district', nullable: true })
   district: string;                     // 區域
+  
+  // 新增區域別名欄位
+  @Column({ name: 'area', nullable: true })
+  area: string;                         // 區域別名
 
   @Column({ name: 'postal_code', nullable: true })
   postalCode: string;                   // 郵遞區號
@@ -79,6 +91,18 @@ export class ConvenienceStore {
 
   @Column({ name: 'special_note', nullable: true })
   specialNote: string;                  // 特殊注意事項
+  
+  // 新增服務項目欄位
+  @Column({ name: 'services', type: 'json', nullable: true })
+  services: string[];                   // 服務項目列表
+  
+  // 新增營業時間別名
+  @Column({ name: 'business_hours', nullable: true })
+  businessHours: string;                // 營業時間別名
+  
+  // 新增最後更新時間
+  @Column({ name: 'last_updated', nullable: true })
+  lastUpdated: Date;                    // 資料最後更新時間
 
   @Column({ name: 'max_package_size', nullable: true })
   maxPackageSize: string;               // 最大包裹尺寸限制

@@ -220,7 +220,7 @@ const NewebpayStoreSelector: React.FC<NewebpayStoreSelectorProps> = ({
           <br />
           • 7-ELEVEN → 統一超商電子地圖系統 ✅
           <br />
-          • 全家便利商店 → 測試模式（需申請 API）⚠️
+          • 全家便利商店 → 自建門市選擇服務（基於 taiwan-cvs-map）✅
           <br />
           • 其他超商 → 測試模式 ⚠️
           <br />
@@ -372,9 +372,10 @@ const NewebpayStoreSelector: React.FC<NewebpayStoreSelectorProps> = ({
         <Text variant="footnote" color={colors.success} colorMode={colorMode}>
           • 金流與物流整合在同一平台 ✅<br />
           • 支援四大超商門市選擇 (7-11、全家、萊爾富、OK) ✅<br />
+          • 官方門市選擇頁面整合 (7-11、全家) ✅<br />
           • 統一的訂單管理和客戶服務 ✅<br />
           • 簡化技術整合和維護成本 ✅<br />
-          • 🔑 需要申請正式物流認證資訊啟用
+          • 🔑 需要申請正式物流認證資訊啟用完整功能
         </Text>
       </div>
 

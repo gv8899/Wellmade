@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全家便利商店門市選擇</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #00A651, #00C766);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 20px auto;
+            padding: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,166,81,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: white;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .search-section {
+            padding: 24px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #00A651;
+        }
+        
+        .search-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            align-items: stretch;
+        }
+        
+        /* 手機版響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+                margin: 16px;
+            }
+            
+            .form-group {
+                margin-bottom: 0;
+            }
+            
+            .tab-btn {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+            
+            .form-group input, .form-group select {
+                padding: 16px;
+                font-size: 16px;
+            }
+            
+            .form-group label {
+                font-size: 16px;
+                font-weight: 600;
+            }
+            
+            .form-group small {
+                font-size: 13px;
+            }
+        }
+        
+        .btn {
+            background: #00A651;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .btn:hover {
+            background: #008a44;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #00A651;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            padding: 24px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .results-count {
+            background: #00A651;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .store-list {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .store-item {
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .store-item:hover {
+            border-color: #00A651;
+            box-shadow: 0 4px 12px rgba(0,166,81,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .store-item.selected {
+            border-color: #00A651;
+            background: #f0f9f4;
+        }
+        
+        .store-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00A651;
+            margin-bottom: 8px;
+        }
+        
+        .store-id {
+            background: #f8f9fa;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+        
+        .store-address {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .store-phone {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .store-services {
+            margin-top: 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .service-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .selected-store {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00A651;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            box-shadow: 0 8px 32px rgba(0,166,81,0.3);
+            cursor: pointer;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+        
+        .selected-store:hover {
+            transform: translateX(-50%) translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,166,81,0.4);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e53e3e;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .no-results h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        /* Tab 樣式 */
+        .tab-container {
+            margin-bottom: 20px;
+            padding: 0 24px;
+        }
+        
+        .tab-header {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(0,166,81,0.1);
+            color: #00A651;
+        }
+        
+        .tab-btn.active {
+            background: #00A651;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,166,81,0.3);
+        }
+        
+        .tab-btn.active:hover {
+            background: #008a44;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="color: #1E88E5; margin: 0; font-size: 28px; font-weight: bold;">全家便利商店</h1>
+            <h2 style="color: #00A651; margin: 10px 0 0 0; font-size: 20px; font-weight: bold;">門市選擇</h2>
+        </div>
+        
+        <!-- 搜尋方式切換 Tab -->
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-btn active" onclick="switchTab('city')" id="cityTab">
+                    縣市搜尋
+                </button>
+                <button class="tab-btn" onclick="switchTab('name')" id="nameTab">
+                    門市名稱搜尋
+                </button>
+            </div>
+        </div>
+
+        <!-- 縣市搜尋 Tab -->
+        <div id="citySearchTab" class="search-section">
+            <div class="search-row">
+                <div class="form-group">
+                    <label for="city">縣市</label>
+                    <select id="city">
+                        <option value="台北市">台北市</option>
+                        <option value="新北市">新北市</option>
+                        <option value="桃園市">桃園市</option>
+                        <option value="台中市">台中市</option>
+                        <option value="台南市">台南市</option>
+                        <option value="高雄市">高雄市</option>
+                        <option value="基隆市">基隆市</option>
+                        <option value="新竹市">新竹市</option>
+                        <option value="新竹縣">新竹縣</option>
+                        <option value="苗栗縣">苗栗縣</option>
+                        <option value="彰化縣">彰化縣</option>
+                        <option value="南投縣">南投縣</option>
+                        <option value="雲林縣">雲林縣</option>
+                        <option value="嘉義市">嘉義市</option>
+                        <option value="嘉義縣">嘉義縣</option>
+                        <option value="屏東縣">屏東縣</option>
+                        <option value="宜蘭縣">宜蘭縣</option>
+                        <option value="花蓮縣">花蓮縣</option>
+                        <option value="台東縣">台東縣</option>
+                        <option value="澎湖縣">澎湖縣</option>
+                        <option value="金門縣">金門縣</option>
+                        <option value="連江縣">連江縣</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="area">區域</label>
+                    <select id="area">
+                        <option value="">請選擇區域（或留空搜尋全市）</option>
+                    </select>
+                </div>
+                <div class="btn-wrapper">
+                    <button class="btn" onclick="searchStores()" id="citySearchBtn">
+                        搜尋門市
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 門市名稱搜尋 Tab -->
+        <div id="nameSearchTab" class="search-section" style="display: none;">
+            <div class="search-row">
+                <div class="form-group">
+                    <label for="nameSearchCity">縣市 *</label>
+                    <select id="nameSearchCity">
+                        <option value="">請選擇縣市</option>
+                        <option value="台北市">台北市</option>
+                        <option value="新北市">新北市</option>
+                        <option value="桃園市">桃園市</option>
+                        <option value="台中市">台中市</option>
+                        <option value="台南市">台南市</option>
+                        <option value="高雄市">高雄市</option>
+                        <option value="基隆市">基隆市</option>
+                        <option value="新竹市">新竹市</option>
+                        <option value="新竹縣">新竹縣</option>
+                        <option value="苗栗縣">苗栗縣</option>
+                        <option value="彰化縣">彰化縣</option>
+                        <option value="南投縣">南投縣</option>
+                        <option value="雲林縣">雲林縣</option>
+                        <option value="嘉義市">嘉義市</option>
+                        <option value="嘉義縣">嘉義縣</option>
+                        <option value="屏東縣">屏東縣</option>
+                        <option value="宜蘭縣">宜蘭縣</option>
+                        <option value="花蓮縣">花蓮縣</option>
+                        <option value="台東縣">台東縣</option>
+                        <option value="澎湖縣">澎湖縣</option>
+                        <option value="金門縣">金門縣</option>
+                        <option value="連江縣">連江縣</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="storeName">門市名稱關鍵字 *</label>
+                    <input type="text" id="storeName">
+                </div>
+                <div class="btn-wrapper">
+                    <button class="btn" onclick="searchStores()" id="nameSearchBtn">
+                        搜尋門市
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <span id="loadingText">正在搜尋全家便利商店...</span>
+        </div>
+        
+        <div id="errorSection" class="error" style="display: none;">
+            <h3>❌ 搜尋失敗</h3>
+            <p id="errorMessage"></p>
+            <button class="btn" onclick="searchStores()" style="margin-top: 16px;">
+                重新搜尋
+            </button>
+        </div>
+        
+        <div id="resultsSection" class="results" style="display: none;">
+            <div class="results-header">
+                <div class="results-title">搜尋結果</div>
+                <div class="results-count" id="resultsCount">0 間門市</div>
+            </div>
+            <div id="storeList" class="store-list"></div>
+            
+            <div id="noResults" class="no-results" style="display: none;">
+                <h3>找不到門市</h3>
+                <p>請嘗試調整搜尋條件或選擇其他區域</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="selectedStoreBar" class="selected-store" style="display: none;" onclick="confirmSelection()">
+        <span id="selectedStoreName">確認選擇此門市</span>
+    </div>
+
+    <script>
+        console.log('🏪 全家便利商店門市選擇器載入');
+        
+        let selectedStore = null;
+        let allStores = [];
+        let cityAreas = {}; // 儲存每個縣市的區域資訊
+        let currentSearchMode = 'city'; // 預設為縣市搜尋模式
+        
+        // Tab 切換函數
+        function switchTab(mode) {
+            currentSearchMode = mode;
+            
+            // 更新 tab 按鈕狀態
+            document.getElementById('cityTab').classList.toggle('active', mode === 'city');
+            document.getElementById('nameTab').classList.toggle('active', mode === 'name');
+            
+            // 切換搜尋區域顯示
+            document.getElementById('citySearchTab').style.display = mode === 'city' ? 'block' : 'none';
+            document.getElementById('nameSearchTab').style.display = mode === 'name' ? 'block' : 'none';
+            
+            // 清空搜尋結果
+            clearResults();
+            
+            console.log(`切換到${mode === 'city' ? '縣市搜尋' : '門市名稱搜尋'}模式`);
+        }
+        
+        // 清空搜尋結果
+        function clearResults() {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            selectedStore = null;
+            allStores = [];
+            document.getElementById('selectedStoreBar').style.display = 'none';
+        }
+        
+        // 更新載入狀態文字
+        function updateLoadingText(text) {
+            const loadingText = document.getElementById('loadingText');
+            if (loadingText) {
+                loadingText.textContent = text;
+            }
+        }
+        
+        // 頁面載入時載入台北市的區域選項
+        window.addEventListener('load', async () => {
+            try {
+                // 載入台北市的區域選項，讓用戶可以選擇
+                await loadAreasForCity('台北市');
+            } catch (error) {
+                console.error('載入區域失敗:', error);
+            }
+        });
+        
+        // 監聽縣市變化，動態載入區域
+        document.getElementById('city').addEventListener('change', function() {
+            const selectedCity = this.value;
+            loadAreasForCity(selectedCity);
+        });
+        
+        // 動態載入指定縣市的區域選項
+        async function loadAreasForCity(city) {
+            const areaSelect = document.getElementById('area');
+            
+            // 重置區域選單
+            areaSelect.innerHTML = '<option value="">請選擇區域（或留空搜尋全市）</option>';
+            areaSelect.innerHTML += '<option value="">載入中...</option>';
+            
+            try {
+                // 如果已經有該縣市的區域資訊，直接使用
+                if (cityAreas[city]) {
+                    populateAreaSelect(cityAreas[city]);
+                    return;
+                }
+                
+                // 查詢該縣市所有門市來獲取區域資訊
+                const response = await fetch('/api/logistics/family-stores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        city: city,
+                        area: '', // 空的區域來獲取所有區域
+                        road: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.stores.length > 0) {
+                    // 從門市資料中提取所有區域
+                    const areas = [...new Set(data.stores.map(store => store.area))];
+                    areas.sort(); // 按字母順序排序
+                    
+                    // 儲存該縣市的區域資訊
+                    cityAreas[city] = areas;
+                    
+                    // 填充區域選單
+                    populateAreaSelect(areas);
+                    
+                    console.log(`${city} 的區域:`, areas);
+                } else if (data.apiError) {
+                    // API 暫時錯誤，顯示提示但允許搜尋
+                    areaSelect.innerHTML = '<option value="">暫時無法載入區域，可留空搜尋全市</option>';
+                    console.log(`${city} API 暫時錯誤:`, data.message);
+                } else {
+                    areaSelect.innerHTML = '<option value="">該縣市暫無門市資料</option>';
+                }
+                
+            } catch (error) {
+                console.error('載入區域失敗:', error);
+                areaSelect.innerHTML = '<option value="">載入區域失敗</option>';
+            }
+        }
+        
+        // 填充區域選單
+        function populateAreaSelect(areas) {
+            const areaSelect = document.getElementById('area');
+            areaSelect.innerHTML = '<option value="">請選擇區域（或留空搜尋全市）</option>';
+            
+            areas.forEach(area => {
+                if (area && area.trim()) { // 確保區域名稱不為空
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    areaSelect.appendChild(option);
+                }
+            });
+        }
+        
+        async function searchStores() {
+            // 顯示載入狀態
+            showLoading();
+            
+            try {
+                let allFoundStores = [];
+                
+                if (currentSearchMode === 'name') {
+                    // 門市名稱搜尋模式 - 縣市+關鍵字
+                    const selectedCity = document.getElementById('nameSearchCity').value.trim();
+                    const storeName = document.getElementById('storeName').value.trim();
+                    
+                    // 驗證必填欄位
+                    if (!selectedCity) {
+                        showError('請選擇縣市');
+                        return;
+                    }
+                    
+                    if (!storeName || storeName.length < 2) {
+                        showError('請輸入至少2個字符的門市名稱關鍵字');
+                        return;
+                    }
+                    
+                    console.log(`門市名稱搜尋: ${selectedCity} + "${storeName}"`);;
+                    updateLoadingText(`正在搜尋 ${selectedCity} 的門市...`);
+                    
+                    // 發送單一縣市的搜尋請求
+                    const response = await fetch('/api/logistics/family-stores', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            city: selectedCity,
+                            area: ''  // 不限制區域，搜尋整個縣市
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`📡 ${selectedCity} API 回應: success=${data.success}, stores=${data.stores?.length || 0}`);
+                    
+                    if (data.success && data.stores) {
+                        // 篩選包含關鍵字的門市
+                        const matchedStores = data.stores.filter(store => {
+                            const storeNameLower = store.storeName.toLowerCase();
+                            const queryLower = storeName.toLowerCase();
+                            
+                            const isMatch = storeNameLower.includes(queryLower) || 
+                                           store.storeName.includes(storeName);
+                            
+                            if (isMatch) {
+                                console.log(`🎯 ${selectedCity} 找到匹配門市: ${store.storeName}`);
+                            }
+                            
+                            return isMatch;
+                        });
+                        
+                        allFoundStores = matchedStores;
+                        console.log(`✅ ${selectedCity} 找到 ${allFoundStores.length} 間符合 "${storeName}" 的門市`);
+                    } else {
+                        throw new Error(data.error || '搜尋失敗');
+                    }
+                    
+                } else {
+                    // 縣市搜尋模式
+                    const city = document.getElementById('city').value;
+                    const area = document.getElementById('area').value.trim();
+                    
+                    console.log(`縣市搜尋: ${city} ${area || '(全市)'}`);;
+                    
+                    const response = await fetch('/api/logistics/family-stores', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            city: city,
+                            area: area
+                        })
+                    });
+                    const data = await response.json();
+                    
+                    console.log('API 響應:', data);
+                    
+                    if (data.success) {
+                        allFoundStores = data.stores || [];
+                        console.log(`${city} ${area || '(全市)'} 找到 ${allFoundStores.length} 間門市`);
+                    } else {
+                        throw new Error(data.error || '搜尋失敗');
+                    }
+                }
+                
+                // 儲存並顯示結果
+                allStores = allFoundStores;
+                displayStores(allFoundStores);
+                
+            } catch (error) {
+                console.error('搜尋錯誤:', error);
+                showError('網路連線錯誤，請稍後再試');
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // 根據搜尋模式更新載入文字
+            const loadingText = document.getElementById('loadingText');
+            if (currentSearchMode === 'name') {
+                loadingText.textContent = '正在跨縣市搜尋門市名稱...';
+            } else {
+                loadingText.textContent = '正在搜尋全家便利商店...';
+            }
+            
+            // 禁用所有搜尋按鈕
+            document.getElementById('citySearchBtn').disabled = true;
+            document.getElementById('nameSearchBtn').disabled = true;
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            
+            // 重新啟用所有搜尋按鈕
+            document.getElementById('citySearchBtn').disabled = false;
+            document.getElementById('nameSearchBtn').disabled = false;
+        }
+        
+        function displayStores(stores) {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // 重新啟用所有搜尋按鈕
+            document.getElementById('citySearchBtn').disabled = false;
+            document.getElementById('nameSearchBtn').disabled = false;
+            
+            const resultsCount = document.getElementById('resultsCount');
+            const storeList = document.getElementById('storeList');
+            const noResults = document.getElementById('noResults');
+            
+            if (stores.length === 0) {
+                storeList.innerHTML = '';
+                noResults.style.display = 'block';
+                resultsCount.textContent = '0 間門市';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            // 檢查是否為跨縣市搜尋結果
+            const cityGroups = {};
+            stores.forEach(store => {
+                if (!cityGroups[store.city]) {
+                    cityGroups[store.city] = [];
+                }
+                cityGroups[store.city].push(store);
+            });
+            
+            const cityCount = Object.keys(cityGroups).length;
+            
+            // 更新結果統計
+            if (cityCount > 1) {
+                const cityStats = Object.keys(cityGroups).map(city => 
+                    `${city}(${cityGroups[city].length})`
+                ).join('、');
+                resultsCount.innerHTML = `共找到 ${stores.length} 間門市<br><small style="color: #666;">分布於: ${cityStats}</small>`;
+            } else {
+                resultsCount.textContent = `${stores.length} 間門市`;
+            }
+            
+            // 如果是跨縣市搜尋，按縣市分組顯示
+            if (cityCount > 1) {
+                let html = '';
+                
+                // 按縣市分組顯示，先顯示門市較多的縣市
+                const sortedCities = Object.keys(cityGroups).sort((a, b) => 
+                    cityGroups[b].length - cityGroups[a].length
+                );
+                
+                sortedCities.forEach((city, cityIndex) => {
+                    const cityStores = cityGroups[city];
+                    
+                    html += `
+                        <div class="city-group">
+                            <div class="city-header">
+                                <h3 style="margin: 16px 0 12px 0; color: #00A651; font-size: 16px; font-weight: bold;">
+                                    ${city} (${cityStores.length} 間門市)
+                                </h3>
+                            </div>
+                    `;
+                    
+                    cityStores.forEach(store => {
+                        html += `
+                            <div class="store-item" onclick="selectStore('${store.storeId}')">
+                                <div class="store-name">${store.storeName}</div>
+                                <div class="store-id">門市代碼: ${store.storeId}</div>
+                                <div class="store-address">${store.storeAddress}</div>
+                                <div class="store-phone">📞 ${store.storePhone}</div>
+                                ${store.services && store.services.length > 0 ? `
+                                    <div class="store-services">
+                                        ${store.services.slice(0, 5).map(service => 
+                                            `<span class="service-tag">${getServiceName(service)}</span>`
+                                        ).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    
+                    // 除了最後一組，加上分隔線
+                    if (cityIndex < sortedCities.length - 1) {
+                        html += '<div style="border-top: 1px solid #eee; margin: 20px 0;"></div>';
+                    }
+                });
+                
+                storeList.innerHTML = html;
+            } else {
+                // 單一縣市的原有顯示方式
+                storeList.innerHTML = stores.map(store => `
+                    <div class="store-item" onclick="selectStore('${store.storeId}')">
+                        <div class="store-name">${store.storeName}</div>
+                        <div class="store-id">門市代碼: ${store.storeId}</div>
+                        <div class="store-address">${store.storeAddress}</div>
+                        <div class="store-phone">📞 ${store.storePhone}</div>
+                        ${store.services && store.services.length > 0 ? `
+                            <div class="store-services">
+                                ${store.services.slice(0, 5).map(service => 
+                                    `<span class="service-tag">${getServiceName(service)}</span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function getServiceName(service) {
+            const serviceMap = {
+                'CS': '中信ATM',
+                'ice': '思樂冰',
+                'hd': '好喝',
+                'Rest': '座位區',
+                'Card': '悠遊卡',
+                'jp': '日幣',
+                'dri': '現磨咖啡',
+                'SWEETPOTATO': '烤地瓜',
+                'icecream': '冰淇淋',
+                'Famiice': '霜淇淋',
+                'Rpotato': '蒸地瓜',
+                'eco': '環保'
+            };
+            return serviceMap[service] || service;
+        }
+        
+        function selectStore(storeId) {
+            // 移除舊的選擇
+            document.querySelectorAll('.store-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 選擇新的門市
+            selectedStore = allStores.find(store => store.storeId === storeId);
+            
+            if (selectedStore) {
+                // 高亮選中的門市
+                event.currentTarget.classList.add('selected');
+                
+                // 顯示底部確認按鈕
+                const selectedBar = document.getElementById('selectedStoreBar');
+                const selectedName = document.getElementById('selectedStoreName');
+                
+                selectedName.textContent = `選擇 ${selectedStore.storeName}`;
+                selectedBar.style.display = 'block';
+                
+                console.log('選擇門市:', selectedStore);
+            }
+        }
+        
+        function confirmSelection() {
+            if (!selectedStore) {
+                alert('請先選擇一間門市');
+                return;
+            }
+            
+            console.log('確認選擇門市:', selectedStore);
+            
+            // 通知父視窗
+            if (window.opener) {
+                console.log('向父視窗發送門市選擇訊息');
+                window.opener.postMessage({
+                    type: 'STORE_SELECTED',
+                    store: {
+                        storeId: selectedStore.storeId,
+                        storeName: selectedStore.storeName,
+                        storeAddress: selectedStore.storeAddress,
+                        storePhone: selectedStore.storePhone
+                    },
+                    originalData: selectedStore,
+                    source: 'family-mart-api'
+                }, '*');
+                
+                alert('門市選擇完成！正在關閉視窗...');
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
+                
+            } else {
+                alert(`門市選擇完成！\\n\\n門市名稱：${selectedStore.storeName}\\n門市代碼：${selectedStore.storeId}\\n門市地址：${selectedStore.storeAddress}\\n門市電話：${selectedStore.storePhone}`);
+            }
+        }
+        
+        // Enter 鍵搜尋
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStores();
+            }
+        });
+        
+        // 區域輸入框 Enter 鍵搜尋
+        document.getElementById('area').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchStores();
+            }
+        });
+    </script>
+</body>
+</html>
